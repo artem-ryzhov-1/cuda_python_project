@@ -7,8 +7,8 @@
 #include "constants.cuh"
 
 // #include "cuda_intellisense_fixes.cuh"
-// #include "host_branch_grid.cuh"
-// #include "host_branch_single.cuh"
+#include "host/host_branch_grid.cuh"
+#include "host/host_branch_single.cuh"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -354,31 +354,31 @@ int main(int argc, char** argv)
 
 
     
-    // if (single_mode) {
-    //     run_single_mode(
-    //         eps0_target, A_target, N_steps_period, N_periods,
-    //         dt, nu, alpha,
-    //         rho00_init, rho11_init, rho22_init, rho33_init,
-    //         delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
-    //         path_dynamics_single_mode_output_csv, ouput_option, unrolled_option,
-    //         single_mode_log_option, path_dynamics_single_mode_output_log_csv,
-    //         path_dynamics_single_mode_output_log_hdf5,
-    //         threads_per_traj_opt,
-    //         host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
-    //     );
-    // }
-    // else {
-    //     run_grid_mode(
-    //         eps0_min, eps0_max, A_min, A_max,
-    //         N_points_eps0_range, N_points_A_range,
-    //         N_steps_period, N_periods, N_periods_avg, dt, nu, alpha,
-    //         path_output_csv, avg_periods_ouput_option, ouput_option, unrolled_option,
-    //         ram_shared_mmap_name, threads_per_traj_opt,
-    //         rho00_init, rho11_init, rho22_init, rho33_init,
-    //         delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
-    //         host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
-    //     );
-    // }
+    if (single_mode) {
+        run_single_mode(
+            eps0_target, A_target, N_steps_period, N_periods,
+            dt, nu, alpha,
+            rho00_init, rho11_init, rho22_init, rho33_init,
+            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            path_dynamics_single_mode_output_csv, ouput_option, unrolled_option,
+            single_mode_log_option, path_dynamics_single_mode_output_log_csv,
+            path_dynamics_single_mode_output_log_hdf5,
+            threads_per_traj_opt,
+            host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
+        );
+    }
+    else {
+        run_grid_mode(
+            eps0_min, eps0_max, A_min, A_max,
+            N_points_eps0_range, N_points_A_range,
+            N_steps_period, N_periods, N_periods_avg, dt, nu, alpha,
+            path_output_csv, avg_periods_ouput_option, ouput_option, unrolled_option,
+            ram_shared_mmap_name, threads_per_traj_opt,
+            rho00_init, rho11_init, rho22_init, rho33_init,
+            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
+        );
+    }
 
     
 

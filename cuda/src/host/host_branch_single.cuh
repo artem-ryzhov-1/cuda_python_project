@@ -7,15 +7,22 @@
 #include <vector>         // Used: std::vector
 #include <cmath>          // Used: M_PIf, std::max, etc.
 #include <string>
-#include "cuda_intellisense_fixes.cuh"
-#include "lindblad_kernel_single.cuh"
+// #include "cuda_intellisense_fixes.cuh"
+#include "kernels/lindblad_kernel_single.cuh"
 #include "constants.cuh"
-#include "writer.cuh"
+// #include "writer.cuh"
 #include "host_helpers.cuh"
-#include "hdf5_writer.cuh"
+// #include "hdf5_writer.cuh"
+#include <iomanip>
+#include <fstream>
 
 
-
+#ifdef _WIN32
+    #include <io.h>     // for _commit(), _close() on Windows
+#else
+    #include <fcntl.h>  // for open() on Unix-like systems
+    #include <unistd.h> // for fsync(), close() on Unix-like systems
+#endif
 
 
 // #include <cuda_profiler_api.h> // for #NCU
@@ -54,7 +61,7 @@ __host__ inline void run_single_mode(
     const float gL_phi, const float gR_en, const float gR_phi,
 
     const std::string& path_dynamics_single_mode_output_csv,
-    const std::string& ouput_option,
+    const std::string& output_option,
     const std::string& unrolled_option,
     const bool single_mode_log_option,
     const std::string& path_dynamics_single_mode_output_log_csv,
@@ -301,7 +308,7 @@ __host__ inline void run_single_mode(
             d_log_buffer
             );
 
-    }
+    }/*
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == false
         && threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle")
@@ -324,7 +331,7 @@ __host__ inline void run_single_mode(
         && single_mode_log_option == true
         && threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle")
     {
-        /* not yet implemented. for faster compilation
+        //not yet implemented. for faster compilation
         printf("Launching kernel singlemode_unrolled_warp with log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
@@ -338,9 +345,9 @@ __host__ inline void run_single_mode(
 
             d_log_buffer
         );
-        */
+        
     }
-
+    */
 
     // check for launch errors immediately
     cudaError_t err = cudaGetLastError();
@@ -364,8 +371,8 @@ __host__ inline void run_single_mode(
 
 
 
-    if (ouput_option != "ssd_csv") {
-        std::cerr << "ERROR: ouput_option = 'ram' is not implemented for singlemode" << std::endl;
+    if (output_option != "ssd_csv") {
+        std::cerr << "ERROR: output_option = 'ram' is not implemented for singlemode" << std::endl;
     }
 
     // -----------------------
@@ -436,7 +443,7 @@ __host__ inline void run_single_mode(
         // -----------------------
         // write log in HDF5 file
         // -----------------------
-
+/*
         write_log_entries_to_hdf5(
             h_log_buffer,
             path_dynamics_single_mode_output_log_hdf5,
@@ -455,7 +462,7 @@ __host__ inline void run_single_mode(
 
             6
         );
-
+*/
         // -----------------------
         // write log in CSV file
         // -----------------------

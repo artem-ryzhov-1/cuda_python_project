@@ -7,10 +7,10 @@
 #include <vector>         // Used: std::vector
 #include <cmath>          // Used: M_PIf, std::max, etc, sqrt
 #include <string>
-#include "cuda_intellisense_fixes.cuh"
-#include "lindblad_kernel_grid.cuh"
+// #include "cuda_intellisense_fixes.cuh"
+#include "kernels/lindblad_kernel_grid.cuh"
 #include "constants.cuh"
-#include "writer.cuh"
+// #include "writer.cuh"
 #include "host_helpers.cuh"
 #include <cassert>
 
@@ -18,7 +18,7 @@
 //#include <fstream>
 //#include <cstdint>
 //#include <algorithm>
-//#include <iomanip>
+#include <iomanip>
 //#include <fcntl.h>    // open
 //#include <windows.h>
 
@@ -287,7 +287,7 @@ __host__ inline void run_grid_mode(
         int total_threads = warps_needed * WARP_SIZE;
         threads_per_block = 128;  // or 256, 512, multiple of 32
         blocks = (total_threads + threads_per_block - 1) / threads_per_block;
-
+        /*
         if (threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle"){
 
             printf("Launching kernel unrolled one_warp_one_traj shuffle: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
@@ -313,6 +313,7 @@ __host__ inline void run_grid_mode(
             );
         
         }
+        */
     }
 
 
@@ -376,7 +377,7 @@ __host__ inline void run_grid_mode(
     // -----------------------
     // output results
     // -----------------------
-
+/*
     if (ouput_option == "ssd_csv") {
         write_to_csv(
             rho_avg, eps0_list, A_list,
@@ -410,7 +411,7 @@ __host__ inline void run_grid_mode(
 
         );
     }
-
+*/
 
 
 
