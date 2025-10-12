@@ -46,10 +46,10 @@ This project integrates CUDA for GPU-accelerated computations with Python for hi
 
 1. Open a new Google Colab notebook and enable GPU runtime: `Runtime > Change runtime type > Hardware accelerator > GPU`.
 
-2. Clone the repository and navigate into it:
+2. Clone the repository and navigate into it (private repo will require authentication):
 ```bash
-!git clone https://github.com/yourusername/yourrepo.git
-%cd yourrepo
+!git clone https://github.com/account548567/cuda_python_project.git
+%cd cuda_python_project
 ```
 
 3. Install Python dependencies:
