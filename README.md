@@ -4,6 +4,13 @@
 
 This project integrates CUDA for GPU-accelerated computations with Python for high-level scripting and data handling. It focuses on efficient simulation of Lindblad master equations using custom CUDA kernels, supporting both local environments (Linux/WSL2/Windows) and Google Colab for easy experimentation.
 
+## 🚀 Run in Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/YOUR_REPO/blob/main/path/to/your_notebook.ipynb)
+
+> No installation required. Just click the button and the notebook will open in your browser.
+
+
 ## Features
 - **Cross-Platform Compatibility**: Works on Linux, WSL2, Windows (with CUDA), and Google Colab.
 - **Dynamic GPU Detection**: Build scripts automatically detect and target your GPU architecture.
