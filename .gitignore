@@ -207,4 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 # Ignore CUDA-related files
-cuda/lindblad_gpu/
+cuda/lindblad_gpu
