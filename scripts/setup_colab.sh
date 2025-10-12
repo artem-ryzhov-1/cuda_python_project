@@ -28,6 +28,6 @@ fi
 echo "Using CUDA architecture: $ARCH"
 
 # Compile your CUDA program (adjust paths as needed)
-nvcc -O3 -std=c++17 -arch=$ARCH -Isrc cuda/src/main.cu -o lindblad_gpu
+nvcc -O3 -std=c++17 -arch=$ARCH -I cuda/src cuda/src/main.cu -o lindblad_gpu
 
 echo "Build complete."
