@@ -6,7 +6,7 @@ This project integrates CUDA for GPU-accelerated computations with Python for hi
 
 ## 🚀 Run in Google Colab
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](!git clone https://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@github.com/account548567/cuda_python_project.git)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/account548567/cuda_python_project/blob/main/run_in_colab.ipynb)
 
 > No installation required. Just click the button and the notebook will open in your browser.
 
