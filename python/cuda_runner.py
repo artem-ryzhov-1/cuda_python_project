@@ -131,7 +131,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     output_thread.start()
      
     
-
+    print("c.environment =", c.environment)
         
     if c.environment in ['Windows', 'Linux']:
         # Optional: handle user input for stopping
