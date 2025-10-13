@@ -15,7 +15,7 @@
 #include <cassert>
 
 
-//#include <fstream>
+#include <fstream>
 //#include <cstdint>
 //#include <algorithm>
 #include <iomanip>
@@ -50,6 +50,7 @@ __host__ inline void run_grid_mode(
     const float nu,
     const float alpha,
     const std::string& path_output_csv,
+    const std::string& path_output_bin_file,
     const std::string& avg_periods_ouput_option,
     const std::string& ouput_option,
     const std::string& unrolled_option,
@@ -377,8 +378,91 @@ __host__ inline void run_grid_mode(
     // -----------------------
     // output results
     // -----------------------
-/*
-    if (ouput_option == "ssd_csv") {
+
+    if (ouput_option == "bin_file") {
+
+        /*
+        // Open binary file for writing
+        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        if (!ofs) {
+            std::cerr << "Failed to open file!" << std::endl;
+            return;
+        }
+
+        // Write data to the binary file
+        for (int t_idx = 0; t_idx < host_N_points; t_idx++) {
+            // Write eps0 and A
+            ofs.write(reinterpret_cast<char*>(&eps0_list[t_idx]), sizeof(float));
+            ofs.write(reinterpret_cast<char*>(&A_list[t_idx]), sizeof(float));
+
+            // Write 4 columns from rho_avg
+            size_t base = t_idx * rho_avg_dim;
+            for (int k = 0; k < rho_avg_dim; k++) {
+                ofs.write(reinterpret_cast<char*>(&rho_avg[base + k]), sizeof(float));
+            }
+        }
+        ofs.close();
+        */
+
+        //// Variables for timing
+        //cudaEvent_t start, stop;
+        //// Create events to track the start and stop times
+        //cudaEventCreate(&start);
+        //cudaEventCreate(&stop);
+        //// Start the timer
+        //cudaEventRecord(start, 0);
+
+        // Open binary file for writing
+        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        if (!ofs) {
+            std::cerr << "Failed to open file!" << std::endl;
+            return;
+        }
+
+        // Write header (dimensions)
+        int header[2] = { N_points_A_range, N_points_eps0_range };
+        ofs.write(reinterpret_cast<char*>(header), 2 * sizeof(int));
+
+        // Reorganize data: write all avg00, then all avg01, then avg10, then avg11
+        // For each level k, write in order: A varies fastest, eps0 varies slowest
+        for (int k = 0; k < rho_avg_dim; k++) {
+            for (int i = 0; i < N_points_eps0_range; i++) {
+                for (int j = 0; j < N_points_A_range; j++) {
+                    int idx = i * N_points_A_range + j;
+                    size_t base = idx * rho_avg_dim;
+                    ofs.write(reinterpret_cast<char*>(&rho_avg[base + k]), sizeof(float));
+                }
+            }
+        }
+
+        // Write grids separately at the end for easy access
+        for (int j = 0; j < N_points_A_range; j++) {
+            ofs.write(reinterpret_cast<char*>(&A_list[j]), sizeof(float));
+        }
+        for (int i = 0; i < N_points_eps0_range; i++) {
+            int idx = i * N_points_A_range;
+            ofs.write(reinterpret_cast<char*>(&eps0_list[idx]), sizeof(float));
+        }
+
+        ofs.close();
+
+
+
+        //// Stop the timer
+        //cudaEventRecord(stop, 0);
+        //cudaEventSynchronize(stop);  // Ensure the stop event is complete
+        //// Calculate the elapsed time
+        //float milliseconds = 0.0f;
+        //cudaEventElapsedTime(&milliseconds, start, stop);  // Time in milliseconds
+        //// Print the elapsed time
+        //std::cout << "Kernel execution time: " << milliseconds << " ms" << std::endl;
+        //// Cleanup the events
+        //cudaEventDestroy(start);
+        //cudaEventDestroy(stop);
+
+    }
+    /*
+    else if (ouput_option == "ssd_csv") {
         write_to_csv(
             rho_avg, eps0_list, A_list,
             eps0_min, eps0_max, A_min, A_max,
