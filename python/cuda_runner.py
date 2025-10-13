@@ -131,10 +131,9 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     output_thread.start()
      
     
-    if c.environment in ['Google_Colab', 'WSL2']:
-        print("CUDA program running.")
+
         
-    elif c.environment in ['Windows', 'Linux']:
+    if c.environment in ['Windows', 'Linux']:
         # Optional: handle user input for stopping
         try:
             print("CUDA program running. Press 'q' to stop...")
@@ -166,7 +165,9 @@ def run_gpu_lindblad_program(c: SimulationConfig):
                 proc.send_signal(signal.CTRL_C_EVENT)
             else:
                 proc.send_signal(signal.SIGINT)
-
+    
+    elif c.environment in ['Google_Colab', 'WSL2']:
+        print("CUDA program running (non-interactive mode)...")
 
     # Finalize
     proc.wait()
