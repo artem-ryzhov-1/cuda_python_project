@@ -130,38 +130,42 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     output_thread.daemon = True
     output_thread.start()
      
-
-    # Optional: handle user input for stopping
-    try:
-        print("CUDA program running. Press 'q' to stop...")
-        while True:
-            if proc.poll() is not None:
-                break
-            
-            if platform.system() == 'Windows':
-                if msvcrt.kbhit():
-                    key = msvcrt.getch()
-                    #print(f"Key pressed: {key}")  # Debug print
-                    if key.lower() == b'q':
-                        print("\n'q' pressed. Stopping CUDA program. Sending CTRL_C_EVENT...")
-                        proc.send_signal(signal.CTRL_C_EVENT)
-                        break
-            else:
-                key = input()  # Linux/WSL2/Colab
-                if key.lower() == 'q':
-                    print("\n'q' pressed. Stopping CUDA program. Sending SIGINT...")
-                    proc.send_signal(signal.SIGINT)
+    
+    if c.environment in ['Google_Colab', 'WSL2']:
+        print("CUDA program running.")
+        
+    elif c.environment in ['Windows', 'Linux']:
+        # Optional: handle user input for stopping
+        try:
+            print("CUDA program running. Press 'q' to stop...")
+            while True:
+                if proc.poll() is not None:
                     break
-
-            time.sleep(0.001)  # sleep to reduce CPU hogging
-            
-            
-    except KeyboardInterrupt:
-        print("\nKeyboardInterrupt received in Python. Stopping CUDA program. Sending CTRL_C_EVENT...")
-        if c.environment == "Windows":
-            proc.send_signal(signal.CTRL_C_EVENT)
-        else:
-            proc.send_signal(signal.SIGINT)
+                
+                if c.environment == 'Windows':
+                    if msvcrt.kbhit():
+                        key = msvcrt.getch()
+                        #print(f"Key pressed: {key}")  # Debug print
+                        if key.lower() == b'q':
+                            print("\n'q' pressed. Stopping CUDA program. Sending CTRL_C_EVENT...")
+                            proc.send_signal(signal.CTRL_C_EVENT)
+                            break
+                else:
+                    key = input()  # Linux/WSL2/Colab
+                    if key.lower() == 'q':
+                        print("\n'q' pressed. Stopping CUDA program. Sending SIGINT...")
+                        proc.send_signal(signal.SIGINT)
+                        break
+    
+                time.sleep(0.001)  # sleep to reduce CPU hogging
+                
+                
+        except KeyboardInterrupt:
+            print("\nKeyboardInterrupt received in Python. Stopping CUDA program. Sending CTRL_C_EVENT...")
+            if c.environment == "Windows":
+                proc.send_signal(signal.CTRL_C_EVENT)
+            else:
+                proc.send_signal(signal.SIGINT)
 
 
     # Finalize
