@@ -208,3 +208,4 @@ __marimo__/
 
 # Ignore CUDA-related files
 cuda/lindblad_gpu
+cuda/output/rho_avg_out.bin
