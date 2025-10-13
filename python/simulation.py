@@ -1,0 +1,336 @@
+import os
+#os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'false'
+from pathlib import Path
+import math
+import platform
+import sys
+
+
+from config import SimulationConfig, SimRun
+from cuda_runner import run_gpu_lindblad_program
+from file_io import read_bin_file_and_calculate_deriv
+
+def run_simulation(simr: SimRun):
+    
+    # environment = "Windows" or "Linux" or "Google_Colab" or "WSL2"
+    # Step 1: Get the general system type
+    environment = platform.system()
+    
+    # Step 2: Further refine for Google Colab or WSL2
+    if environment == 'Linux':
+        # Check if we're in Google Colab (check for google.colab module)
+        if 'google.colab' in sys.modules:
+            environment = 'Google_Colab'
+        # Check if it's WSL2 (WSL2 includes 'microsoft' in release string)
+        elif 'microsoft' in platform.release().lower():
+            environment = 'WSL2'
+
+    print(f"Environment detected: {environment}")
+    
+    
+    
+    ram_shared_mmap_name = "MySimSharedMemory"  # can also generate dynamically if needed
+    run_cuda_program_option = True
+    
+    avg_periods_ouput_option = "last" # "last" or "last_2last"
+    unrolled_option = "unrolled" # "as_arrays" or "unrolled"
+    
+    single_point_mode_flag = "grid" # "grid" or "single" 
+    ouput_option = "bin_file" # "ssd_csv" or "ram" or "bin_file"
+    single_mode_log_option = False # boolean: "True" or "False"
+    
+    
+    # "one_thread_per_traj" or "thread_group_in_warp_per_traj_shuffle" or "thread_group_in_warp_per_traj_shmem"
+    threads_per_traj_opt = "one_thread_per_traj" 
+    #threads_per_traj_opt = "thread_group_in_warp_per_traj_shuffle" 
+    #threads_per_traj_opt = "thread_group_in_warp_per_traj_shmem" 
+    
+
+    eps0_target_singlepoint = 0.0002
+    A_target_singlepoint = 0.0033
+    
+
+    
+    eps0_min =  simr.eps0_min
+    eps0_max =  simr.eps0_max
+    A_min =     simr.A_min
+    A_max =     simr.A_max
+    
+    N_points_target = simr.N_points_target
+    N_steps_period = simr.N_steps_period
+    N_periods =      simr.N_periods
+    N_periods_avg =  simr.N_periods_avg
+    
+    #N_points_target = 2500*10
+    #N_steps_period = 10_000*1
+    #N_periods =      5
+    
+    
+    #delta = 0.00011608757555650906
+    delta_C = simr.delta_C
+    delta_L = 0
+    delta_R = 0
+    
+    alpha = 70_819 # or 1?
+    nu    = 21
+    
+    
+    #rho00_init = 0
+    #rho11_init = 1
+    #rho22_init = 0
+    #rho33_init = 0
+    
+    rho00_init = 0.25
+    rho11_init = 0.25
+    rho22_init = 0.25
+    rho33_init = 0.25
+    
+    
+    # ===== Physics params =====
+    
+    
+    GammaL0  = simr.GammaL0
+    GammaR0  = simr.GammaR0
+    muL  = 0
+    muR  = 0
+    T_K  = 0
+    
+    Gamma_eg0 = simr.Gamma_eg0
+    omega_c = 0.0015731484686413405
+    
+    Gamma_phi0 = simr.Gamma_phi0
+    
+    
+    gamma  = 0.8
+    g_en   = gamma
+    g_phi  = gamma * 4.5
+    gL_en  = gamma * 62.5
+    gL_phi = gL_en * 4.5
+    gR_en  = gamma * 15.0
+    gR_phi = gR_en * 4.5
+    
+    
+    
+    a = 0.1
+    m = 10.0
+    
+    # paths
+    
+    
+    
+    #if system == "Windows":
+
+    # Define the base output path
+    #path_output = Path(r"S:/Physics/2025_DQD/cuda/programs/CUDA/set_of_interferograms/v4.1/output")
+    #path_output = Path("R:/output")  # The path can still use forward slashes or backslashes on Windows
+      
+    if environment == "Windows":
+        #program_path = os.path.expanduser("/mnt/c/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/lindblad_cuda3.exe")
+        cuda_program_path = Path("C:/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/lindblad_cuda3.exe")
+        output_dir        = Path("C:/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/output")
+
+    elif environment in ["Linux", "Google_Colab", "WSL2"]:
+
+        # Get the directory of the script
+        script_dir = Path(__file__).resolve().parent  # This gives the directory of the script
+        
+        # Define the base path to 'output' directory which is in 'cuda' (assuming the script is inside 'python')
+        cuda_program_path = script_dir.parent / "cuda" / "lindblad_gpu"
+        output_dir        = script_dir.parent / "cuda" / "output"  # Navigate from 'python' to 'cuda/output'
+    
+    
+    print("cuda_program_path = ", cuda_program_path)
+    print("output_dir = ", output_dir)
+    
+    # Combine the base path with the filenames
+    path_output_csv                           = output_dir / "rho_avg_out.csv"
+    path_output_bin_file                      = output_dir / "rho_avg_out.bin"
+    path_dynamics_single_mode_output_csv      = output_dir / "rho_dynamics_single_mode_out.csv"
+    path_dynamics_single_mode_output_log_csv  = output_dir / "rho_dynamics_single_mode_log_out.csv"
+    path_dynamics_single_mode_output_log_hdf5 = output_dir / "rho_dynamics_single_mode_log_out.h5"
+    
+    
+    #path_dynamics_grid_mode_output_csv_after_ram  = output_dir / "rho_avg_out_after_ram.csv"
+    #path_dynamics_grid_mode_output_hdf5_after_ram = output_dir / "rho_avg_out_after_ram.h5"
+    
+    
+    #if simr.save_option == "save_hdf5":
+    #    path_dynamics_grid_mode_output_hdf5_after_ram = simr.get_filepath()
+    #elif simr.save_option=="onthefly":
+    #    path_dynamics_grid_mode_output_hdf5_after_ram = None
+    
+    path_dynamics_grid_mode_output_hdf5_after_ram = None
+    
+    
+    if environment == 'Linux':
+        # Check if executable
+        if not os.access(cuda_program_path, os.X_OK):
+            print("lindblad_gpu program is not executable. Changing permission...")
+            os.chmod(cuda_program_path, 0o755)  # rwxr-xr-x
+    
+    ##########
+    
+    tr_pho = rho00_init + rho11_init + rho22_init + rho33_init
+    
+    rho00_init /= tr_pho;
+    rho11_init /= tr_pho;
+    rho22_init /= tr_pho;
+    rho33_init /= tr_pho;
+    
+    
+    
+    def compute_grid(N_points_target=N_points_target,
+                     eps0_min=eps0_min,
+                     eps0_max=eps0_max,
+                     A_min=A_min,
+                     A_max=A_max):
+        eps0_range = eps0_max - eps0_min
+        A_range = A_max - A_min
+    
+        if A_range == 0 or eps0_range == 0:
+            raise ValueError("Axis ranges must be non-zero.")
+    
+        aspect_ratio = eps0_range / A_range
+    
+        N_A = round(math.sqrt(N_points_target / aspect_ratio))
+        N_eps0 = round(N_A * aspect_ratio)
+    
+        # Recompute total just to be sure
+        #total_points = N_A * N_eps0
+    
+        return N_eps0, N_A
+    
+    
+    
+    N_points_eps0_range, N_points_A_range = compute_grid()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ################################
+    #checks
+    
+        
+    if single_point_mode_flag != "grid" and single_point_mode_flag != "single":
+        raise ValueError("variable single_point_mode_flag should be grid or single")
+    
+    if not(ouput_option == "bin_file"):
+        raise ValueError("Other ouput_option not implemented yet")
+    
+    ################################################################
+    # pass all needed variables into func:
+    
+    #########################################################    
+    
+    
+    
+    
+    
+    
+    
+    cfg = SimulationConfig(
+        single_point_mode_flag=single_point_mode_flag,
+        avg_periods_ouput_option=avg_periods_ouput_option,
+        ouput_option=ouput_option,
+        unrolled_option=unrolled_option,
+        single_mode_log_option=single_mode_log_option,
+        ram_shared_mmap_name=ram_shared_mmap_name,
+        threads_per_traj_opt=threads_per_traj_opt,
+        eps0_target_singlepoint=eps0_target_singlepoint,
+        A_target_singlepoint=A_target_singlepoint,
+        eps0_min=eps0_min,
+        eps0_max=eps0_max,
+        A_min=A_min,
+        A_max=A_max,
+        N_points_eps0_range=N_points_eps0_range,
+        N_points_A_range=N_points_A_range,
+        N_steps_period=N_steps_period,
+        N_periods=N_periods,
+        N_periods_avg=N_periods_avg,
+        delta_C=delta_C,
+        delta_L=delta_L,
+        delta_R=delta_R,
+        alpha=alpha,
+        nu=nu,
+        rho00_init=rho00_init,
+        rho11_init=rho11_init,
+        rho22_init=rho22_init,
+        rho33_init=rho33_init,
+        gamma=gamma,
+        g_en=g_en,
+        g_phi=g_phi,
+        gL_en=gL_en,
+        gL_phi=gL_phi,
+        gR_en=gR_en,
+        gR_phi=gR_phi,
+        a=a,
+        m=m,
+        cuda_program_path=cuda_program_path,
+        path_output_csv=path_output_csv,
+        path_output_bin_file=path_output_bin_file,
+        path_dynamics_grid_mode_output_hdf5_after_ram=path_dynamics_grid_mode_output_hdf5_after_ram,
+        path_dynamics_single_mode_output_csv=path_dynamics_single_mode_output_csv,
+        path_dynamics_single_mode_output_log_csv=path_dynamics_single_mode_output_log_csv,
+        path_dynamics_single_mode_output_log_hdf5=path_dynamics_single_mode_output_log_hdf5,
+        environment=environment,
+        
+        GammaL0=GammaL0,
+        GammaR0=GammaR0,
+        muL=muL,
+        muR=muR,
+        T_K=T_K,
+        
+        Gamma_eg0=Gamma_eg0,
+        omega_c = omega_c,
+        
+        Gamma_phi0=Gamma_phi0
+    )
+    
+    ######################################################
+    
+    
+    
+    
+    #print("N_points_target =", N_points_target)
+    #print("N_points =", N_points_eps0_range*N_points_A_range)
+    #print("N_points_eps0_range =", N_points_eps0_range)
+    #print("N_points_A_range =", N_points_A_range)
+    
+    
+    
+    
+    # do not run many times, because the log file is 0.5 GB
+    
+    if run_cuda_program_option == True:
+    
+        if (single_point_mode_flag == "grid"):
+            returncode = run_gpu_lindblad_program(cfg)
+        else:
+            raise ValueError("single_point_mode_flag='single' not yet implemented")
+                
+
+        eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_and_calculate_deriv(path_output_bin_file)
+    
+        
+        return eps0_grid, A_grid, rho_avg_cdc_3d, returncode
+
+
+    else:
+        return
+
+
+
+
+
+
+
+

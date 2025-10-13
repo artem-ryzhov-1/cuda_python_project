@@ -1,0 +1,39 @@
+
+import numpy as np
+
+
+
+
+def read_bin_file_and_calculate_deriv(read_bin_file_and_calculate_deriv):
+    
+    with open(read_bin_file_and_calculate_deriv, 'rb') as f:
+        header = np.frombuffer(f.read(8), dtype=np.int32)
+        n_A, n_eps0 = header[0], header[1]
+        
+        rho_avg_3d = np.fromfile(f, dtype=np.float32, count=4*n_A*n_eps0).reshape(4, n_eps0, n_A)
+        
+        A_grid = np.fromfile(f, dtype=np.float32, count=n_A)
+        eps0_grid = np.fromfile(f, dtype=np.float32, count=n_eps0)
+    
+    
+    # Preallocate final result
+    result = np.empty((6, n_A, n_eps0), dtype=np.float32)
+    
+    # Transpose all at once (more cache-efficient)
+    result[0:4] = rho_avg_3d.transpose(0, 2, 1)
+    
+    # Calculate C directly in output array (avoid temporary)
+    np.subtract(result[1], result[2], out=result[4])  # p01 - p10
+    result[4] += 18.0 * (result[0] - result[3])  # + 18*(p00 - p11)
+    
+    # Calculate dC
+    deps0 = eps0_grid[1] - eps0_grid[0]
+    result[5] = np.gradient(result[4], deps0, axis=1)
+    
+    return eps0_grid, A_grid, result
+
+
+
+
+
+
