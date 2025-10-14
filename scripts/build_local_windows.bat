@@ -60,7 +60,13 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 REM Add MSVC tools to PATH explicitly (optional, if vcvars64.bat doesn’t already do this)
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.34.31933\bin\Hostx64\x64;%PATH%
 
-set OUTPUT = bin\lindblad_cuda.exe
+REM Ensure bin directory exists
+if not exist "bin" (
+    echo Error: bin directory does not exist.
+    exit /b 1
+)
+
+set OUTPUT=bin\lindblad_cuda.exe
 
 REM Compile CUDA code
 echo Compiling CUDA code...
