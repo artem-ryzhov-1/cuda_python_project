@@ -66,7 +66,7 @@ if not exist "bin" (
     exit /b 1
 )
 
-set OUTPUT=bin\lindblad_cuda.exe
+set OUTPUT=bin\lindblad_gpu.exe
 
 REM Compile CUDA code
 echo Compiling CUDA code...
