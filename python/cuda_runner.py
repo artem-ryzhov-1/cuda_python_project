@@ -28,8 +28,6 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     
     print("\n==============================================")
     
-    print("c.environment =", c.environment)
-    
     # Build argument list (convert numbers to strings)
     args = [
         str(c.cuda_program_path),
