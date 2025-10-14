@@ -28,7 +28,7 @@ endif
 NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc
 
 SRC = src/main.cu
-TARGET = lindblad_gpu
+TARGET = bin/lindblad_gpu
 
 .PHONY: all clean
 
