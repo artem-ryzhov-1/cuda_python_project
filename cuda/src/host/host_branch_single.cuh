@@ -370,7 +370,7 @@ __host__ inline void run_single_mode(
     gpuCheck(cudaMemcpy(h_eps_dynamics.data(),  d_eps_dynamics,  N_steps_total * sizeof(float),     cudaMemcpyDeviceToHost), "cudaMemcpy eps_dynamics");
 
 
-
+/*
     if (output_option != "ssd_csv") {
         std::cerr << "ERROR: output_option = 'ram' is not implemented for singlemode" << std::endl;
     }
@@ -443,7 +443,7 @@ __host__ inline void run_single_mode(
         // -----------------------
         // write log in HDF5 file
         // -----------------------
-/*
+
         write_log_entries_to_hdf5(
             h_log_buffer,
             path_dynamics_single_mode_output_log_hdf5,
@@ -545,10 +545,10 @@ __host__ inline void run_single_mode(
 
         ofs_log.close();
         std::cout << "Log results saved to csv" << std::endl;
-        */
+        
 
     }
-
+*/
 
 
     // cleanup
