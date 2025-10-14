@@ -7,10 +7,10 @@
 
 // Math constants
 
-constexpr double CONST_PI = 3.1415926535897932384626433832;
 
-
-constexpr float CONST_PIf = 3.1415926535897932384626433832f;
+#ifndef M_PIf
+constexpr float M_PIf = 3.1415926535897932384626433832f;
+#endif
 
 
 
