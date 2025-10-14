@@ -3,3 +3,4 @@ numpy
 
 
 datashader
+jupyter_bokeh
