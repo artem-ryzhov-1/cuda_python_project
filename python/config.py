@@ -91,14 +91,22 @@ class SimRun:
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
                           ("A_max", A_max)]:
-            if not (isinstance(val, np.float32) or isinstance(val, float)):
+            if isinstance(val, float):
+                print("float")
+            elif isinstance(val, np.floating,):
+                print("np.floating")
+            if not isinstance(val, (float, np.floating, int, np.integer)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
                           ("N_periods_avg", N_periods_avg),
                           ("N_points_target", N_points_target)]:
-            if not (isinstance(val, np.int32) or isinstance(val, int)):
+            if isinstance(val, int):
+                print("int")
+            elif isinstance(val, np.integer,):
+                print("np.integer")
+            if not isinstance(val, (int, np.integer)):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
         
         if not isinstance(platform_type, str):
