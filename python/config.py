@@ -91,22 +91,16 @@ class SimRun:
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
                           ("A_max", A_max)]:
-            if isinstance(val, float):
-                print("float")
-            elif isinstance(val, np.floating,):
-                print("np.floating")
-            if not isinstance(val, (float, np.floating, int, np.integer)):
+            #if not isinstance(val, (float, np.floating, int, np.integer)):
+            if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
                           ("N_periods_avg", N_periods_avg),
                           ("N_points_target", N_points_target)]:
-            if isinstance(val, int):
-                print("int")
-            elif isinstance(val, np.integer,):
-                print("np.integer")
-            if not isinstance(val, (int, np.integer)):
+            #if not isinstance(val, (int, np.integer)):
+            if not isinstance(val, int):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
         
         if not isinstance(platform_type, str):
@@ -116,24 +110,24 @@ class SimRun:
             raise TypeError(f"repo_path must be an object pathlib.Path, got {repo_path} ({type(repo_path)})")
         
         # Store individually as attributes
-        self.delta_C = delta_C
-        self.GammaL0 = GammaL0
-        self.GammaR0 = GammaR0
-        self.Gamma_eg0 = Gamma_eg0
-        self.Gamma_phi0 = Gamma_phi0
+        self.delta_C    = float(delta_C)
+        self.GammaL0    = float(GammaL0)
+        self.GammaR0    = float(GammaR0)
+        self.Gamma_eg0  = float(Gamma_eg0)
+        self.Gamma_phi0 = float(Gamma_phi0)
         
-        self.eps0_min = eps0_min
-        self.eps0_max = eps0_max
-        self.A_min = A_min
-        self.A_max = A_max
+        self.eps0_min = float(eps0_min)
+        self.eps0_max = float(eps0_max)
+        self.A_min    = float(A_min)
+        self.A_max    = float(A_max)
         
-        self.N_points_target = N_points_target
-        self.N_steps_period = N_steps_period
-        self.N_periods = N_periods
-        self.N_periods_avg = N_periods_avg
+        self.N_points_target = int(N_points_target)
+        self.N_steps_period  = int(N_steps_period)
+        self.N_periods       = int(N_periods)
+        self.N_periods_avg   = int(N_periods_avg)
         
         self.platform_type = platform_type
-        self.repo_path = repo_path
+        self.repo_path     = repo_path
 
         
 
