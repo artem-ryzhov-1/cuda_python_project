@@ -23,7 +23,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         int: subprocess return code.
     """
         
-    if c.environment == 'Windows':
+    if c.platform_type == 'local_windows':
         import msvcrt
     
     print("\n==============================================")
@@ -92,22 +92,16 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     print("CUDA program run started. Console output:")
     print()
     
-    
-    if c.environment == "Windows":
-        cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
-    else:
-        script_dir = Path(__file__).resolve().parent
-        cwd = script_dir.parent / "cuda"
-    
+  
     # Launch CUDA program with output capture
     proc = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd=cwd,
+        cwd=c.cuda_cwd,
         bufsize=1,  # line-buffered
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if c.environment == "Windows" else 0  # Allow sending CTRL_C_EVENT
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if c.platform_type == 'local_windows' else 0  # Allow sending CTRL_C_EVENT
     )
     
     output_lines = []
@@ -129,10 +123,8 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     output_thread = threading.Thread(target=output_reader)
     output_thread.daemon = True
     output_thread.start()
-     
-    
         
-    if c.environment in ['Windows', 'Linux']:
+    if c.platform_type in ['local_windows', 'local_linux', 'local_wsl2']:  
         # Optional: handle user input for stopping
         try:
             print("CUDA program running. Press 'q' to stop...")
@@ -140,7 +132,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
                 if proc.poll() is not None:
                     break
                 
-                if c.environment == 'Windows':
+                if c.platform_type == 'local_windows':
                     if msvcrt.kbhit():
                         key = msvcrt.getch()
                         #print(f"Key pressed: {key}")  # Debug print
@@ -160,12 +152,12 @@ def run_gpu_lindblad_program(c: SimulationConfig):
                 
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt received in Python. Stopping CUDA program. Sending CTRL_C_EVENT...")
-            if c.environment == "Windows":
+            if c.platform_type == 'local_windows':
                 proc.send_signal(signal.CTRL_C_EVENT)
             else:
                 proc.send_signal(signal.SIGINT)
     
-    elif c.environment in ['Google_Colab', 'WSL2']:
+    elif c.platform_type == "colab_linux":
         print("CUDA program running (non-interactive mode)...")
 
     # Finalize

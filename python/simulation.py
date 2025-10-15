@@ -12,21 +12,6 @@ from file_io import read_bin_file_and_calculate_deriv
 
 def run_simulation(simr: SimRun):
     
-    # environment = "Windows" or "Linux" or "Google_Colab" or "WSL2"
-    # Step 1: Get the general system type
-    environment = platform.system()
-    
-    # Step 2: Further refine for Google Colab or WSL2
-    if environment == 'Linux':
-        # Check if we're in Google Colab (check for google.colab module)
-        if 'google.colab' in sys.modules:
-            environment = 'Google_Colab'
-        # Check if it's WSL2 (WSL2 includes 'microsoft' in release string)
-        elif 'microsoft' in platform.release().lower():
-            environment = 'WSL2'
-
-    print(f"Environment detected: {environment}")
-    
     
     
     ram_shared_mmap_name = "MySimSharedMemory"  # can also generate dynamically if needed
@@ -117,30 +102,35 @@ def run_simulation(simr: SimRun):
     # paths
     
     
-    
     #if system == "Windows":
 
     # Define the base output path
     #path_output = Path(r"S:/Physics/2025_DQD/cuda/programs/CUDA/set_of_interferograms/v4.1/output")
     #path_output = Path("R:/output")  # The path can still use forward slashes or backslashes on Windows
-      
-    if environment == "Windows":
-        #program_path = os.path.expanduser("/mnt/c/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/lindblad_cuda3.exe")
-        cuda_program_path = Path("C:/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/lindblad_cuda3.exe")
-        output_dir        = Path("C:/Users/E-Store/Documents/projects/repos/lindblad_cuda3/x64/Release/output")
+    
 
-    elif environment in ["Linux", "Google_Colab", "WSL2"]:
-
-        # Get the directory of the script
-        script_dir = Path(__file__).resolve().parent  # This gives the directory of the script
-        
-        # Define the base path to 'output' directory which is in 'cuda' (assuming the script is inside 'python')
-        cuda_program_path = script_dir.parent / "cuda" / "lindblad_gpu"
-        output_dir        = script_dir.parent / "cuda" / "output"  # Navigate from 'python' to 'cuda/output'
+    
+    repo_path  = simr.repo_path
+    output_dir = repo_path / "cuda" / "output"
+    cuda_cwd   = repo_path / "cuda" / "bin"
+    
+    if simr.platform_type == "local_windows":
+        cuda_program_path = cuda_cwd / "lindblad_gpu.exe"
+    elif simr.platform_type in ["colab_linux", "local_linux", "local_wsl2"]:
+        cuda_program_path = cuda_cwd / "lindblad_gpu"
+    
+    ###################################
+    
+    cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
+    cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
+    output_dir        = cuda_cwd / "output"
+    
+    ###################################
     
     
     print("cuda_program_path = ", cuda_program_path)
     print("output_dir = ", output_dir)
+    print("cuda_cwd = ", cuda_cwd)
     
     # Combine the base path with the filenames
     path_output_csv                           = output_dir / "rho_avg_out.csv"
@@ -162,7 +152,7 @@ def run_simulation(simr: SimRun):
     path_dynamics_grid_mode_output_hdf5_after_ram = None
     
     
-    if environment == 'Linux':
+    if simr.platform_type in ['colab_linux', 'local_linux', 'local_wsl2', 'local_macos']:
         # Check if executable
         if not os.access(cuda_program_path, os.X_OK):
             print("lindblad_gpu program is not executable. Changing permission...")
@@ -274,6 +264,7 @@ def run_simulation(simr: SimRun):
         gR_phi=gR_phi,
         a=a,
         m=m,
+        cuda_cwd=cuda_cwd,
         cuda_program_path=cuda_program_path,
         path_output_csv=path_output_csv,
         path_output_bin_file=path_output_bin_file,
@@ -281,7 +272,7 @@ def run_simulation(simr: SimRun):
         path_dynamics_single_mode_output_csv=path_dynamics_single_mode_output_csv,
         path_dynamics_single_mode_output_log_csv=path_dynamics_single_mode_output_log_csv,
         path_dynamics_single_mode_output_log_hdf5=path_dynamics_single_mode_output_log_hdf5,
-        environment=environment,
+        platform_type=simr.platform_type,
         
         GammaL0=GammaL0,
         GammaR0=GammaR0,

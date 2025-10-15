@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import List, Tuple, Any
 import numpy as np
 #import numpy.typing as npt
+from pathlib import Path
 
 @dataclass
 class SimulationConfig:
@@ -50,6 +51,7 @@ class SimulationConfig:
     a: float
     m: float
     
+    cuda_cwd: str
     cuda_program_path: str
     path_output_csv: str
     path_output_bin_file: str
@@ -58,7 +60,7 @@ class SimulationConfig:
     path_dynamics_single_mode_output_log_csv: str
     path_dynamics_single_mode_output_log_hdf5: str
     
-    environment: str
+    platform_type: str
     
     GammaL0:  float
     GammaR0:  float
@@ -73,13 +75,24 @@ class SimulationConfig:
 
 
 
-
-
 class SimRun:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
                  eps0_min, eps0_max, A_min, A_max,
-                 N_points_target, N_steps_period, N_periods, N_periods_avg):
+                 N_points_target, N_steps_period, N_periods, N_periods_avg,
+                 platform_type, repo_path):
+        
+        for name, val in [("delta_C", delta_C),
+                          ("GammaL0", GammaL0),
+                          ("GammaR0", GammaR0),
+                          ("Gamma_eg0", Gamma_eg0),
+                          ("Gamma_phi0", Gamma_phi0),
+                          ("eps0_min", eps0_min),
+                          ("eps0_max", eps0_max),
+                          ("A_min", A_min),
+                          ("A_max", A_max)]:
+            if not (isinstance(val, np.float32) or isinstance(val, float)):
+                raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
@@ -88,26 +101,33 @@ class SimRun:
             if not (isinstance(val, np.int32) or isinstance(val, int)):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
         
+        if not isinstance(platform_type, str):
+            raise TypeError(f"platform_type must be a str, got {platform_type} ({type(platform_type)})")        
+        
+        if not isinstance(repo_path, Path):
+            raise TypeError(f"repo_path must be an object pathlib.Path, got {repo_path} ({type(repo_path)})")
+        
         # Store individually as attributes
-        self.delta_C = float(delta_C)
-        self.GammaL0 = float(GammaL0)
-        self.GammaR0 = float(GammaR0)
-        self.Gamma_eg0 = float(Gamma_eg0)
-        self.Gamma_phi0 = float(Gamma_phi0)
+        self.delta_C = delta_C
+        self.GammaL0 = GammaL0
+        self.GammaR0 = GammaR0
+        self.Gamma_eg0 = Gamma_eg0
+        self.Gamma_phi0 = Gamma_phi0
         
-        self.eps0_min = float(eps0_min)
-        self.eps0_max = float(eps0_max)
-        self.A_min = float(A_min)
-        self.A_max = float(A_max)
+        self.eps0_min = eps0_min
+        self.eps0_max = eps0_max
+        self.A_min = A_min
+        self.A_max = A_max
         
-        self.N_points_target = int(N_points_target)
-        self.N_steps_period = int(N_steps_period)
-        self.N_periods = int(N_periods)
-        self.N_periods_avg = int(N_periods_avg)
+        self.N_points_target = N_points_target
+        self.N_steps_period = N_steps_period
+        self.N_periods = N_periods
+        self.N_periods_avg = N_periods_avg
         
+        self.platform_type = platform_type
+        self.repo_path = repo_path
 
-
-
+        
 
 
 
