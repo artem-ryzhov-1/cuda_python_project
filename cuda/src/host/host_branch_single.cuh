@@ -61,6 +61,7 @@ __host__ inline void run_single_mode(
     const float gL_phi, const float gR_en, const float gR_phi,
 
     const std::string& path_dynamics_single_mode_output_csv,
+    const std::string& path_output_bin_file,
     const std::string& output_option,
     const std::string& unrolled_option,
     const bool single_mode_log_option,
@@ -369,6 +370,56 @@ __host__ inline void run_single_mode(
     gpuCheck(cudaMemcpy(h_time_dynamics.data(), d_time_dynamics, N_steps_total * sizeof(float),     cudaMemcpyDeviceToHost), "cudaMemcpy time_dynamics");
     gpuCheck(cudaMemcpy(h_eps_dynamics.data(),  d_eps_dynamics,  N_steps_total * sizeof(float),     cudaMemcpyDeviceToHost), "cudaMemcpy eps_dynamics");
 
+    if (output_option == "bin_file") {
+
+        //// Variables for timing
+        //cudaEvent_t start, stop;
+        //// Create events to track the start and stop times
+        //cudaEventCreate(&start);
+        //cudaEventCreate(&stop);
+        //// Start the timer
+        //cudaEventRecord(start, 0);
+
+        // Open binary file for writing
+        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        if (!ofs) {
+            std::cerr << "Failed to open file!" << std::endl;
+            return;
+        }
+
+
+        // Write header: N_steps_total (int) and fixed sizes (for clarity)
+        // Store N_steps_total so python knows how many steps to read
+        int header[1] = { N_steps_total };
+        ofs.write(reinterpret_cast<char*>(header), sizeof(int));
+
+        // Write rho_avg (16 floats)
+        ofs.write(reinterpret_cast<const char*>(rho_avg.data()), 16 * sizeof(float));
+
+        // Write rho_dynamics (N_steps_total * 4 floats)
+        ofs.write(reinterpret_cast<const char*>(h_rho_dynamics.data()), N_steps_total * 4 * sizeof(float));
+
+        // Write time_dynamics (N_steps_total floats)
+        ofs.write(reinterpret_cast<const char*>(h_time_dynamics.data()), N_steps_total * sizeof(float));
+
+        // Write eps_dynamics (N_steps_total floats)
+        ofs.write(reinterpret_cast<const char*>(h_eps_dynamics.data()), N_steps_total * sizeof(float));
+
+        ofs.close();
+
+        //// Stop the timer
+        //cudaEventRecord(stop, 0);
+        //cudaEventSynchronize(stop);  // Ensure the stop event is complete
+        //// Calculate the elapsed time
+        //float milliseconds = 0.0f;
+        //cudaEventElapsedTime(&milliseconds, start, stop);  // Time in milliseconds
+        //// Print the elapsed time
+        //std::cout << "Kernel execution time: " << milliseconds << " ms" << std::endl;
+        //// Cleanup the events
+        //cudaEventDestroy(start);
+        //cudaEventDestroy(stop);
+
+    }
 
 /*
     if (output_option != "ssd_csv") {

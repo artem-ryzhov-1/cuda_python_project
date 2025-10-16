@@ -365,7 +365,7 @@ int main(int argc, char** argv)
             dt, nu, alpha,
             rho00_init, rho11_init, rho22_init, rho33_init,
             delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
-            path_dynamics_single_mode_output_csv, ouput_option, unrolled_option,
+            path_dynamics_single_mode_output_csv, path_output_bin_file, ouput_option, unrolled_option,
             single_mode_log_option, path_dynamics_single_mode_output_log_csv,
             path_dynamics_single_mode_output_log_hdf5,
             threads_per_traj_opt,
