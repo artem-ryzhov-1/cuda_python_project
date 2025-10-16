@@ -137,7 +137,7 @@ class SimRunSingleMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
                  eps0_target_singlepoint, A_target_singlepoint,
-                 N_points_target, N_steps_period, N_periods, N_periods_avg,
+                 N_steps_period, N_periods, N_periods_avg,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -153,8 +153,7 @@ class SimRunSingleMode:
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
-                          ("N_periods_avg", N_periods_avg),
-                          ("N_points_target", N_points_target)]:
+                          ("N_periods_avg", N_periods_avg)]:
             #if not isinstance(val, (int, np.integer)):
             if not isinstance(val, int):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
@@ -175,7 +174,6 @@ class SimRunSingleMode:
         self.eps0_target_singlepoint = float(eps0_target_singlepoint)
         self.A_target_singlepoint = float(A_target_singlepoint)
         
-        self.N_points_target = int(N_points_target)
         self.N_steps_period  = int(N_steps_period)
         self.N_periods       = int(N_periods)
         self.N_periods_avg   = int(N_periods_avg)

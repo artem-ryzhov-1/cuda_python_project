@@ -71,7 +71,6 @@ simr = SimRunSingleMode(
     Gamma_phi0=3.6,
     eps0_target_singlepoint=0.001,
     A_target_singlepoint=0.003,
-    N_points_target=1000000,
     N_steps_period=1000,
     N_periods=10,
     N_periods_avg=1,
