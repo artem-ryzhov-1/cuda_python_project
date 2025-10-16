@@ -421,185 +421,69 @@ __host__ inline void run_single_mode(
 
     }
 
-/*
-    if (output_option != "ssd_csv") {
+    else if (output_option == "ssd_csv") {
+        
+        // -----------------------
+        // write CSV with averages
+        // -----------------------
+        //MKDIR("output"); // ensure output dir exists
+        //std::ofstream ofs("output/rho_single_avg_out.csv");
+        std::ofstream ofs(path_dynamics_single_mode_output_csv);
+        ofs << std::setprecision(8) << std::fixed;
+
+        // --- First line: averaged intervals ---
+        ofs << "eps0,A,";
+        ofs << "avg00_whole,avg01_whole,avg10_whole,avg11_whole,";
+        ofs << "avg00_last,avg01_last,avg10_last,avg11_last,";
+        ofs << "avg00_2last,avg01_2last,avg10_2last,avg11_2last,";
+        ofs << "avg00_3last,avg01_3last,avg10_3last,avg11_3last\n";
+
+        // --- Second line: average values ---
+        ofs << eps0_target << "," << A_target << ",";
+        for (int k = 0; k < 16; k++) {
+            ofs << rho_avg[k];
+            if (k + 1 < 16) ofs << ",";
+        }
+        ofs << std::endl;
+
+        // --- Third line: column headers for dynamics data ---
+        ofs << "time,epst,p00,p01,p10,p11\n";
+
+        for (int t = 0; t < N_steps_total; ++t) {
+            float time = h_time_dynamics[t];
+            float eps = h_eps_dynamics[t];
+
+            // populations (diagonals)
+            const int base = t * 4;
+            float p00 = h_rho_dynamics[base + 0];
+            float p01 = h_rho_dynamics[base + 1];
+            float p10 = h_rho_dynamics[base + 2];
+            float p11 = h_rho_dynamics[base + 3];
+
+            ofs << time << "," << eps << ","
+                << p00 << "," << p01 << ","
+                << p10 << "," << p11 << std::endl;
+        }
+        ofs << std::endl;
+
+        ofs.flush();    // flush buffers to OS
+        //int fd = ::open("output/rho_single_avg_out.csv", O_RDWR);
+        int fd = ::open(path_dynamics_single_mode_output_csv.c_str(), O_RDWR);
+
+    #ifdef _WIN32
+        if (fd != -1) { _commit(fd); _close(fd); }
+    #else
+        if (fd != -1) { fsync(fd); close(fd); }
+    #endif
+
+        ofs.close();
+        std::cout << "Averaged results and dynamics results saved to output/rho_single_dynamics_out.csv" << std::endl;
+
+    }
+
+    else if (output_option != "ssd_csv") {
         std::cerr << "ERROR: output_option = 'ram' is not implemented for singlemode" << std::endl;
     }
-
-    // -----------------------
-    // write CSV with averages
-    // -----------------------
-    //MKDIR("output"); // ensure output dir exists
-    //std::ofstream ofs("output/rho_single_avg_out.csv");
-    std::ofstream ofs(path_dynamics_single_mode_output_csv);
-    ofs << std::setprecision(8) << std::fixed;
-
-    // --- First line: averaged intervals ---
-    ofs << "eps0,A,";
-    ofs << "avg00_whole,avg01_whole,avg10_whole,avg11_whole,";
-    ofs << "avg00_last,avg01_last,avg10_last,avg11_last,";
-    ofs << "avg00_2last,avg01_2last,avg10_2last,avg11_2last,";
-    ofs << "avg00_3last,avg01_3last,avg10_3last,avg11_3last\n";
-
-    // --- Second line: average values ---
-    ofs << eps0_target << "," << A_target << ",";
-    for (int k = 0; k < 16; k++) {
-        ofs << rho_avg[k];
-        if (k + 1 < 16) ofs << ",";
-    }
-    ofs << std::endl;
-
-    // --- Third line: column headers for dynamics data ---
-    ofs << "time,epst,p00,p01,p10,p11\n";
-
-    for (int t = 0; t < N_steps_total; ++t) {
-        float time = h_time_dynamics[t];
-        float eps = h_eps_dynamics[t];
-
-        // populations (diagonals)
-        const int base = t * 4;
-        float p00 = h_rho_dynamics[base + 0];
-        float p01 = h_rho_dynamics[base + 1];
-        float p10 = h_rho_dynamics[base + 2];
-        float p11 = h_rho_dynamics[base + 3];
-
-        ofs << time << "," << eps << ","
-            << p00 << "," << p01 << ","
-            << p10 << "," << p11 << std::endl;
-    }
-    ofs << std::endl;
-
-    ofs.flush();    // flush buffers to OS
-    //int fd = ::open("output/rho_single_avg_out.csv", O_RDWR);
-    int fd = ::open(path_dynamics_single_mode_output_csv.c_str(), O_RDWR);
-
-#ifdef _WIN32
-    if (fd != -1) { _commit(fd); _close(fd); }
-#else
-    if (fd != -1) { fsync(fd); close(fd); }
-#endif
-
-    ofs.close();
-    std::cout << "Averaged results and dynamics results saved to output/rho_single_dynamics_out.csv" << std::endl;
-
-
-    if (single_mode_log_option == true) {
-
-
-        // Copy back log data from d_log_buffer to host
-        std::vector<LogEntry> h_log_buffer(log_size);
-        gpuCheck(cudaMemcpy(h_log_buffer.data(), d_log_buffer, log_size * sizeof(LogEntry), cudaMemcpyDeviceToHost), "cudaMemcpy log_buffer");
-        cudaFree(d_log_buffer);
-
-        // -----------------------
-        // write log in HDF5 file
-        // -----------------------
-
-        write_log_entries_to_hdf5(
-            h_log_buffer,
-            path_dynamics_single_mode_output_log_hdf5,
-            
-            host_pi_alpha,
-            host_pi_alpha_delta_C,
-            host_delta_C,
-            host_Gamma_L0,
-            host_Gamma_R0,
-            host_Gamma_eg0,
-            host_Gamma_eg0_norm,
-            host_beta,
-            host_Gamma_phi0,
-            host_epsilon_L,
-            host_epsilon_R,
-
-            6
-        );
-*/
-        // -----------------------
-        // write log in CSV file
-        // -----------------------
-
-        /*
-        //MKDIR("output"); // ensure output dir exists
-        std::ofstream ofs_log(path_dynamics_single_mode_output_log_csv);
-        ofs_log << std::setprecision(8) << std::fixed;
-
-
-        //// --- First line: column headers for dynamics data ---
-        //ofs_log << "time,epst,Gamma_10,Gamma_20,Gamma_30,Gamma_21,Gamma_31,Gamma_32\n";
-        //for (int idx = 0; idx < log_size; ++idx) {
-        //    LogEntry log_entry = h_log_buffer[idx];
-        //    float time = log_entry.time;
-        //    float eps_t = log_entry.eps_t;
-        //    float Gamma_10 = log_entry.Gamma_10;
-        //    float Gamma_20 = log_entry.Gamma_20;
-        //    float Gamma_30 = log_entry.Gamma_30;
-        //    float Gamma_21 = log_entry.Gamma_21;
-        //    float Gamma_31 = log_entry.Gamma_31;
-        //    float Gamma_32 = log_entry.Gamma_32;
-        //    ofs_log << time << "," << eps_t << ","
-        //        << Gamma_10 << "," << Gamma_20 << "," << Gamma_30 << "," 
-        //        << Gamma_21 << "," << Gamma_31 << "," << Gamma_32 << std::endl;
-        //}
-        
-
-        // CSV header
-        #define X(name) ofs_log << #name << ",";
-        LOG_ENTRY_FIELDS
-        #undef X
-
-        //ofs_log << "U00isnan,U00isinf,U01isnan,U01isinf,U02isnan,U02isinf,U03isnan,U03isinf,";
-        //ofs_log << "U10isnan,U10isinf,U11isnan,U11isinf,U12isnan,U12isinf,U13isnan,U13isinf,";
-        //ofs_log << "U20isnan,U20isinf,U21isnan,U21isinf,U22isnan,U22isinf,U23isnan,U23isinf,";
-        //ofs_log << "U30isnan,U30isinf,U31isnan,U31isinf,U32isnan,U32isinf,U33isnan,U33isinf";
-        ofs_log << std::endl;
-        
-        // CSV data
-        for (int idx = 0; idx < log_size; ++idx) {
-            const LogEntry& log_entry = h_log_buffer[idx];
-
-            #define X(name) ofs_log << log_entry.name << ",";
-            LOG_ENTRY_FIELDS
-            #undef X
-
-            //for (int row = 0; row < 4; row++) {
-            //    for (int col = 0; col < 4; col++) {
-            //        if (log_entry.Uisnan[row][col] == false) {
-            //            ofs << "0" << ",";
-            //        }
-            //        else {
-            //            ofs << "1" << ",";
-            //        }
-            //        if (log_entry.Uisinf[row][col] == false) {
-            //            ofs << "0" << ",";
-            //        }
-            //        else {
-            //            ofs << "1" << ",";
-            //        }
-            //    }
-            //}
-
-            ofs_log << std::endl;
-        }
-        
-
-        ofs_log << std::endl;
-
-        ofs_log.flush();    // flush buffers to OS
-
-        int fd_log = ::open(path_dynamics_single_mode_output_log_csv.c_str(), O_RDWR);
-
-#ifdef _WIN32
-        if (fd_log != -1) { _commit(fd_log); _close(fd_log); }
-#else
-        if (fd_log != -1) { fsync(fd_log); close(fd_log); }
-#endif
-
-        ofs_log.close();
-        std::cout << "Log results saved to csv" << std::endl;
-        
-
-    }
-*/
 
 
     // cleanup

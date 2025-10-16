@@ -9,6 +9,7 @@
 // #include "cuda_intellisense_fixes.cuh"
 #include "host/host_branch_grid.cuh"
 #include "host/host_branch_single.cuh"
+#include "host/host_helpers.cuh"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -179,16 +180,27 @@ int main(int argc, char** argv)
     }
 
 
-    const float eps0_min = std::stof(argv[6]);
-    const float eps0_max = std::stof(argv[7]);
-    const float A_min = std::stof(argv[8]);
-    const float A_max = std::stof(argv[9]);
+    const float eps0_min = safe_stof(argv[6]);
+    const float eps0_max = safe_stof(argv[7]);
+    const float A_min = safe_stof(argv[8]);
+    const float A_max = safe_stof(argv[9]);
 
-    const int   N_points_eps0_range = std::stoi(argv[10]);
-    const int   N_points_A_range = std::stoi(argv[11]);
+    const int   N_points_eps0_range = safe_stoi(argv[10]);
+    const int   N_points_A_range    = safe_stoi(argv[11]);
+
+    if ((!single_mode && (std::isnan(eps0_min) || std::isnan(eps0_max) || std::isnan(A_min) || std::isnan(A_max)
+            || N_points_eps0_range == INT_MIN || N_points_A_range == INT_MIN)) ||
+        (single_mode && !(std::isnan(eps0_min) && std::isnan(eps0_max) && std::isnan(A_min) && std::isnan(A_max)
+            && N_points_eps0_range == INT_MIN && N_points_A_range == INT_MIN))) {
+        std::cerr << "ERROR: eps0_min, eps0_max, A_min, or A_max is NAN in grid mode, or not NAN in single mode."
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    
     const int   N_steps_period = std::stoi(argv[12]);
-    const int   N_periods = std::stoi(argv[13]);
-    const int   N_periods_avg = std::stoi(argv[14]);
+    const int   N_periods      = std::stoi(argv[13]);
+    const int   N_periods_avg  = std::stoi(argv[14]);
 
     if (N_periods_avg > N_periods) {
         std::cerr << "ERROR: N_periods_avg must be less than or equal to N_periods. Got: "
@@ -200,8 +212,16 @@ int main(int argc, char** argv)
     const float nu = std::stof(argv[16]);
 
     // for singlepoint mode
-    const float eps0_target = std::stof(argv[17]);
-    const float A_target = std::stof(argv[18]);
+    const float eps0_target = safe_stof(argv[17]);
+    const float A_target    = safe_stof(argv[18]);
+
+    if ((single_mode && (std::isnan(eps0_target) || std::isnan(A_target))) || 
+        (!single_mode && !(std::isnan(eps0_target) && std::isnan(A_target)))){
+        std::cerr << "ERROR: eps0_target or A_target is NAN in single mode, or not NAN in grid mode."
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+        }
+
 
     // rho_0
 

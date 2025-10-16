@@ -4,9 +4,9 @@ import numpy as np
 
 
 
-def read_bin_file_and_calculate_deriv(read_bin_file_and_calculate_deriv):
+def read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file):
     
-    with open(read_bin_file_and_calculate_deriv, 'rb') as f:
+    with open(path_output_bin_file, 'rb') as f:
         header = np.frombuffer(f.read(8), dtype=np.int32)
         n_A, n_eps0 = header[0], header[1]
         
@@ -33,6 +33,26 @@ def read_bin_file_and_calculate_deriv(read_bin_file_and_calculate_deriv):
     return eps0_grid, A_grid, result
 
 
+
+def read_bin_file_singlemode(path_output_bin_file):
+    with open(path_output_bin_file, 'rb') as f:
+        # Read header (N_steps_total)
+        N_steps_total = np.frombuffer(f.read(4), dtype=np.int32)[0]
+
+        # Read rho_avg (16 floats)
+        rho_avg = np.fromfile(f, dtype=np.float32, count=16)
+
+        # Read rho_dynamics (N_steps_total * 4 floats)
+        rho_dynamics = np.fromfile(f, dtype=np.float32, count=N_steps_total * 4)
+        rho_dynamics = rho_dynamics.reshape(N_steps_total, 4)
+
+        # Read time_dynamics (N_steps_total floats)
+        time_dynamics = np.fromfile(f, dtype=np.float32, count=N_steps_total)
+
+        # Read eps_dynamics (N_steps_total floats)
+        eps_dynamics = np.fromfile(f, dtype=np.float32, count=N_steps_total)
+
+    return time_dynamics, eps_dynamics, rho_dynamics, rho_avg
 
 
 

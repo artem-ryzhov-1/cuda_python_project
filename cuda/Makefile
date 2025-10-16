@@ -25,7 +25,8 @@ endif
 #ARCH = sm_86 # for local machine
 #ARCH ?= sm_75  # Default, override in build scripts if needed
 
-NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc
+#NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc
+NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc -Xptxas -v
 
 SRC = src/main.cu
 TARGET = bin/lindblad_gpu

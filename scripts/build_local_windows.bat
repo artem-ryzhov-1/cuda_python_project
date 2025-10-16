@@ -70,7 +70,10 @@ set OUTPUT=bin\lindblad_gpu.exe
 
 REM Compile CUDA code
 echo Compiling CUDA code...
-"%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc src\main.cu -o %OUTPUT%
+
+REM "%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc src\main.cu -o %OUTPUT%
+    "%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc src\main.cu -o %OUTPUT% -Xptxas -v
+
 
 if errorlevel 1 (
     echo Error: Compilation failed

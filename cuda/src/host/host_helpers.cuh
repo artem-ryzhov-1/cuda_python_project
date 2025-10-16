@@ -1,4 +1,4 @@
-// src/host_helpers.cuh
+// src/host/host_helpers.cuh
 
 #pragma once
 
@@ -19,3 +19,13 @@ __host__ inline void gpuCheck(cudaError_t err, const char* msg) {
 }
 
 
+__host__ inline float safe_stof(const char* arg) {
+    if (std::string(arg) == "None") return NAN;
+    return std::stof(arg);
+}
+
+
+__host__ inline int safe_stoi(const char* arg) {
+    if (std::string(arg) == "None") return INT_MIN;
+    return std::stoi(arg);
+}

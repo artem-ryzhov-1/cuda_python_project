@@ -6,11 +6,67 @@ import platform
 import sys
 
 
-from config import SimulationConfig, SimRun
+from config import SimulationConfig, SimRunGridMode, SimRunSingleMode
 from cuda_runner import run_gpu_lindblad_program
-from file_io import read_bin_file_and_calculate_deriv
+from file_io import read_bin_file_gridmode_and_calculate_deriv, read_bin_file_singlemode
 
-def run_simulation(simr: SimRun):
+
+def compute_grid(N_points_target, eps0_min, eps0_max, A_min, A_max):
+    eps0_range = eps0_max - eps0_min
+    A_range = A_max - A_min
+
+    if A_range == 0 or eps0_range == 0:
+        raise ValueError("Axis ranges must be non-zero.")
+
+    aspect_ratio = eps0_range / A_range
+
+    N_A = round(math.sqrt(N_points_target / aspect_ratio))
+    N_eps0 = round(N_A * aspect_ratio)
+
+    # Recompute total just to be sure
+    #total_points = N_A * N_eps0
+
+    return N_eps0, N_A
+
+
+def run_simulation(simr):
+    
+    if isinstance(simr, SimRunGridMode):
+        print("grid mode")
+        grid_or_single_mode = "grid"
+        
+        eps0_target_singlepoint = None
+        A_target_singlepoint    = None
+        
+        eps0_min =  simr.eps0_min
+        eps0_max =  simr.eps0_max
+        A_min =     simr.A_min
+        A_max =     simr.A_max
+        
+        N_points_eps0_range, N_points_A_range = compute_grid(N_points_target=simr.N_points_target,
+                                                             eps0_min=eps0_min,
+                                                             eps0_max=eps0_max,
+                                                             A_min=A_min,
+                                                             A_max=A_max)
+        
+    elif isinstance(simr, SimRunSingleMode):
+        print("single mode")
+        grid_or_single_mode = "single"
+        
+        eps0_target_singlepoint = simr.eps0_target_singlepoint
+        A_target_singlepoint    = simr.A_target_singlepoint
+        
+        eps0_min =  None
+        eps0_max =  None
+        A_min =     None
+        A_max =     None
+        
+        N_points_eps0_range = None
+        N_points_A_range    = None
+    
+    
+    
+    
     
     
     
@@ -20,7 +76,6 @@ def run_simulation(simr: SimRun):
     avg_periods_ouput_option = "last" # "last" or "last_2last"
     unrolled_option = "unrolled" # "as_arrays" or "unrolled"
     
-    single_point_mode_flag = "grid" # "grid" or "single" 
     ouput_option = "bin_file" # "ssd_csv" or "ram" or "bin_file"
     single_mode_log_option = False # boolean: "True" or "False"
     
@@ -30,18 +85,12 @@ def run_simulation(simr: SimRun):
     #threads_per_traj_opt = "thread_group_in_warp_per_traj_shuffle" 
     #threads_per_traj_opt = "thread_group_in_warp_per_traj_shmem" 
     
-
-    eps0_target_singlepoint = 0.0002
-    A_target_singlepoint = 0.0033
     
 
     
-    eps0_min =  simr.eps0_min
-    eps0_max =  simr.eps0_max
-    A_min =     simr.A_min
-    A_max =     simr.A_max
+
     
-    N_points_target = simr.N_points_target
+    #N_points_target = simr.N_points_target
     N_steps_period = simr.N_steps_period
     N_periods =      simr.N_periods
     N_periods_avg =  simr.N_periods_avg
@@ -121,9 +170,9 @@ def run_simulation(simr: SimRun):
     
     ###################################
     
-    #cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
-    #cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
-    #output_dir        = cuda_cwd / "output"
+    cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
+    cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
+    output_dir        = cuda_cwd / "output"
     
     ###################################
     
@@ -133,8 +182,13 @@ def run_simulation(simr: SimRun):
     print("cuda_cwd = ", cuda_cwd)
     
     # Combine the base path with the filenames
+    
+    if grid_or_single_mode == "grid":
+        path_output_bin_file                  = output_dir / "rho_avg_out.bin"
+    elif grid_or_single_mode == "single":
+        path_output_bin_file                  = output_dir / "rho_dynamics_single_mode_out.bin"
+        
     path_output_csv                           = output_dir / "rho_avg_out.csv"
-    path_output_bin_file                      = output_dir / "rho_avg_out.bin"
     path_dynamics_single_mode_output_csv      = output_dir / "rho_dynamics_single_mode_out.csv"
     path_dynamics_single_mode_output_log_csv  = output_dir / "rho_dynamics_single_mode_log_out.csv"
     path_dynamics_single_mode_output_log_hdf5 = output_dir / "rho_dynamics_single_mode_log_out.h5"
@@ -167,39 +221,7 @@ def run_simulation(simr: SimRun):
     rho22_init /= tr_pho;
     rho33_init /= tr_pho;
     
-    
-    
-    def compute_grid(N_points_target=N_points_target,
-                     eps0_min=eps0_min,
-                     eps0_max=eps0_max,
-                     A_min=A_min,
-                     A_max=A_max):
-        eps0_range = eps0_max - eps0_min
-        A_range = A_max - A_min
-    
-        if A_range == 0 or eps0_range == 0:
-            raise ValueError("Axis ranges must be non-zero.")
-    
-        aspect_ratio = eps0_range / A_range
-    
-        N_A = round(math.sqrt(N_points_target / aspect_ratio))
-        N_eps0 = round(N_A * aspect_ratio)
-    
-        # Recompute total just to be sure
-        #total_points = N_A * N_eps0
-    
-        return N_eps0, N_A
-    
-    
-    
-    N_points_eps0_range, N_points_A_range = compute_grid()
-    
-    
-    
-    
-    
-    
-    
+
     
     
     
@@ -210,8 +232,8 @@ def run_simulation(simr: SimRun):
     #checks
     
         
-    if single_point_mode_flag != "grid" and single_point_mode_flag != "single":
-        raise ValueError("variable single_point_mode_flag should be grid or single")
+    if grid_or_single_mode != "grid" and grid_or_single_mode != "single":
+        raise ValueError("variable grid_or_single_mode should be grid or single")
     
     if not(ouput_option == "bin_file"):
         raise ValueError("Other ouput_option not implemented yet")
@@ -228,7 +250,7 @@ def run_simulation(simr: SimRun):
     
     
     cfg = SimulationConfig(
-        single_point_mode_flag=single_point_mode_flag,
+        grid_or_single_mode=grid_or_single_mode,
         avg_periods_ouput_option=avg_periods_ouput_option,
         ouput_option=ouput_option,
         unrolled_option=unrolled_option,
@@ -302,18 +324,21 @@ def run_simulation(simr: SimRun):
     # do not run many times, because the log file is 0.5 GB
     
     if run_cuda_program_option == True:
-    
-        if (single_point_mode_flag == "grid"):
-            returncode = run_gpu_lindblad_program(cfg)
-        else:
-            raise ValueError("single_point_mode_flag='single' not yet implemented")
-                
-
-        eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_and_calculate_deriv(path_output_bin_file)
-    
         
-        return eps0_grid, A_grid, rho_avg_cdc_3d, returncode
-
+        returncode = run_gpu_lindblad_program(cfg)
+        
+        if grid_or_single_mode == "grid":
+                 
+            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file)
+        
+            return eps0_grid, A_grid, rho_avg_cdc_3d, returncode
+        
+        
+        elif grid_or_single_mode == "single":
+        
+            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file)
+            
+            return time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode
 
     else:
         return
