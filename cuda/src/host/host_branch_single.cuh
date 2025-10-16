@@ -421,6 +421,7 @@ __host__ inline void run_single_mode(
 
     }
 
+/*
     else if (output_option == "ssd_csv") {
         
         // -----------------------
@@ -484,7 +485,7 @@ __host__ inline void run_single_mode(
     else if (output_option != "ssd_csv") {
         std::cerr << "ERROR: output_option = 'ram' is not implemented for singlemode" << std::endl;
     }
-
+*/
 
     // cleanup
     cudaFree(d_rho_avg);
