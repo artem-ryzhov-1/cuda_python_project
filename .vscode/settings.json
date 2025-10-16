@@ -47,5 +47,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "remote.autoForwardPorts": false,
+    "remote.autoForwardPortsFallback": 3
 }
