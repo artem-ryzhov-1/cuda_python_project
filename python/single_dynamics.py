@@ -74,6 +74,7 @@ simr = SimRunSingleMode(
     N_steps_period=1000,
     N_periods=10,
     N_periods_avg=1,
+    N_samples_noise=0,
     
     platform_type = platform_type,
     repo_path=repo_path

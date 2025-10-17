@@ -268,6 +268,7 @@ def run_simulation(simr):
         N_steps_period=N_steps_period,
         N_periods=N_periods,
         N_periods_avg=N_periods_avg,
+        N_samples_noise=simr.N_samples_noise,
         delta_C=delta_C,
         delta_L=delta_L,
         delta_R=delta_R,

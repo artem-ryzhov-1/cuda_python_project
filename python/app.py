@@ -36,7 +36,7 @@ print(f"Repo directory: {repo_path}")
 
 
 import panel as pn
-from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
+from app_interferogram_dynamics_class_raw_best import InteractiveInterferogramDynamics
 
 # Make sure you have Panel and any other required libraries installed
 pn.extension()
@@ -58,6 +58,7 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     N_steps_period_array=(100, 2000),
     N_periods_array=(1, 20),
     N_periods_avg_array=(1, 10),
+    N_samples_noise_array=(0, 1000),
     delta_C_default=0.00011608757555650906,
     GammaL0_default=50.0,
     GammaR0_default=12.0,
@@ -66,6 +67,7 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     N_steps_period_default=1000,
     N_periods_default=10,
     N_periods_avg_default=1,
+    N_samples_noise_default=0,
     dC_default_thresholds=(-3000, 1000),
     platform_type=platform_type,
     repo_path=repo_path,

@@ -43,6 +43,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         str(c.N_steps_period),
         str(c.N_periods),
         str(c.N_periods_avg),
+        str(c.N_samples_noise),
         str(c.alpha),
         str(c.nu),
         str(c.eps0_target_singlepoint),

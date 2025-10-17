@@ -26,9 +26,9 @@ class SimulationParameters:
     """Manages simulation parameters and their widgets."""
     
     def __init__(self, delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, 
-                 Gamma_phi0_range, N_steps_period_range, N_periods_range, N_periods_avg_range,
+                 Gamma_phi0_range, N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default):
+                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default):
         
         # Current values
         self.delta_C = delta_C_default
@@ -39,6 +39,7 @@ class SimulationParameters:
         self.N_steps_period = N_steps_period_default
         self.N_periods = N_periods_default
         self.N_periods_avg = N_periods_avg_default
+        self.N_samples_noise = N_samples_noise_default
         
         # Store ranges
         self.delta_C_range = delta_C_range
@@ -49,6 +50,7 @@ class SimulationParameters:
         self.N_steps_period_range = N_steps_period_range
         self.N_periods_range = N_periods_range
         self.N_periods_avg_range = N_periods_avg_range
+        self.N_samples_noise_range = N_samples_noise_range
         
         # Create widgets
         self._create_widgets()
@@ -107,13 +109,19 @@ class SimulationParameters:
         )
         self.N_periods_avg_input = pn.widgets.IntInput(value=self.N_periods_avg, width=100)
         
+        self.N_samples_noise_slider = pn.widgets.IntSlider(
+            name='N_samples_noise', start=self.N_samples_noise_range[0], 
+            end=self.N_samples_noise_range[1], value=self.N_samples_noise, step=1
+        )
+        self.N_samples_noise_input = pn.widgets.IntInput(value=self.N_samples_noise, width=100)
+        
         # Link sliders and inputs
         self._link_all_widgets()
     
     def _link_all_widgets(self):
         """Link all slider-input pairs."""
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0',
-                     'N_steps_period', 'N_periods', 'N_periods_avg']:
+                     'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             self._link_slider_input(param)
     
     def _link_slider_input(self, param_name):
@@ -144,6 +152,7 @@ class SimulationParameters:
         self.N_steps_period = self.N_steps_period_slider.value
         self.N_periods = self.N_periods_slider.value
         self.N_periods_avg = self.N_periods_avg_slider.value
+        self.N_samples_noise = self.N_samples_noise_slider.value
     
     def get_simrun_kwargs(self, platform_type, repo_path, **extra_kwargs):
         """Get kwargs for SimRunGridMode or SimRunSingleMode."""
@@ -156,6 +165,7 @@ class SimulationParameters:
             'N_steps_period': self.N_steps_period,
             'N_periods': self.N_periods,
             'N_periods_avg': self.N_periods_avg,
+            'N_samples_noise': self.N_samples_noise,
             'platform_type': platform_type,
             'repo_path': repo_path
         }
@@ -176,6 +186,7 @@ class SimulationParameters:
             pn.Row(self.N_steps_period_slider, self.N_steps_period_input),
             pn.Row(self.N_periods_slider, self.N_periods_input),
             pn.Row(self.N_periods_avg_slider, self.N_periods_avg_input),
+            pn.Row(self.N_samples_noise_slider, self.N_samples_noise_input)
         )
 
 
@@ -605,22 +616,31 @@ class DynamicsPlot:
         
         def make_plot(version):
             if self.time_dynamics is None or self.rho_dynamics is None:
-                empty_pop = hv.Curve([(0, 0)], kdims=['time'], vdims=['population']).opts(
+                # Create 4 empty curves and overlay them (matching the filled state structure)
+                empty_p00 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p00').opts(color='red', line_width=1.5)
+                empty_p01 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p01').opts(color='blue', line_width=1.5)
+                empty_p10 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p10').opts(color='green', line_width=1.5)
+                empty_p11 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p11').opts(color='orange', line_width=1.5)
+                
+                empty_pop_overlay = (empty_p00 * empty_p01 * empty_p10 * empty_p11).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
-                    show_grid=True,
+                    show_grid=True, legend_position='right',
                     xlim=(0, 1), ylim=(0, 1)
                 )
+                
                 empty_eps = hv.Curve([(0, 0)], kdims=['time'], vdims=['epsilon']).opts(
+                    color='purple', line_width=1.5,
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     xlim=(0, 1), ylim=(0, 1)
                 )
-                # Return empty plots using Layout
-                return hv.Layout([empty_pop, empty_eps]).cols(1)
+                
+                # Return Overlay + Curve structure
+                return (empty_pop_overlay + empty_eps).cols(1)
             
             # Population plot
             time = self.time_dynamics
@@ -629,15 +649,12 @@ class DynamicsPlot:
             pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
             pop_ylim = (0, pop_max * 1.1)
             
-            curves = [
-                hv.Curve((time, p00), label='p00').opts(color='red', line_width=1.5),
-                hv.Curve((time, p01), label='p01').opts(color='blue', line_width=1.5),
-                hv.Curve((time, p10), label='p10').opts(color='green', line_width=1.5),
-                hv.Curve((time, p11), label='p11').opts(color='orange', line_width=1.5)
-            ]
+            curve_p00 = hv.Curve((time, p00), kdims=['time'], vdims=['population'], label='p00').opts(color='red', line_width=1.5)
+            curve_p01 = hv.Curve((time, p01), kdims=['time'], vdims=['population'], label='p01').opts(color='blue', line_width=1.5)
+            curve_p10 = hv.Curve((time, p10), kdims=['time'], vdims=['population'], label='p10').opts(color='green', line_width=1.5)
+            curve_p11 = hv.Curve((time, p11), kdims=['time'], vdims=['population'], label='p11').opts(color='orange', line_width=1.5)
             
-            pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
-            pop_plot = pop_overlay.opts(
+            pop_overlay = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                 width=800, height=350,
                 title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
                 xlabel='Time', ylabel='Population',
@@ -649,7 +666,7 @@ class DynamicsPlot:
             eps_min = self.current_eps0 - self.current_A * 1.1
             eps_max = self.current_eps0 + self.current_A * 1.1
             
-            eps_plot = hv.Curve((time, self.eps_dynamics)).opts(
+            eps_curve = hv.Curve((time, self.eps_dynamics), kdims=['time'], vdims=['epsilon']).opts(
                 color='purple', line_width=1.5,
                 width=800, height=200,
                 title='Epsilon Dynamics',
@@ -658,8 +675,8 @@ class DynamicsPlot:
                 ylim=(eps_min, eps_max)
             )
             
-            # Return actual plots using Layout to ensure correct ordering
-            return hv.Layout([pop_plot, eps_plot]).cols(1)
+            # Return Overlay + Curve structure (same as empty state)
+            return (pop_overlay + eps_curve).cols(1)
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
@@ -681,9 +698,9 @@ class InteractiveInterferogramDynamics:
     
     def __init__(self, eps0_min, eps0_max, A_min, A_max, N_points_target,
                  delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range,
-                 N_steps_period_array, N_periods_array, N_periods_avg_array,
+                 N_steps_period_array, N_periods_array, N_periods_avg_array, N_samples_noise_array,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default,
+                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default,
                  dC_default_thresholds,
                  platform_type,
                  repo_path,
@@ -701,13 +718,14 @@ class InteractiveInterferogramDynamics:
         N_steps_period_range = N_steps_period_array if isinstance(N_steps_period_array, tuple) else (int(N_steps_period_array[0]), int(N_steps_period_array[-1]))
         N_periods_range = N_periods_array if isinstance(N_periods_array, tuple) else (int(N_periods_array[0]), int(N_periods_array[-1]))
         N_periods_avg_range = N_periods_avg_array if isinstance(N_periods_avg_array, tuple) else (int(N_periods_avg_array[0]), int(N_periods_avg_array[-1]))
-        
+        N_samples_noise_range = N_samples_noise_array if isinstance(N_samples_noise_array, tuple) else (int(N_samples_noise_array[0]), int(N_samples_noise_array[-1]))
+
         # Create component objects
         self.sim_params = SimulationParameters(
             delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range,
-            N_steps_period_range, N_periods_range, N_periods_avg_range,
+            N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
             delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-            Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default
+            Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default
         )
         
         self.interferogram = InterferogramPlot(
@@ -770,7 +788,7 @@ class InteractiveInterferogramDynamics:
         
         # Watch parameter sliders for auto-update
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0',
-                     'N_steps_period', 'N_periods', 'N_periods_avg']:
+                     'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
             slider.param.watch(self._on_parameter_change, 'value')
     
@@ -839,7 +857,7 @@ class InteractiveInterferogramDynamics:
         log_text += f"- delta_C = {self.sim_params.delta_C:.6e}\n"
         log_text += f"- GammaL0 = {self.sim_params.GammaL0}, GammaR0 = {self.sim_params.GammaR0}\n"
         log_text += f"- Gamma_eg0 = {self.sim_params.Gamma_eg0}, Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
-        log_text += f"- N_steps = {self.sim_params.N_steps_period}, N_periods = {self.sim_params.N_periods}, N_avg = {self.sim_params.N_periods_avg}\n\n"
+        log_text += f"- N_steps_period = {self.sim_params.N_steps_period}, N_periods = {self.sim_params.N_periods}, N_periods_avg = {self.sim_params.N_periods_avg}, N_samples_noise = {self.sim_params.N_samples_noise}\n\n"
         
         stdout_content = captured_stdout.getvalue()
         stderr_content = captured_stderr.getvalue()
@@ -990,34 +1008,36 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Create dynamics plot ONCE (not inside bind)
+        # Create dynamics plot ONCE
         dynamics_dmap = self.dynamics.create_plot()
         
-        # Dynamics section (conditionally shown)
-        def dynamics_section_visible(show_dynamics):
-            if show_dynamics:
-                return pn.Column(
-                    pn.layout.Divider(),
-                    "### Dynamics Plot",
-                    self.dynamics.get_control_panel(),
-                    self.dynamics.status_text,
-                    dynamics_dmap,  # Use pre-created plot
-                    sizing_mode='fixed'
-                )
-            else:
-                return pn.Column(
-                    pn.layout.Divider(),
-                    "### Dynamics Plot",
-                    self.dynamics.get_control_panel(),
-                    sizing_mode='fixed'
-                )
+        # Create dynamics plot panel (always exists, but visibility controlled)
+        dynamics_plot_panel = pn.Column(
+            dynamics_dmap,
+            sizing_mode='fixed',
+            visible=False  # Initially hidden
+        )
         
-        dynamics_section_dynamic = pn.bind(dynamics_section_visible, self.dynamics.show_toggle)
+        # Create static dynamics section
+        dynamics_section = pn.Column(
+            pn.layout.Divider(),
+            "### Dynamics Plot",
+            self.dynamics.get_control_panel(),
+            self.dynamics.status_text,
+            dynamics_plot_panel,
+            sizing_mode='fixed'
+        )
+        
+        # Control visibility with a callback instead of pn.bind
+        def update_dynamics_visibility(event):
+            dynamics_plot_panel.visible = event.new
+        
+        self.dynamics.show_toggle.param.watch(update_dynamics_visibility, 'value')
         
         # Main plot area
         plot_area = pn.Column(
             interferogram_section,
-            dynamics_section_dynamic,
+            dynamics_section,
             pn.layout.Divider(),
             "### Computation Log",
             self.log_display,
