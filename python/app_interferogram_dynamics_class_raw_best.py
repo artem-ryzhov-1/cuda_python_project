@@ -681,8 +681,8 @@ class InteractiveInterferogramDynamics:
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
                  Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default,
                  dC_default_thresholds,
-                 platform_type=platform_type,
-                 repo_path=repo_path,
+                 platform_type,
+                 repo_path,
                  cmap_name='fire'):
         
         self.platform_type = platform_type
