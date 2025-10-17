@@ -402,17 +402,13 @@ class InterferogramPlot:
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
-            # ALWAYS return an Overlay - create marker lines even if invisible
+            # Add marker if present - use LOCAL copies
             if marker_eps0_local is not None and marker_A_local is not None:
                 vline = hv.VLine(marker_eps0_local).opts(color='blue', line_width=2, line_dash='solid')
                 hline = hv.HLine(marker_A_local).opts(color='blue', line_width=2, line_dash='solid')
-            else:
-                # Create invisible marker lines outside the plot range
-                vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
-                hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
+                img = img * vline * hline
             
-            # ALWAYS return the same structure: Image * VLine * HLine
-            return img * vline * hline
+            return img
         
         return hv.DynamicMap(
             pn.bind(make_plot,
@@ -685,8 +681,8 @@ class InteractiveInterferogramDynamics:
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
                  Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default,
                  dC_default_thresholds,
-                 platform_type,
-                 repo_path,
+                 platform_type=platform_type,
+                 repo_path=repo_path,
                  cmap_name='fire'):
         
         self.platform_type = platform_type
@@ -990,9 +986,6 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Create dynamics plot ONCE (not inside bind)
-        dynamics_dmap = self.dynamics.create_plot()
-        
         # Dynamics section (conditionally shown)
         def dynamics_section_visible(show_dynamics):
             if show_dynamics:
@@ -1001,7 +994,7 @@ class InteractiveInterferogramDynamics:
                     "### Dynamics Plot",
                     self.dynamics.get_control_panel(),
                     self.dynamics.status_text,
-                    dynamics_dmap,  # Use pre-created plot
+                    self.dynamics.create_plot(),
                     sizing_mode='fixed'
                 )
             else:
@@ -1032,5 +1025,4 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
-
+    

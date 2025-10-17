@@ -1,3 +1,39 @@
+from pathlib import Path
+import sys
+import os
+
+# Determine the platform type (local or colab)
+if 'COLAB_GPU' in os.environ:  # Check if running in Google Colab
+    platform_type = 'colab_linux'
+else:
+    if sys.platform.startswith('linux'):
+        # Check for WSL2
+        # Check if running under WSL (by looking for /mnt/c/)
+        if Path('/mnt/c/').exists():
+            platform_type = 'local_wsl2'
+        else:
+            platform_type = 'local_linux'
+    elif sys.platform.startswith('win'):
+        platform_type = 'local_windows'
+    elif sys.platform.startswith('darwin'):
+        raise RuntimeError("CUDA is not natively supported on macOS. Execution is not implemented.")
+    else:
+        raise RuntimeError("Unsupported platform")
+
+# Set the repo path based on platform
+if platform_type == 'colab_linux':
+    repo_path = Path('/content/cuda_python_project')  # Colab default path
+elif platform_type in ['local_linux', 'local_wsl2']:
+    repo_path = Path('~/cuda_python_project').expanduser()  # Shared path for WSL2 and Linux
+elif platform_type == 'local_windows':
+    repo_path = Path(os.path.expandvars(r'%USERPROFILE%\cuda_python_project'))  # Windows local path
+
+
+print(f"Platform: {platform_type}")
+print(f"Repo directory: {repo_path}")
+
+
+
 
 import panel as pn
 from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
@@ -31,6 +67,8 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     N_periods_default=10,
     N_periods_avg_default=1,
     dC_default_thresholds=(-3000, 1000),
+    platform_type=platform_type,
+    repo_path=repo_path,
     cmap_name='fire'
 )
 
