@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <string>
-#include <optional>
+#include <random>
 #include "constants.cuh"
 
 // #include "cuda_intellisense_fixes.cuh"
@@ -13,7 +13,7 @@
 #include "host/host_helpers.cuh"
 
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 #endif
 
 
@@ -44,20 +44,20 @@ int main(int argc, char** argv)
 
     if (argc > 6) std::cout << "6.  eps0_min: " << argv[6] << "\n";
     if (argc > 7) std::cout << "7.  eps0_max: " << argv[7] << "\n";
-    if (argc > 8) std::cout << "8.  A_min: "    << argv[8] << "\n";
-    if (argc > 9) std::cout << "9.  A_max: "    << argv[9] << "\n";
+    if (argc > 8) std::cout << "8.  A_min: " << argv[8] << "\n";
+    if (argc > 9) std::cout << "9.  A_max: " << argv[9] << "\n";
 
     if (argc > 10) std::cout << "10. N_points_eps0_range: " << argv[10] << "\n";
     if (argc > 11) std::cout << "11. N_points_A_range: " << argv[11] << "\n";
     if (argc > 12) std::cout << "12. N_steps_period: " << argv[12] << "\n";
     if (argc > 13) std::cout << "13. N_periods: " << argv[13] << "\n";
     if (argc > 14) std::cout << "14. N_periods_avg: " << argv[14] << "\n";
-    if (argc > 15) std::cout << "15. N_noise: " << argv[15] << "\n";
+    if (argc > 15) std::cout << "15. N_samples_noise: " << argv[15] << "\n";
 
     if (argc > 16) std::cout << "16. alpha: " << argv[16] << "\n";
-    if (argc > 17) std::cout << "17. nu: "    << argv[17] << "\n";
+    if (argc > 17) std::cout << "17. nu: " << argv[17] << "\n";
     if (argc > 18) std::cout << "18. eps0_target_singlepoint: " << argv[18] << "\n";
-    if (argc > 19) std::cout << "19. A_target_singlepoint: "    << argv[19] << "\n";
+    if (argc > 19) std::cout << "19. A_target_singlepoint: " << argv[19] << "\n";
 
     if (argc > 20) std::cout << "20. rho00_init: " << argv[20] << "\n";
     if (argc > 21) std::cout << "21. rho11_init: " << argv[21] << "\n";
@@ -72,11 +72,11 @@ int main(int argc, char** argv)
     if (argc > 28) std::cout << "28. delta_L: " << argv[28] << "\n";
     if (argc > 29) std::cout << "29. delta_R: " << argv[29] << "\n";
 
-    if (argc > 30) std::cout << "30. g_en: "   << argv[30] << "\n";
-    if (argc > 31) std::cout << "31. g_phi: "  << argv[31] << "\n";
-    if (argc > 32) std::cout << "32. gL_en: "  << argv[32] << "\n";
+    if (argc > 30) std::cout << "30. g_en: " << argv[30] << "\n";
+    if (argc > 31) std::cout << "31. g_phi: " << argv[31] << "\n";
+    if (argc > 32) std::cout << "32. gL_en: " << argv[32] << "\n";
     if (argc > 33) std::cout << "33. gL_phi: " << argv[33] << "\n";
-    if (argc > 34) std::cout << "34. gR_en: "  << argv[34] << "\n";
+    if (argc > 34) std::cout << "34. gR_en: " << argv[34] << "\n";
     if (argc > 35) std::cout << "35. gR_phi: " << argv[35] << "\n";
 
     if (argc > 36) std::cout << "36. Gamma_L0: " << argv[36] << "\n";
@@ -85,23 +85,26 @@ int main(int argc, char** argv)
     if (argc > 39) std::cout << "39. muR: " << argv[39] << "\n";
     if (argc > 40) std::cout << "40. T_K: " << argv[40] << "\n";
 
-    if (argc > 41) std::cout << "41. Gamma_eg0: "  << argv[41] << "\n";
-    if (argc > 42) std::cout << "42. omega_c: "    << argv[42] << "\n";
+    if (argc > 41) std::cout << "41. Gamma_eg0: " << argv[41] << "\n";
+    if (argc > 42) std::cout << "42. omega_c: " << argv[42] << "\n";
 
     if (argc > 43) std::cout << "43. Gamma_phi0: " << argv[43] << "\n";
+    if (argc > 44) std::cout << "44. sigma_eps: " << argv[44] << "\n";
 
-    if (argc > 44) std::cout << "44. single_mode_log_option: "                    << argv[44] << "\n";
-    if (argc > 45) std::cout << "45. path_dynamics_single_mode_output_log_csv: "  << argv[45] << "\n";
-    if (argc > 46) std::cout << "46. path_dynamics_single_mode_output_log_hdf5: " << argv[46] << "\n";
-    if (argc > 47) std::cout << "47. threads_per_traj_opt: "                      << argv[47] << "\n";
+    if (argc > 45) std::cout << "45. single_mode_log_option: " << argv[45] << "\n";
+    if (argc > 46) std::cout << "46. path_dynamics_single_mode_output_log_csv: " << argv[46] << "\n";
+    if (argc > 47) std::cout << "47. path_dynamics_single_mode_output_log_hdf5: " << argv[47] << "\n";
+    if (argc > 48) std::cout << "48. threads_per_traj_opt: " << argv[48] << "\n";
+    if (argc > 48) std::cout << "48. threads_per_traj_opt: " << argv[48] << "\n";
+    if (argc > 49) std::cout << "49. quasi_static_ensemble_dephasing_flag: " << argv[49] << "\n";
 
     std::cout << "==================================================" << std::endl;
 
 
+    
 
 
-
-    if (argc != 48) {
+    if (argc != 50) {
         /*std::cout << "Usage: ./lindblad_gpu single_mode_flag "
             << "avg_periods_ouput_option ouput_option unrolled_option ram_shared_mmap_name "
             << "eps0_min eps0_max A_min A_max N_points_eps0_range N_points_A_range "
@@ -159,8 +162,8 @@ int main(int argc, char** argv)
 
     const std::string ouput_option = argv[3];
     if (!(ouput_option == "ssd_csv" ||
-          ouput_option == "bin_file" ||
-          ouput_option == "ram")) {
+        ouput_option == "bin_file" ||
+        ouput_option == "ram")) {
         std::cerr << "ERROR: fourth argument must be 'ssd_csv' or 'bin_file' or 'ram'. Got '" << argv[3] << "'\n";
         std::exit(EXIT_FAILURE);
         return 1;
@@ -168,7 +171,7 @@ int main(int argc, char** argv)
 
     const std::string unrolled_option = argv[4];
     if (!(unrolled_option == "as_arrays" ||
-          unrolled_option == "unrolled")) {
+        unrolled_option == "unrolled")) {
         std::cerr << "ERROR: fifth argument must be 'as_arrays' or 'unrolled'. Got '" << argv[4] << "'\n";
         std::exit(EXIT_FAILURE);
         return 1;
@@ -188,10 +191,10 @@ int main(int argc, char** argv)
     const float A_max = safe_stof(argv[9]);
 
     const int   N_points_eps0_range = safe_stoi(argv[10]);
-    const int   N_points_A_range    = safe_stoi(argv[11]);
+    const int   N_points_A_range = safe_stoi(argv[11]);
 
     if ((!single_mode && (std::isnan(eps0_min) || std::isnan(eps0_max) || std::isnan(A_min) || std::isnan(A_max)
-            || N_points_eps0_range == INT_MIN || N_points_A_range == INT_MIN)) ||
+        || N_points_eps0_range == INT_MIN || N_points_A_range == INT_MIN)) ||
         (single_mode && !(std::isnan(eps0_min) && std::isnan(eps0_max) && std::isnan(A_min) && std::isnan(A_max)
             && N_points_eps0_range == INT_MIN && N_points_A_range == INT_MIN))) {
         std::cerr << "ERROR: eps0_min, eps0_max, A_min, or A_max is NAN in grid mode, or not NAN in single mode."
@@ -199,10 +202,10 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    
+
     const int   N_steps_period = std::stoi(argv[12]);
-    const int   N_periods      = std::stoi(argv[13]);
-    const int   N_periods_avg  = std::stoi(argv[14]);
+    const int   N_periods = std::stoi(argv[13]);
+    const int   N_periods_avg = std::stoi(argv[14]);
 
     if (N_periods_avg > N_periods) {
         std::cerr << "ERROR: N_periods_avg must be less than or equal to N_periods. Got: "
@@ -210,29 +213,21 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    const int   N_samples_noise = std::stoi(argv[15]);
-
-    bool quasi_static_ensemble_dephasing_flag;
-    if (N_samples_noise == 0) {
-        quasi_static_ensemble_dephasing_flag = true;
-    }
-    else {
-        quasi_static_ensemble_dephasing_flag = false;
-    }
+    const int   N_samples_noise = safe_stoi(argv[15]);
 
     const float alpha = std::stof(argv[16]);
     const float nu = std::stof(argv[17]);
 
     // for singlepoint mode
     const float eps0_target = safe_stof(argv[18]);
-    const float A_target    = safe_stof(argv[19]);
+    const float A_target = safe_stof(argv[19]);
 
-    if ((single_mode && (std::isnan(eps0_target) || std::isnan(A_target))) || 
-        (!single_mode && !(std::isnan(eps0_target) && std::isnan(A_target)))){
+    if ((single_mode && (std::isnan(eps0_target) || std::isnan(A_target))) ||
+        (!single_mode && !(std::isnan(eps0_target) && std::isnan(A_target)))) {
         std::cerr << "ERROR: eps0_target or A_target is NAN in single mode, or not NAN in grid mode."
             << std::endl;
         std::exit(EXIT_FAILURE);
-        }
+    }
 
 
     // rho_0
@@ -258,28 +253,31 @@ int main(int argc, char** argv)
 
 
     // these Gammas are only for printing into CSV. not used elsewhere in program
-    const float g_en   = std::stof(argv[30]);
-    const float g_phi  = std::stof(argv[31]);
-    const float gL_en  = std::stof(argv[32]);
+    const float g_en = std::stof(argv[30]);
+    const float g_phi = std::stof(argv[31]);
+    const float gL_en = std::stof(argv[32]);
     const float gL_phi = std::stof(argv[33]);
-    const float gR_en  = std::stof(argv[34]);
+    const float gR_en = std::stof(argv[34]);
     const float gR_phi = std::stof(argv[35]);
 
-    
-    const float host_Gamma_L0    = std::stof(argv[36]);    // prefactor (GHz etc.)
-    const float host_Gamma_R0    = std::stof(argv[37]);    // prefactor (GHz etc.)
-    const float host_muL         = std::stof(argv[38]);    // µeV
-    const float host_muR         = std::stof(argv[39]);    // µeV
-    const float T_K              = std::stof(argv[40]);    // Kelvin
-    
-    const float host_Gamma_eg0   = std::stof(argv[41]);    // prefactor (GHz etc.)
-    const float omega_c_norm     = std::stof(argv[42]);    // high-frequency cutoff
 
-    const float host_Gamma_phi0  = std::stof(argv[43]);    // prefactor (GHz etc.)
+    const float host_Gamma_L0 = std::stof(argv[36]);    // prefactor (GHz etc.)
+    const float host_Gamma_R0 = std::stof(argv[37]);    // prefactor (GHz etc.)
+    const float host_muL = std::stof(argv[38]);    // µeV
+    const float host_muR = std::stof(argv[39]);    // µeV
+    const float T_K = std::stof(argv[40]);    // Kelvin
+
+    const float host_Gamma_eg0 = std::stof(argv[41]);    // prefactor (GHz etc.)
+    const float omega_c_norm = std::stof(argv[42]);    // high-frequency cutoff
+
+    const float host_Gamma_phi0 = std::stof(argv[43]);    // prefactor (GHz etc.)
+    
+    const float sigma_eps = safe_stof(argv[44]);
+    
     /////// have not implemented the output of these vars.
 
 
-    const std::string single_mode_log_option_str = argv[44];
+    const std::string single_mode_log_option_str = argv[45];
     bool single_mode_log_option;
 
     if (single_mode_log_option_str == "True") {
@@ -294,22 +292,49 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    const std::string path_dynamics_single_mode_output_log_csv = argv[45];
+    const std::string path_dynamics_single_mode_output_log_csv = argv[46];
 
-    const std::string path_dynamics_single_mode_output_log_hdf5 = argv[46];
+    const std::string path_dynamics_single_mode_output_log_hdf5 = argv[47];
 
-    const std::string threads_per_traj_opt = argv[47];
+    const std::string threads_per_traj_opt = argv[48];
 
     if (!(threads_per_traj_opt == "one_thread_per_traj" ||
-          threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
-          threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem")) {
+        threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
+        threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem")) {
         std::cerr << "ERROR: threads_per_traj_opt must be 'one_thread_per_traj'"
             << " or 'thread_group_in_warp_per_traj_shuffle'"
             << "or 'thread_group_in_warp_per_traj_shmem'.Got '" << threads_per_traj_opt << "'\n";
         std::exit(EXIT_FAILURE);
         return 1;
     }
+    
 
+    const std::string quasi_static_ensemble_dephasing_flag_str = argv[49];
+    bool quasi_static_ensemble_dephasing_flag;
+
+    if (quasi_static_ensemble_dephasing_flag_str == "True") {
+        quasi_static_ensemble_dephasing_flag = true;
+
+        if (std::isnan(sigma_eps) || N_samples_noise == INT_MIN){
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is NAN with quasi_static_ensemble_dephasing_flag_str == 'True'."
+                << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    else if (quasi_static_ensemble_dephasing_flag_str == "False") {
+        quasi_static_ensemble_dephasing_flag = false;
+
+        if (!std::isnan(sigma_eps) || N_samples_noise != INT_MIN) {
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_flag_str == 'False'."
+                << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    else {
+        std::cerr << "ERROR: Invalid argument. Expected 'True' or 'False'. Got: " << quasi_static_ensemble_dephasing_flag_str << std::endl;
+        std::exit(EXIT_FAILURE);
+        return 1;
+    }
 
 
     // renormalization for safety
@@ -371,6 +396,8 @@ int main(int argc, char** argv)
         << "  N_periods: " << N_periods
         << "  N_periods_avg: " << N_periods_avg
         << "  dt: " << dt << std::endl;
+    std::cout << " N_samples_noise: " << N_samples_noise << std::endl;
+    std::cout << " quasi_static_ensemble_dephasing_flag: " << quasi_static_ensemble_dephasing_flag << std::endl;
     std::cout << " total steps: " << N_steps_period * N_periods << std::endl;
     std::cout << " delta_C: " << delta_C << std::endl;
     std::cout << " delta_L: " << delta_L << std::endl;
@@ -388,12 +415,36 @@ int main(int argc, char** argv)
     std::cout << " rho22_init: " << rho22_init << "  rho33_init: " << rho33_init << std::endl;
 
 
+    float* eps_offsets;
 
+    if (quasi_static_ensemble_dephasing_flag){
 
-    
+        if (N_samples_noise > MAX_NOISE_SAMPLES) {
+            fprintf(stderr, "Error: N_samples_noise (%d) > MAX_NOISE_SAMPLES (%d)\n",
+                N_samples_noise, MAX_NOISE_SAMPLES);
+            std::exit(EXIT_FAILURE); 
+            exit(1);
+        }
+
+        
+        cudaMallocManaged(&eps_offsets, N_samples_noise * sizeof(float));
+
+        // Fill with noise
+        std::mt19937 rng(12345);
+        std::normal_distribution<float> dist(0.0f, sigma_eps);
+        for (int i = 0; i < N_samples_noise; ++i) {
+            eps_offsets[i] = dist(rng);
+        }
+
+        // Copy to GPU constant memory
+        //gpuCheck(cudaMemcpyToSymbol(c_eps_offsets, host_eps_offsets.data(), N_samples_noise * sizeof(float), 0, cudaMemcpyHostToDevice), "cudaMemcpyToSymbol c_eps_offsets");
+
+    }
+
     if (single_mode) {
         run_single_mode(
             eps0_target, A_target, N_steps_period, N_periods,
+            N_samples_noise, quasi_static_ensemble_dephasing_flag,
             dt, nu, alpha,
             rho00_init, rho11_init, rho22_init, rho33_init,
             delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
@@ -408,7 +459,9 @@ int main(int argc, char** argv)
         run_grid_mode(
             eps0_min, eps0_max, A_min, A_max,
             N_points_eps0_range, N_points_A_range,
-            N_steps_period, N_periods, N_periods_avg, dt, nu, alpha,
+            N_steps_period, N_periods, N_periods_avg,
+            N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
+            dt, nu, alpha,
             path_output_csv, path_output_bin_file, avg_periods_ouput_option, ouput_option, unrolled_option,
             ram_shared_mmap_name, threads_per_traj_opt,
             rho00_init, rho11_init, rho22_init, rho33_init,
@@ -417,7 +470,7 @@ int main(int argc, char** argv)
         );
     }
 
-    
+
 
 
     cudaDeviceReset();

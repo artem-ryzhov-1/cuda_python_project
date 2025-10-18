@@ -42,7 +42,13 @@ constexpr float muR = 0.0f;
 constexpr float kT  = 0.0f;
 
 
+// max number of noise samples allowed (limited by constant memory size)
+constexpr int MAX_NOISE_SAMPLES = 8192;
+
 // device constants
+
+// store Gaussian noise offsets in constant memory
+__device__ __constant__ float c_eps_offsets[MAX_NOISE_SAMPLES];
 
 __device__ __constant__ float pi_alpha;
 //__device__ __constant__ float B;

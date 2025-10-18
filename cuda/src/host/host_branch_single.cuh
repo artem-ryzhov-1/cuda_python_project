@@ -47,6 +47,8 @@ __host__ inline void run_single_mode(
 
     const int host_N_steps_per_period,
     const int host_N_periods,
+    const int N_samples_noise,
+    const bool quasi_static_ensemble_dephasing_flag,
 
     const float host_dt,
     const float nu,
@@ -239,7 +241,7 @@ __host__ inline void run_single_mode(
         && threads_per_traj_opt == "one_thread_per_traj") {
 
         /* good. only for faster compilation
-        printf("Launching kernel singlemode_as_arrays without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode as_arrays without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode <<< 1, threads_per_block >>> (
@@ -257,7 +259,7 @@ __host__ inline void run_single_mode(
         && threads_per_traj_opt == "one_thread_per_traj") {
 
         /* good. only for faster compilation
-        printf("Launching kernel singlemode_as_arrays with log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode as_arrays with log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_log <<< 1, threads_per_block >>> (
@@ -274,10 +276,11 @@ __host__ inline void run_single_mode(
     }
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == false
-        && threads_per_traj_opt == "one_thread_per_traj")
+        && threads_per_traj_opt == "one_thread_per_traj"
+        && !quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode_unrolled without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_unrolled <<< 1, threads_per_block >>> (
@@ -292,10 +295,11 @@ __host__ inline void run_single_mode(
     }
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == true
-        && threads_per_traj_opt == "one_thread_per_traj")
+        && threads_per_traj_opt == "one_thread_per_traj"
+        && !quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode_unrolled with log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_unrolled_log <<< 1, threads_per_block >>> (
@@ -309,46 +313,27 @@ __host__ inline void run_single_mode(
             d_log_buffer
             );
 
-    }/*
+    }
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == false
-        && threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle")
+        && threads_per_traj_opt == "one_thread_per_traj"
+        && quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode_unrolled_warp without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_unrolled_warp <<< 1, threads_per_block >>> (
-            eps0_target, A_target,
+        //lindblad_rk4_kernel_singlemode_unrolled_ensemble <<< 1, threads_per_block >>> (
+        //    eps0_target, A_target,
 
-            d_rho_avg,
-            d_rho_dynamics,
-            d_time_dynamics,
-            d_eps_dynamics
-            );
+        //    d_rho_avg,
+        //    d_rho_dynamics,
+        //    d_time_dynamics,
+        //    d_eps_dynamics,
+        //    N_samples_noise
+        //    );
 
     }
-    else if (unrolled_option == "unrolled"
-        && single_mode_log_option == true
-        && threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle")
-    {
-        //not yet implemented. for faster compilation
-        printf("Launching kernel singlemode_unrolled_warp with log: blocks=1 threads_per_block=%d\n", threads_per_block);
-        fflush(stdout);  // forces the buffer to flush immediately
-
-        lindblad_rk4_kernel_singlemode_unrolled_warp_log <<< 1, threads_per_block >>> (
-            eps0_target, A_target,
-
-            d_rho_avg,
-            d_rho_dynamics,
-            d_time_dynamics,
-            d_eps_dynamics,
-
-            d_log_buffer
-        );
-        
-    }
-    */
 
     // check for launch errors immediately
     cudaError_t err = cudaGetLastError();

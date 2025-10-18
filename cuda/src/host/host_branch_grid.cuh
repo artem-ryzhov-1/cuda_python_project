@@ -46,6 +46,9 @@ __host__ inline void run_grid_mode(
     const int host_N_steps_per_period,
     const int host_N_periods,
     const int N_periods_avg,
+    const int N_samples_noise,
+    const bool quasi_static_ensemble_dephasing_flag,
+    float* eps_offsets,
     const float host_dt,
     const float nu,
     const float alpha,
@@ -243,79 +246,69 @@ __host__ inline void run_grid_mode(
 
     // launch kernel
 
-    if (threads_per_traj_opt == "one_thread_per_traj") {
+    if (threads_per_traj_opt == "one_thread_per_traj"
+    && unrolled_option == "unrolled") {
 
-        threads_per_block = 128; // (common choice)
-        blocks = (host_N_points + threads_per_block - 1) / threads_per_block;   // standard
+    threads_per_block = 128; // (common choice)
+    blocks = (host_N_points + threads_per_block - 1) / threads_per_block;   // standard
 
-        if (unrolled_option == "as_arrays") {
-            /* good. only for faster compilation
-            printf("Launching kernel as_arrays one_thread_one_traj: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
-            fflush(stdout);  // forces the buffer to flush immediately
+    if (!quasi_static_ensemble_dephasing_flag) {
 
-            lindblad_rk4_kernel <<<blocks, threads_per_block >>> (
-                d_eps0, d_A,
-                d_rho_avg
+        printf("Launching kernel gridmode unrolled one_thread_one_traj no_ensemble: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        fflush(stdout);  // forces the buffer to flush immediately
+
+        lindblad_rk4_kernel_unrolled <<<blocks, threads_per_block >>> (
+            d_eps0, d_A,
+            d_rho_avg,
+
+            N_periods_avg
             );
-            */
-        }
-        else if (unrolled_option == "unrolled") {
-
-            printf("Launching kernel unrolled one_thread_one_traj: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
-            fflush(stdout);  // forces the buffer to flush immediately
-
-            lindblad_rk4_kernel_unrolled <<<blocks, threads_per_block >>> (
-                d_eps0, d_A,
-                d_rho_avg,
-
-                N_periods_avg
-            );
-
-        }
 
     }
-    else if ((threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
-              threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem")
-          && unrolled_option == "unrolled") {
-        
+    else if (quasi_static_ensemble_dephasing_flag) {
 
+        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        fflush(stdout);  // forces the buffer to flush immediately
 
-        assert(WARP_SIZE == 32);
-        assert(32 % K_TRAJ_PER_WARP == 0);
-        assert(threads_per_block % 32 == 0);
+        //lindblad_rk4_kernel_unrolled_ensemble_opt1 <<<blocks, threads_per_block >>> (
+        //    d_eps0, d_A,
+        //    d_rho_avg,
+        //    N_periods_avg,
+        //    N_samples_noise
+        //    );
 
-        int warps_needed = (host_N_points + K_TRAJ_PER_WARP - 1) / K_TRAJ_PER_WARP;
-        int total_threads = warps_needed * WARP_SIZE;
-        threads_per_block = 128;  // or 256, 512, multiple of 32
-        blocks = (total_threads + threads_per_block - 1) / threads_per_block;
-        /*
-        if (threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle"){
+        //const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
+        //lindblad_rk4_kernel_unrolled_ensemble_opt2 <<<blocks, threads_per_block >>> (
+        //    d_eps0, d_A,
+        //    d_rho_avg,
+        //    N_periods_avg,
+        //    N_samples_noise,
+        //    scale_total
+        //    );
 
-            printf("Launching kernel unrolled one_warp_one_traj shuffle: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
-            fflush(stdout);  // forces the buffer to flush immediately
+        //const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
+        //lindblad_rk4_kernel_unrolled_ensemble_opt3 << <blocks, threads_per_block >> > (
+        //    d_eps0, d_A,
+        //    d_rho_avg,
+        //    N_periods_avg,
+        //    N_samples_noise,
+        //    scale_total
+        //    );
 
-            lindblad_rk4_kernel_unrolled_warp_shfl <<<blocks, threads_per_block >>> (
-                d_eps0, d_A,
-                d_rho_avg
+        const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
+        lindblad_rk4_kernel_unrolled_ensemble_opt10 <<<blocks, threads_per_block >>> (
+            d_eps0, d_A,
+            d_rho_avg,
+            N_periods_avg,
+            N_samples_noise,
+            scale_total,
+            eps_offsets
             );
 
-        }
-        else if (threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem") {
-            
-            int warps_per_block = threads_per_block / WARP_SIZE;
-            size_t shared_mem_per_block = warps_per_block * K_TRAJ_PER_WARP * 35 * sizeof(float); // 35 floats per warp
-
-            printf("Launching kernel unrolled one_warp_one_traj shmem: blocks=%d threads_per_block=%d, shared_mem_per_block=%zu\n", blocks, threads_per_block, shared_mem_per_block);
-            fflush(stdout);  // forces the buffer to flush immediately
-
-            lindblad_rk4_kernel_unrolled_warp_shmem <<<blocks, threads_per_block, shared_mem_per_block >>> (
-                d_eps0, d_A,
-                d_rho_avg
-            );
-        
-        }
-        */
     }
+
+
+}
 
 
 
@@ -362,9 +355,17 @@ __host__ inline void run_grid_mode(
         << std::fixed << std::setprecision(1)
         << (timer_milliseconds / 1000.0f) << " s" << std::endl;
 
-    double speed = static_cast<double>(static_cast<long long>(host_N_points) * host_N_steps_per_period * host_N_periods) * 1e3 / (static_cast<double>(timer_milliseconds));
+    double speed;
+    if (!quasi_static_ensemble_dephasing_flag) {
+        speed = static_cast<double>(static_cast<long long>(host_N_points) * host_N_steps_per_period * host_N_periods) * 1e3 / (static_cast<double>(timer_milliseconds));
+        std::cout << "Npoints*N_steps_period*N_periods/run_time = " << std::endl;
+    }
+    else if (quasi_static_ensemble_dephasing_flag) {
+        speed = static_cast<double>(static_cast<long long>(host_N_points) * host_N_steps_per_period * host_N_periods * N_samples_noise) * 1e3 / (static_cast<double>(timer_milliseconds));
+        std::cout << "Npoints*N_steps_period*N_periods*N_samples_noise/run_time = " << std::endl;
+    }
 
-    std::cout << "Npoints*N_steps_period*N_periods/run_time = \n = "
+    std::cout << " = "
         << std::fixed << std::setprecision(1)
         << speed / 1e9
         << " billion points(eps0,A)*timesteps/second for 16 ODEs = \n = "
@@ -503,6 +504,10 @@ __host__ inline void run_grid_mode(
     cudaFree(d_eps0);
     cudaFree(d_A);
     cudaFree(d_rho_avg);
+
+    if (quasi_static_ensemble_dephasing_flag) {
+        cudaFree(eps_offsets);
+    }
 }
 
 

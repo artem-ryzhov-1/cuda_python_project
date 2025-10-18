@@ -293,6 +293,624 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
 
 
 
+extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
+    const float* __restrict__ d_eps0,
+    const float* __restrict__ d_A,
+    float* __restrict__ d_out_avg,
+
+    const int N_periods_avg,
+    const int N_samples_noise
+) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //if (tid == 0) { // Limit to one thread to avoid excessive output
+    //    printf("\n");
+    //    printf("Npoints=%d\n", Npoints);
+    //    printf("\n");
+    //}
+
+    if (tid >= Npoints) return;
+
+
+
+    const float eps0 = d_eps0[tid];
+    const float A = d_A[tid];
+
+
+    // Accumulators for averaged output over noise realizations
+    float avg00 = 0.f;
+    float avg11 = 0.f;
+    float avg22 = 0.f;
+    float avg33 = 0.f;
+
+
+    // noise ensemble loop
+    for (int j = 0; j < N_samples_noise; ++j) {
+
+        const float eps0_noise = eps0 + c_eps_offsets[j];
+
+
+
+        // rho in vec16 form, initial state
+        float rho_vec_0 = rho00_init; float rho_vec_1 = rho11_init;
+        float rho_vec_2 = rho22_init; float rho_vec_3 = rho33_init;
+        float rho_vec_4 = 0.f;  float rho_vec_5 = 0.f;  float rho_vec_6 = 0.f;
+        float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
+        float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
+        float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
+
+
+        //if (tid == 0) {   // only one thread prints to avoid flooding
+        //    printf("Thread tid=0 started. Message from thread tid=0.\n");
+        //    printf("rho00_init = %f\n", rho_vec_0);
+        //    printf("rho11_init = %f\n", rho_vec_1);
+        //    printf("rho22_init = %f\n", rho_vec_2);
+        //    printf("rho33_init = %f\n", rho_vec_3);
+        //    printf("Npoints=%d\n", Npoints);
+        //}
+
+        //float sum_whole[4] = { 0.f,0.f,0.f,0.f };
+
+        float sum_last_0 = 0.f;
+        float sum_last_1 = 0.f;
+        float sum_last_2 = 0.f;
+        float sum_last_3 = 0.f;
+
+        //float sum_2last[4] = { 0.f,0.f,0.f,0.f };
+        //float sum_3last[4] = { 0.f,0.f,0.f,0.f };
+
+        //const int total_steps = N_steps_per_period * N_periods;
+
+        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
+            const float t_step = t * dt;
+
+
+            /*if (tid == 0 && t % 1000 == 0)*/
+            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0)*/
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            rk4_step_unrolled_v3_safe(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+                t_step,
+                eps0_noise,
+                A
+            );
+
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            // post-step stabilization
+            clamp_and_renormalize_vec16_unrolled(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+            );
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //    printf("\n");
+            //}
+
+
+            // accumulate populations (diagonals are rho_vec[0..3])
+    //#pragma unroll
+            //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
+
+            const int period_idx = t / N_steps_per_period;
+            if (period_idx >= N_periods - N_periods_avg) {
+
+                sum_last_0 += rho_vec_0;
+                sum_last_1 += rho_vec_1;
+                sum_last_2 += rho_vec_2;
+                sum_last_3 += rho_vec_3;
+
+            }
+            //        else if (period_idx == N_periods - 2) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_2last[q] += rho_vec[q];
+            //        }
+            //        else if (period_idx == N_periods - 3) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_3last[q] += rho_vec[q];
+            //        }
+
+        }
+
+        // final normalization safeguard
+        clamp_and_renormalize_vec16_unrolled(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+        );
+
+        //const float inv_whole = 1.0f / float(N_steps_per_period * N_periods);
+        const float inv_avg = 1.0f / float(N_steps_per_period * N_periods_avg);
+
+        avg00 += sum_last_0 * inv_avg;
+        avg11 += sum_last_1 * inv_avg;
+        avg22 += sum_last_2 * inv_avg;
+        avg33 += sum_last_3 * inv_avg;
+
+    }
+
+    // average over noise realizations
+    const float inv_noise = 1.0f / float(N_samples_noise);
+    const size_t base = (size_t)tid * 4u;
+    d_out_avg[base + 0] = avg00 * inv_noise;
+    d_out_avg[base + 1] = avg11 * inv_noise;
+    d_out_avg[base + 2] = avg22 * inv_noise;
+    d_out_avg[base + 3] = avg33 * inv_noise;
+
+}
+
+
+extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
+    const float* __restrict__ d_eps0,
+    const float* __restrict__ d_A,
+    float* __restrict__ d_out_avg,
+
+    const int N_periods_avg,
+    const int N_samples_noise,
+    const float scale_total
+) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //if (tid == 0) { // Limit to one thread to avoid excessive output
+    //    printf("\n");
+    //    printf("Npoints=%d\n", Npoints);
+    //    printf("\n");
+    //}
+
+    if (tid >= Npoints) return;
+
+
+
+    const float eps0 = d_eps0[tid];
+    const float A = d_A[tid];
+
+
+    // Accumulators for averaged output over noise realizations
+    float avg00 = 0.f;
+    float avg11 = 0.f;
+    float avg22 = 0.f;
+    float avg33 = 0.f;
+
+
+    // noise ensemble loop
+    for (int j = 0; j < N_samples_noise; ++j) {
+
+        const float eps0_noise = eps0 + c_eps_offsets[j];
+
+
+
+        // rho in vec16 form, initial state
+        float rho_vec_0 = rho00_init; float rho_vec_1 = rho11_init;
+        float rho_vec_2 = rho22_init; float rho_vec_3 = rho33_init;
+        float rho_vec_4 = 0.f;  float rho_vec_5 = 0.f;  float rho_vec_6 = 0.f;
+        float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
+        float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
+        float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
+
+
+        //if (tid == 0) {   // only one thread prints to avoid flooding
+        //    printf("Thread tid=0 started. Message from thread tid=0.\n");
+        //    printf("rho00_init = %f\n", rho_vec_0);
+        //    printf("rho11_init = %f\n", rho_vec_1);
+        //    printf("rho22_init = %f\n", rho_vec_2);
+        //    printf("rho33_init = %f\n", rho_vec_3);
+        //    printf("Npoints=%d\n", Npoints);
+        //}
+
+        //float sum_whole[4] = { 0.f,0.f,0.f,0.f };
+
+        float sum_last_0 = 0.f;
+        float sum_last_1 = 0.f;
+        float sum_last_2 = 0.f;
+        float sum_last_3 = 0.f;
+
+        //float sum_2last[4] = { 0.f,0.f,0.f,0.f };
+        //float sum_3last[4] = { 0.f,0.f,0.f,0.f };
+
+        //const int total_steps = N_steps_per_period * N_periods;
+
+        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
+            const float t_step = t * dt;
+
+
+            /*if (tid == 0 && t % 1000 == 0)*/
+            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0)*/
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            rk4_step_unrolled_v3_safe(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+                t_step,
+                eps0_noise,
+                A
+            );
+
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            // post-step stabilization
+            clamp_and_renormalize_vec16_unrolled(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+            );
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //    printf("\n");
+            //}
+
+
+            // accumulate populations (diagonals are rho_vec[0..3])
+    //#pragma unroll
+            //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
+
+            const int period_idx = t / N_steps_per_period;
+            if (period_idx >= N_periods - N_periods_avg) {
+
+                sum_last_0 += rho_vec_0;
+                sum_last_1 += rho_vec_1;
+                sum_last_2 += rho_vec_2;
+                sum_last_3 += rho_vec_3;
+
+            }
+            //        else if (period_idx == N_periods - 2) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_2last[q] += rho_vec[q];
+            //        }
+            //        else if (period_idx == N_periods - 3) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_3last[q] += rho_vec[q];
+            //        }
+
+        }
+
+        // final normalization safeguard
+        clamp_and_renormalize_vec16_unrolled(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+        );
+
+        avg00 += sum_last_0;
+        avg11 += sum_last_1;
+        avg22 += sum_last_2;
+        avg33 += sum_last_3;
+
+    }
+
+    // average over time steps and over noise realizations alltogether
+    const size_t base = (size_t)tid * 4u;
+    d_out_avg[base + 0] = avg00 * scale_total;
+    d_out_avg[base + 1] = avg11 * scale_total;
+    d_out_avg[base + 2] = avg22 * scale_total;
+    d_out_avg[base + 3] = avg33 * scale_total;
+
+}
+
+
+extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
+    const float* __restrict__ d_eps0,
+    const float* __restrict__ d_A,
+    float* __restrict__ d_out_avg,
+
+    const int N_periods_avg,
+    const int N_samples_noise,
+    const float scale_total
+) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //if (tid == 0) { // Limit to one thread to avoid excessive output
+    //    printf("\n");
+    //    printf("Npoints=%d\n", Npoints);
+    //    printf("\n");
+    //}
+
+    if (tid >= Npoints) return;
+
+
+
+    const float eps0 = d_eps0[tid];
+    const float A = d_A[tid];
+
+
+    // Accumulators for averaged output over noise realizations
+    float avg00 = 0.f;
+    float avg11 = 0.f;
+    float avg22 = 0.f;
+    float avg33 = 0.f;
+
+
+    // noise ensemble loop
+    for (int j = 0; j < N_samples_noise; ++j) {
+
+        const float eps0_noise = eps0 + c_eps_offsets[j];
+
+        // rho in vec16 form, initial state
+        float rho_vec_0 = rho00_init; float rho_vec_1 = rho11_init;
+        float rho_vec_2 = rho22_init; float rho_vec_3 = rho33_init;
+        float rho_vec_4 = 0.f;  float rho_vec_5 = 0.f;  float rho_vec_6 = 0.f;
+        float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
+        float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
+        float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
+
+
+        //if (tid == 0) {   // only one thread prints to avoid flooding
+        //    printf("Thread tid=0 started. Message from thread tid=0.\n");
+        //    printf("rho00_init = %f\n", rho_vec_0);
+        //    printf("rho11_init = %f\n", rho_vec_1);
+        //    printf("rho22_init = %f\n", rho_vec_2);
+        //    printf("rho33_init = %f\n", rho_vec_3);
+        //    printf("Npoints=%d\n", Npoints);
+        //    printf("c_eps_offsets[j] = %f\n", c_eps_offsets[j]);
+        //}
+
+
+        //const int total_steps = N_steps_per_period * N_periods;
+
+        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
+            const float t_step = t * dt;
+
+
+            /*if (tid == 0 && t % 1000 == 0)*/
+            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0)*/
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            rk4_step_unrolled_v3_safe(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+                t_step,
+                eps0_noise,
+                A
+            );
+
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            // post-step stabilization
+            clamp_and_renormalize_vec16_unrolled(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+            );
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //    printf("\n");
+            //}
+
+
+            // accumulate populations (diagonals are rho_vec[0..3])
+    //#pragma unroll
+            //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
+
+            const int period_idx = t / N_steps_per_period;
+            if (period_idx >= N_periods - N_periods_avg) {
+
+                avg00 += rho_vec_0;
+                avg11 += rho_vec_1;
+                avg22 += rho_vec_2;
+                avg33 += rho_vec_3;
+
+            }
+            //        else if (period_idx == N_periods - 2) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_2last[q] += rho_vec[q];
+            //        }
+            //        else if (period_idx == N_periods - 3) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_3last[q] += rho_vec[q];
+            //        }
+
+        }
+
+        // final normalization safeguard
+        clamp_and_renormalize_vec16_unrolled(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+        );
+
+    }
+
+    // average over time steps and over noise realizations alltogether
+    const size_t base = (size_t)tid * 4u;
+    d_out_avg[base + 0] = avg00 * scale_total;
+    d_out_avg[base + 1] = avg11 * scale_total;
+    d_out_avg[base + 2] = avg22 * scale_total;
+    d_out_avg[base + 3] = avg33 * scale_total;
+
+}
+
+
+
+
+extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
+    const float* __restrict__ d_eps0,
+    const float* __restrict__ d_A,
+    float* __restrict__ d_out_avg,
+
+    const int N_periods_avg,
+    const int N_samples_noise,
+    const float scale_total,
+    const float* __restrict__ eps_offsets
+) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //if (tid == 0) { // Limit to one thread to avoid excessive output
+    //    printf("\n");
+    //    printf("Npoints=%d\n", Npoints);
+    //    printf("\n");
+    //}
+
+    if (tid >= Npoints) return;
+
+
+
+    const float eps0 = d_eps0[tid];
+    const float A = d_A[tid];
+
+
+    // Accumulators for averaged output over noise realizations
+    float avg00 = 0.f;
+    float avg11 = 0.f;
+    float avg22 = 0.f;
+    float avg33 = 0.f;
+
+
+    // noise ensemble loop
+    for (int j = 0; j < N_samples_noise; ++j) {
+
+        const float eps0_noise = eps0 + eps_offsets[j];
+
+
+
+        // rho in vec16 form, initial state
+        float rho_vec_0 = rho00_init; float rho_vec_1 = rho11_init;
+        float rho_vec_2 = rho22_init; float rho_vec_3 = rho33_init;
+        float rho_vec_4 = 0.f;  float rho_vec_5 = 0.f;  float rho_vec_6 = 0.f;
+        float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
+        float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
+        float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
+
+
+        //if (tid == 0) {   // only one thread prints to avoid flooding
+        //    printf("Thread tid=0 started. Message from thread tid=0.\n");
+        //    printf("rho00_init = %f\n", rho_vec_0);
+        //    printf("rho11_init = %f\n", rho_vec_1);
+        //    printf("rho22_init = %f\n", rho_vec_2);
+        //    printf("rho33_init = %f\n", rho_vec_3);
+        //    printf("Npoints=%d\n", Npoints);
+        //}
+
+
+        //const int total_steps = N_steps_per_period * N_periods;
+
+        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
+            const float t_step = t * dt;
+
+
+            /*if (tid == 0 && t % 1000 == 0)*/
+            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0)*/
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            rk4_step_unrolled_v3_safe(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+                t_step,
+                eps0_noise,
+                A
+            );
+
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //}
+
+            // post-step stabilization
+            clamp_and_renormalize_vec16_unrolled(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+            );
+
+            //if (tid == 0 && t % 1000 == 0) {
+            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //    printf("\n");
+            //}
+
+
+            // accumulate populations (diagonals are rho_vec[0..3])
+    //#pragma unroll
+            //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
+
+            const int period_idx = t / N_steps_per_period;
+            if (period_idx >= N_periods - N_periods_avg) {
+
+                avg00 += rho_vec_0;
+                avg11 += rho_vec_1;
+                avg22 += rho_vec_2;
+                avg33 += rho_vec_3;
+
+            }
+            //        else if (period_idx == N_periods - 2) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_2last[q] += rho_vec[q];
+            //        }
+            //        else if (period_idx == N_periods - 3) {
+            //#pragma unroll
+            //            for (int q = 0; q < 4; q++) sum_3last[q] += rho_vec[q];
+            //        }
+
+        }
+
+        // final normalization safeguard
+        clamp_and_renormalize_vec16_unrolled(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+        );
+
+    }
+
+    // average over time steps and over noise realizations alltogether
+    const size_t base = (size_t)tid * 4u;
+    d_out_avg[base + 0] = avg00 * scale_total;
+    d_out_avg[base + 1] = avg11 * scale_total;
+    d_out_avg[base + 2] = avg22 * scale_total;
+    d_out_avg[base + 3] = avg33 * scale_total;
+
+}
+
+
+
 /*
 extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
     const float* __restrict__ d_eps0,
