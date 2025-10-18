@@ -302,9 +302,19 @@ class InterferogramPlot:
         self._link_slider_input('clim_low')
         self._link_slider_input('clim_high')
         
-        # Version widgets (hidden)
-        self.data_version_widget = pn.widgets.IntInput(value=0, visible=False)
-        self.marker_version_widget = pn.widgets.IntInput(value=0, visible=False)
+        # Version widgets - styled invisible for panel serve compatibility
+        self.data_version_widget = pn.widgets.IntInput(
+            value=0,
+            width=1,
+            height=1,
+            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+        )
+        self.marker_version_widget = pn.widgets.IntInput(
+            value=0,
+            width=1,
+            height=1,
+            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+        )
         
         # Watch level changes
         self.level_selector.param.watch(self._on_level_change, 'value')
@@ -371,6 +381,7 @@ class InterferogramPlot:
     
     def update_data(self, eps0_grid, A_grid, rho_avg_cdc_3d):
         """Update interferogram data."""
+        print(f"[INTERFEROGRAM] Updating data...")  # DEBUG PRINT
         self.eps0_grid = eps0_grid
         self.A_grid = A_grid
         
@@ -378,8 +389,10 @@ class InterferogramPlot:
             self.avg_grids[label] = rho_avg_cdc_3d[i]
         
         self.data_version += 1
+        print(f"[INTERFEROGRAM] Data version incremented to: {self.data_version}")  # DEBUG PRINT
         if hasattr(self, 'data_version_widget'):
             self.data_version_widget.value = self.data_version
+            print(f"[INTERFEROGRAM] Widget value updated to: {self.data_version_widget.value}")  # DEBUG PRINT
     
     def set_marker(self, eps0, A):
         """Set marker position."""
@@ -547,7 +560,13 @@ class DynamicsPlot:
             sizing_mode='fixed'
         )
         
-        self.dynamics_version_widget = pn.widgets.IntInput(value=0, visible=False)
+        # Version widget - styled invisible for panel serve compatibility
+        self.dynamics_version_widget = pn.widgets.IntInput(
+            value=0,
+            width=1,
+            height=1,
+            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+        )
         
         self.show_toggle.param.watch(self._on_show_toggle, 'value')
         self.auto_toggle.param.watch(self._on_auto_toggle, 'value')
@@ -795,6 +814,7 @@ class InteractiveInterferogramDynamics:
         
         self.auto_update_toggle.param.watch(self._on_auto_update_toggle, 'value')
         
+        # ONLY watch parameter changes for auto-update, don't connect buttons here
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
@@ -814,11 +834,16 @@ class InteractiveInterferogramDynamics:
     
     def _on_parameter_change(self, event):
         """Handle parameter slider changes."""
-        if self.auto_update_enabled:
+        if self.auto_update_enabled and not self._is_generating:
             self._update_and_regenerate()
     
     def _update_and_regenerate(self, event=None):
         """Update parameters and regenerate interferogram."""
+        print(f"[BUTTON] Regenerate button clicked!")  # DEBUG PRINT
+        if self._is_generating:
+            print(f"[BUTTON] Already generating, skipping...")  # DEBUG PRINT
+            return
+        print(f"[BUTTON] Starting regeneration...")  # DEBUG PRINT
         self.sim_params.update_from_sliders()
         self._generate_interferogram_data()
     
@@ -826,9 +851,11 @@ class InteractiveInterferogramDynamics:
         """Generate interferogram data."""
         
         if self._is_generating:
+            print("[GENERATE] Already generating, skipping...")  # DEBUG
             return
         
         self._is_generating = True
+        print("[GENERATE] Starting data generation...")  # DEBUG
         
         captured_stdout = StringIO()
         captured_stderr = StringIO()
@@ -851,7 +878,9 @@ class InteractiveInterferogramDynamics:
             
             eps0_grid, A_grid, rho_avg_cdc_3d, _ = run_simulation(simr)
             
+            print("[GENERATE] Calling interferogram.update_data...")  # DEBUG
             self.interferogram.update_data(eps0_grid, A_grid, rho_avg_cdc_3d)
+            print("[GENERATE] update_data completed")  # DEBUG
             
             end_time = time.perf_counter()
             elapsed = end_time - start_time
@@ -877,10 +906,11 @@ class InteractiveInterferogramDynamics:
             log_text += f"**Output:**\n```\n{stdout_content}\n```\n"
         if stderr_content:
             log_text += f"**Warnings:**\n```\n{stderr_content}\n```\n"
-
+    
         if hasattr(self, 'log_display'):
             self.log_display.object = log_text
         
+        print("[GENERATE] Data generation completed")  # DEBUG
         self._is_generating = False
     
     def _on_interferogram_click(self, x, y):
@@ -946,9 +976,8 @@ class InteractiveInterferogramDynamics:
                             self.platform_type, self.repo_path, 
                             log_callback, marker_update_callback)
     
-    def _on_manual_dynamics_generate(self, event):
+    def _on_manual_dynamics_generate(self, event=None):
         """Handle manual coordinate entry for dynamics."""
-        
         eps0 = self.dynamics.eps0_input.value
         A = self.dynamics.A_input.value
         
@@ -959,9 +988,11 @@ class InteractiveInterferogramDynamics:
         
         self._generate_dynamics(eps0, A)
     
+    
     def create_dashboard(self):
         """Create the complete Panel dashboard."""
         
+        # Use ONLY on_click for button callbacks (works in both Jupyter and panel serve)
         self.update_button.on_click(self._update_and_regenerate)
         self.dynamics.generate_button.on_click(self._on_manual_dynamics_generate)
         
@@ -971,6 +1002,7 @@ class InteractiveInterferogramDynamics:
         self.hover_stream = hv.streams.PointerXY(source=interferogram_dmap, x=None, y=None)
         
         def handle_tap(event):
+            print(f"[TAP] Interferogram clicked at x={self.tap_stream.x}, y={self.tap_stream.y}")
             if self.tap_stream.x is not None and self.tap_stream.y is not None:
                 self._on_interferogram_click(self.tap_stream.x, self.tap_stream.y)
         
@@ -978,6 +1010,7 @@ class InteractiveInterferogramDynamics:
             if self.hover_stream.x is not None and self.hover_stream.y is not None:
                 self._on_interferogram_hover(self.hover_stream.x, self.hover_stream.y)
         
+        # Use param.watch with single parameter
         self.tap_stream.param.watch(handle_tap, 'x')
         self.hover_stream.param.watch(handle_hover, 'x')
         
@@ -996,6 +1029,9 @@ class InteractiveInterferogramDynamics:
         interferogram_section = pn.Column(
             self.interferogram.get_control_panel(),
             interferogram_dmap,
+            # Include version widgets (invisible but needed for panel serve)
+            self.interferogram.data_version_widget,
+            self.interferogram.marker_version_widget,
             sizing_mode='fixed'
         )
         
@@ -1003,6 +1039,8 @@ class InteractiveInterferogramDynamics:
         
         dynamics_plot_panel = pn.Column(
             dynamics_dmap,
+            # Include version widget (invisible but needed for panel serve)
+            self.dynamics.dynamics_version_widget,
             sizing_mode='fixed',
             visible=False
         )
@@ -1037,3 +1075,10 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
+
+
+
+
+
+
+

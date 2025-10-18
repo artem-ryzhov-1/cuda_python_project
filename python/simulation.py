@@ -170,9 +170,9 @@ def run_simulation(simr):
     
     ###################################
     
-    #cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
-    #cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
-    #output_dir        = cuda_cwd / "output"
+    cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
+    cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
+    output_dir        = cuda_cwd / "output"
     
     ###################################
     
