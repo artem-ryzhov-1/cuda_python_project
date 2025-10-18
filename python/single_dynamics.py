@@ -76,9 +76,9 @@ simr = SimRunSingleMode(
     N_periods=10,
     N_periods_avg=1,
     
-    quasi_static_ensemble_dephasing_flag=False,
-    sigma_eps=None,
-    N_samples_noise=None,
+    quasi_static_ensemble_dephasing_flag=True,
+    sigma_eps=0.00015,
+    N_samples_noise=50,
     
     platform_type = platform_type,
     repo_path=repo_path

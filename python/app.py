@@ -36,7 +36,7 @@ print(f"Repo directory: {repo_path}")
 
 
 import panel as pn
-from app_interferogram_dynamics_class_raw_best import InteractiveInterferogramDynamics
+from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
 
 # Make sure you have Panel and any other required libraries installed
 pn.extension()
