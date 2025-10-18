@@ -128,7 +128,7 @@ class SimRunGridMode:
         self.GammaL0    = float(GammaL0)
         self.GammaR0    = float(GammaR0)
         self.Gamma_eg0  = float(Gamma_eg0)
-        self.Gamma_phi0 = float(Gamma_phi0)
+        self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         
         self.eps0_min = float(eps0_min)
@@ -198,7 +198,7 @@ class SimRunSingleMode:
         self.GammaL0    = float(GammaL0)
         self.GammaR0    = float(GammaR0)
         self.Gamma_eg0  = float(Gamma_eg0)
-        self.Gamma_phi0 = float(Gamma_phi0)
+        self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         
         self.eps0_target_singlepoint = float(eps0_target_singlepoint)
