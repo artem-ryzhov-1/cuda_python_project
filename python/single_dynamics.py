@@ -1,4 +1,5 @@
 
+from numpy import nan
 import os
 import sys
 import platform
@@ -74,7 +75,10 @@ simr = SimRunSingleMode(
     N_steps_period=1000,
     N_periods=10,
     N_periods_avg=1,
-    N_samples_noise=0,
+    
+    quasi_static_ensemble_dephasing_flag=False,
+    sigma_eps=None,
+    N_samples_noise=None,
     
     platform_type = platform_type,
     repo_path=repo_path

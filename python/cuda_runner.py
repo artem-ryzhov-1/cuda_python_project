@@ -73,11 +73,13 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         str(c.Gamma_eg0),
         str(c.omega_c),
         str(c.Gamma_phi0),
+        str(c.sigma_eps),
         
         str(c.single_mode_log_option),
         str(c.path_dynamics_single_mode_output_log_csv),
         str(c.path_dynamics_single_mode_output_log_hdf5),
-        str(c.threads_per_traj_opt)
+        str(c.threads_per_traj_opt),
+        str(c.quasi_static_ensemble_dephasing_flag)
         
     ]
     

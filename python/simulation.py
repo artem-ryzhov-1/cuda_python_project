@@ -133,7 +133,7 @@ def run_simulation(simr):
     omega_c = 0.0015731484686413405
     
     Gamma_phi0 = simr.Gamma_phi0
-    
+    sigma_eps  = simr.sigma_eps
     
     gamma  = 0.8
     g_en   = gamma
@@ -268,7 +268,6 @@ def run_simulation(simr):
         N_steps_period=N_steps_period,
         N_periods=N_periods,
         N_periods_avg=N_periods_avg,
-        N_samples_noise=simr.N_samples_noise,
         delta_C=delta_C,
         delta_L=delta_L,
         delta_R=delta_R,
@@ -306,7 +305,11 @@ def run_simulation(simr):
         Gamma_eg0=Gamma_eg0,
         omega_c = omega_c,
         
-        Gamma_phi0=Gamma_phi0
+        Gamma_phi0=Gamma_phi0,
+        
+        quasi_static_ensemble_dephasing_flag=simr.quasi_static_ensemble_dephasing_flag,
+        sigma_eps=simr.sigma_eps,
+        N_samples_noise=simr.N_samples_noise
     )
     
     ######################################################

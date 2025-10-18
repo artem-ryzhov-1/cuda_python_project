@@ -71,6 +71,8 @@ class SimulationConfig:
     Gamma_eg0:  float
     omega_c:    float
     Gamma_phi0: float
+    quasi_static_ensemble_dephasing_flag: bool
+    sigma_eps: float
     
 
 
@@ -80,7 +82,8 @@ class SimRunGridMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
                  eps0_min, eps0_max, A_min, A_max,
-                 N_points_target, N_steps_period, N_periods, N_periods_avg, N_samples_noise,
+                 N_points_target, N_steps_period, N_periods, N_periods_avg,
+                 quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -96,15 +99,23 @@ class SimRunGridMode:
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
+        if not (isinstance(sigma_eps, int) or sigma_eps is None):
+            raise TypeError(f"sigma_eps must be an float, or None, got {sigma_eps} ({type(sigma_eps)})")        
+        
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
                           ("N_periods_avg", N_periods_avg),
-                          ("N_points_target", N_points_target),
-                          ("N_samples_noise", N_samples_noise)]:
+                          ("N_points_target", N_points_target)]:
             #if not isinstance(val, (int, np.integer)):
             if not isinstance(val, int):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
-               
+        
+        if not (isinstance(N_samples_noise, int) or N_samples_noise is None):
+            raise TypeError(f"N_samples_noise must be an integer, or None, got {N_samples_noise} ({type(N_samples_noise)})")        
+                
+        if not isinstance(quasi_static_ensemble_dephasing_flag, bool):
+            raise TypeError(f"quasi_static_ensemble_dephasing_flag must be a bool, got {quasi_static_ensemble_dephasing_flag} ({type(quasi_static_ensemble_dephasing_flag)})")        
+    
         if not isinstance(platform_type, str):
             raise TypeError(f"platform_type must be a str, got {platform_type} ({type(platform_type)})")        
         
@@ -117,6 +128,7 @@ class SimRunGridMode:
         self.GammaR0    = float(GammaR0)
         self.Gamma_eg0  = float(Gamma_eg0)
         self.Gamma_phi0 = float(Gamma_phi0)
+        self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         
         self.eps0_min = float(eps0_min)
         self.eps0_max = float(eps0_max)
@@ -127,8 +139,9 @@ class SimRunGridMode:
         self.N_steps_period  = int(N_steps_period)
         self.N_periods       = int(N_periods)
         self.N_periods_avg   = int(N_periods_avg)
-        self.N_samples_noise = int(N_samples_noise)
+        self.N_samples_noise = int(N_samples_noise) if N_samples_noise is not None else None
         
+        self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
 
@@ -141,7 +154,8 @@ class SimRunSingleMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
                  eps0_target_singlepoint, A_target_singlepoint,
-                 N_steps_period, N_periods, N_periods_avg, N_samples_noise,
+                 N_steps_period, N_periods, N_periods_avg,
+                 quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -155,14 +169,22 @@ class SimRunSingleMode:
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
+        if not (isinstance(sigma_eps, int) or sigma_eps is None):
+            raise TypeError(f"sigma_eps must be an float, or None, got {sigma_eps} ({type(sigma_eps)})")        
+        
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
-                          ("N_periods_avg", N_periods_avg),
-                          ("N_samples_noise", N_samples_noise)]:
+                          ("N_periods_avg", N_periods_avg)]:
             #if not isinstance(val, (int, np.integer)):
             if not isinstance(val, int):
                 raise TypeError(f"{name} must be an integer, got {val} ({type(val)})")
-
+        
+        if not (isinstance(N_samples_noise, int) or N_samples_noise is None):
+            raise TypeError(f"N_samples_noise must be an integer, or None, got {N_samples_noise} ({type(N_samples_noise)})")        
+        
+        if not isinstance(quasi_static_ensemble_dephasing_flag, bool):
+            raise TypeError(f"quasi_static_ensemble_dephasing_flag must be a bool, got {quasi_static_ensemble_dephasing_flag} ({type(quasi_static_ensemble_dephasing_flag)})")        
+        
         if not isinstance(platform_type, str):
             raise TypeError(f"platform_type must be a str, got {platform_type} ({type(platform_type)})")        
         
@@ -175,6 +197,7 @@ class SimRunSingleMode:
         self.GammaR0    = float(GammaR0)
         self.Gamma_eg0  = float(Gamma_eg0)
         self.Gamma_phi0 = float(Gamma_phi0)
+        self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         
         self.eps0_target_singlepoint = float(eps0_target_singlepoint)
         self.A_target_singlepoint = float(A_target_singlepoint)
@@ -182,8 +205,9 @@ class SimRunSingleMode:
         self.N_steps_period  = int(N_steps_period)
         self.N_periods       = int(N_periods)
         self.N_periods_avg   = int(N_periods_avg)
-        self.N_samples_noise = int(N_samples_noise)
+        self.N_samples_noise = int(N_samples_noise) if N_samples_noise is not None else None
         
+        self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
 
