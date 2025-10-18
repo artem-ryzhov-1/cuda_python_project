@@ -202,7 +202,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
         //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //}
 
-        rk4_step_unrolled_v3a_safe(
+        rk4_step_unrolled_v3_safe(
             rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
             rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
             rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
@@ -373,7 +373,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
             //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
-            rk4_step_unrolled_v3_safe(
+            rk4_step_unrolled_v3_safe_ensemble(
                 rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
                 rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
                 rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
@@ -537,7 +537,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
             //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
-            rk4_step_unrolled_v3_safe(
+            rk4_step_unrolled_v3_safe_ensemble(
                 rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
                 rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
                 rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
@@ -687,7 +687,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
             //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
-            rk4_step_unrolled_v3_safe(
+            rk4_step_unrolled_v3_safe_ensemble(
                 rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
                 rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
                 rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
@@ -836,7 +836,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
             //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
-            rk4_step_unrolled_v3_safe(
+            rk4_step_unrolled_v3_safe_ensemble(
                 rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
                 rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
                 rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
