@@ -1,5 +1,4 @@
 
-from numpy import nan
 import os
 import sys
 import platform

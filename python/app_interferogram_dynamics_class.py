@@ -26,9 +26,11 @@ class SimulationParameters:
     """Manages simulation parameters and their widgets."""
     
     def __init__(self, delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, 
-                 Gamma_phi0_range, N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
+                 Gamma_phi0_range, sigma_eps_range, N_steps_period_range, N_periods_range, 
+                 N_periods_avg_range, N_samples_noise_range,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default):
+                 Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
+                 N_periods_avg_default, N_samples_noise_default):
         
         # Current values
         self.delta_C = delta_C_default
@@ -36,10 +38,12 @@ class SimulationParameters:
         self.GammaR0 = GammaR0_default
         self.Gamma_eg0 = Gamma_eg0_default
         self.Gamma_phi0 = Gamma_phi0_default
+        self.sigma_eps = sigma_eps_default
         self.N_steps_period = N_steps_period_default
         self.N_periods = N_periods_default
         self.N_periods_avg = N_periods_avg_default
         self.N_samples_noise = N_samples_noise_default
+        self.quasi_static = False
         
         # Store ranges
         self.delta_C_range = delta_C_range
@@ -47,6 +51,7 @@ class SimulationParameters:
         self.GammaR0_range = GammaR0_range
         self.Gamma_eg0_range = Gamma_eg0_range
         self.Gamma_phi0_range = Gamma_phi0_range
+        self.sigma_eps_range = sigma_eps_range
         self.N_steps_period_range = N_steps_period_range
         self.N_periods_range = N_periods_range
         self.N_periods_avg_range = N_periods_avg_range
@@ -90,6 +95,12 @@ class SimulationParameters:
         )
         self.Gamma_phi0_input = pn.widgets.FloatInput(value=self.Gamma_phi0, width=100)
         
+        self.sigma_eps_slider = pn.widgets.FloatSlider(
+            name='sigma_eps', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
+            value=self.sigma_eps, step=0.1, disabled=True
+        )
+        self.sigma_eps_input = pn.widgets.FloatInput(value=self.sigma_eps, width=100, disabled=True)
+        
         # Discrete parameters
         self.N_steps_period_slider = pn.widgets.IntSlider(
             name='N_steps_period', start=self.N_steps_period_range[0], 
@@ -111,16 +122,27 @@ class SimulationParameters:
         
         self.N_samples_noise_slider = pn.widgets.IntSlider(
             name='N_samples_noise', start=self.N_samples_noise_range[0], 
-            end=self.N_samples_noise_range[1], value=self.N_samples_noise, step=1
+            end=self.N_samples_noise_range[1], value=self.N_samples_noise, step=1, disabled=True
         )
-        self.N_samples_noise_input = pn.widgets.IntInput(value=self.N_samples_noise, width=100)
+        self.N_samples_noise_input = pn.widgets.IntInput(value=self.N_samples_noise, width=100, disabled=True)
+        
+        # Quasi-static toggle
+        self.quasi_static_toggle = pn.widgets.Toggle(
+            name='Quasi-static',
+            value=False,
+            button_type='primary',
+            width=120
+        )
         
         # Link sliders and inputs
         self._link_all_widgets()
+        
+        # Watch quasi-static toggle
+        self.quasi_static_toggle.param.watch(self._on_quasi_static_toggle, 'value')
     
     def _link_all_widgets(self):
         """Link all slider-input pairs."""
-        for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0',
+        for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             self._link_slider_input(param)
     
@@ -142,6 +164,18 @@ class SimulationParameters:
         slider.param.watch(slider_to_input, 'value')
         input_box.param.watch(input_to_slider, 'value')
     
+    def _on_quasi_static_toggle(self, event):
+        """Handle quasi-static toggle changes."""
+        self.quasi_static = event.new
+        
+        # Update widget states
+        self.Gamma_phi0_slider.disabled = event.new
+        self.Gamma_phi0_input.disabled = event.new
+        self.sigma_eps_slider.disabled = not event.new
+        self.sigma_eps_input.disabled = not event.new
+        self.N_samples_noise_slider.disabled = not event.new
+        self.N_samples_noise_input.disabled = not event.new
+    
     def update_from_sliders(self):
         """Update internal values from slider values."""
         self.delta_C = self.delta_C_slider.value
@@ -149,10 +183,12 @@ class SimulationParameters:
         self.GammaR0 = self.GammaR0_slider.value
         self.Gamma_eg0 = self.Gamma_eg0_slider.value
         self.Gamma_phi0 = self.Gamma_phi0_slider.value
+        self.sigma_eps = self.sigma_eps_slider.value
         self.N_steps_period = self.N_steps_period_slider.value
         self.N_periods = self.N_periods_slider.value
         self.N_periods_avg = self.N_periods_avg_slider.value
         self.N_samples_noise = self.N_samples_noise_slider.value
+        self.quasi_static = self.quasi_static_toggle.value
     
     def get_simrun_kwargs(self, platform_type, repo_path, **extra_kwargs):
         """Get kwargs for SimRunGridMode or SimRunSingleMode."""
@@ -161,11 +197,13 @@ class SimulationParameters:
             'GammaL0': self.GammaL0,
             'GammaR0': self.GammaR0,
             'Gamma_eg0': self.Gamma_eg0,
-            'Gamma_phi0': self.Gamma_phi0,
+            'Gamma_phi0': None if self.quasi_static else self.Gamma_phi0,
             'N_steps_period': self.N_steps_period,
             'N_periods': self.N_periods,
             'N_periods_avg': self.N_periods_avg,
-            'N_samples_noise': self.N_samples_noise,
+            'quasi_static_ensemble_dephasing_flag': self.quasi_static,
+            'sigma_eps': self.sigma_eps if self.quasi_static else None,
+            'N_samples_noise': self.N_samples_noise if self.quasi_static else None,
             'platform_type': platform_type,
             'repo_path': repo_path
         }
@@ -181,12 +219,15 @@ class SimulationParameters:
             pn.Row(self.GammaR0_slider, self.GammaR0_input),
             pn.Row(self.Gamma_eg0_slider, self.Gamma_eg0_input),
             pn.Row(self.Gamma_phi0_slider, self.Gamma_phi0_input),
+            pn.Row(self.sigma_eps_slider, self.sigma_eps_input),
             pn.layout.Divider(),
             "### Time Parameters",
             pn.Row(self.N_steps_period_slider, self.N_steps_period_input),
             pn.Row(self.N_periods_slider, self.N_periods_input),
             pn.Row(self.N_periods_avg_slider, self.N_periods_avg_input),
-            pn.Row(self.N_samples_noise_slider, self.N_samples_noise_input)
+            pn.Row(self.N_samples_noise_slider, self.N_samples_noise_input),
+            pn.layout.Divider(),
+            self.quasi_static_toggle
         )
 
 
@@ -336,14 +377,12 @@ class InterferogramPlot:
         for i, label in enumerate(self.level_labels):
             self.avg_grids[label] = rho_avg_cdc_3d[i]
         
-        # Update version AFTER all data is set
         self.data_version += 1
         if hasattr(self, 'data_version_widget'):
             self.data_version_widget.value = self.data_version
     
     def set_marker(self, eps0, A):
         """Set marker position."""
-        # Only set marker if within range
         if (self.eps0_min <= eps0 <= self.eps0_max and 
             self.A_min <= A <= self.A_max):
             self.marker_eps0 = eps0
@@ -351,15 +390,11 @@ class InterferogramPlot:
         else:
             self.marker_eps0 = None
             self.marker_A = None
-        
-        # DON'T update version here - it will be updated after dynamics computation
     
     def clear_marker(self):
         """Clear marker."""
         self.marker_eps0 = None
         self.marker_A = None
-        
-        # DON'T update version here - it will be updated after dynamics computation
     
     def get_level_data(self, level):
         """Get data for a specific level."""
@@ -373,9 +408,7 @@ class InterferogramPlot:
         def make_plot(level, clim_low, clim_high, data_version, marker_version):
             data = self.get_level_data(level)
             
-            # Check if data AND grids are available
             if data is None or self.eps0_grid is None or self.A_grid is None:
-                # Return placeholder with proper dimensions and range
                 return hv.Image(
                     (np.array([self.eps0_min, self.eps0_max]), 
                      np.array([self.A_min, self.A_max]), 
@@ -392,7 +425,6 @@ class InterferogramPlot:
                     ylim=(self.A_min, self.A_max)
                 )
             
-            # IMPORTANT: Copy marker values at the start to avoid race conditions
             marker_eps0_local = self.marker_eps0
             marker_A_local = self.marker_A
             
@@ -413,16 +445,13 @@ class InterferogramPlot:
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
-            # ALWAYS return an Overlay - create marker lines even if invisible
             if marker_eps0_local is not None and marker_A_local is not None:
                 vline = hv.VLine(marker_eps0_local).opts(color='blue', line_width=2, line_dash='solid')
                 hline = hv.HLine(marker_A_local).opts(color='blue', line_width=2, line_dash='solid')
             else:
-                # Create invisible marker lines outside the plot range
                 vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
                 hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
             
-            # ALWAYS return the same structure: Image * VLine * HLine
             return img * vline * hline
         
         return hv.DynamicMap(
@@ -455,7 +484,6 @@ class DynamicsPlot:
         self.A_min = A_min
         self.A_max = A_max
         
-        # Dynamics data
         self.time_dynamics = None
         self.eps_dynamics = None
         self.rho_dynamics = None
@@ -463,17 +491,14 @@ class DynamicsPlot:
         self.current_A = None
         self.computation_time = 0
         
-        # State
         self.enabled = False
         self.auto_update = False
         self.hover_active = False
         self.computing = False
         self.click_count = 0
         
-        # Version tracking
         self.dynamics_version = 0
         
-        # Create widgets
         self._create_widgets()
     
     def _create_widgets(self):
@@ -524,7 +549,6 @@ class DynamicsPlot:
         
         self.dynamics_version_widget = pn.widgets.IntInput(value=0, visible=False)
         
-        # Watch toggles
         self.show_toggle.param.watch(self._on_show_toggle, 'value')
         self.auto_toggle.param.watch(self._on_auto_toggle, 'value')
     
@@ -554,11 +578,9 @@ class DynamicsPlot:
         self.current_eps0 = eps0
         self.current_A = A
         
-        # Update inputs
         self.eps0_input.value = eps0
         self.A_input.value = A
         
-        # Capture output
         captured_stdout = StringIO()
         captured_stderr = StringIO()
         
@@ -585,7 +607,6 @@ class DynamicsPlot:
                 self.computing = False
                 return
         
-        # Log callback
         if log_callback:
             log_text = f"**Computation completed in {self.computation_time:.2f}s**\n\n"
             log_text += f"**Parameters:** eps0={eps0:.8f}, A={A:.8f}\n\n"
@@ -600,11 +621,9 @@ class DynamicsPlot:
             
             log_callback(log_text)
         
-        # Trigger marker update callback FIRST
         if marker_update_callback:
             marker_update_callback()
         
-        # Update version AFTER everything else (including marker callback)
         self.dynamics_version += 1
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
@@ -616,7 +635,6 @@ class DynamicsPlot:
         
         def make_plot(version):
             if self.time_dynamics is None or self.rho_dynamics is None:
-                # Create 4 empty curves and overlay them (matching the filled state structure)
                 empty_p00 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p00').opts(color='red', line_width=1.5)
                 empty_p01 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p01').opts(color='blue', line_width=1.5)
                 empty_p10 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p10').opts(color='green', line_width=1.5)
@@ -639,10 +657,8 @@ class DynamicsPlot:
                     xlim=(0, 1), ylim=(0, 1)
                 )
                 
-                # Return Overlay + Curve structure
                 return (empty_pop_overlay + empty_eps).cols(1)
             
-            # Population plot
             time = self.time_dynamics
             p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
             
@@ -662,7 +678,6 @@ class DynamicsPlot:
                 ylim=pop_ylim
             )
             
-            # Epsilon plot
             eps_min = self.current_eps0 - self.current_A * 1.1
             eps_max = self.current_eps0 + self.current_A * 1.1
             
@@ -675,7 +690,6 @@ class DynamicsPlot:
                 ylim=(eps_min, eps_max)
             )
             
-            # Return Overlay + Curve structure (same as empty state)
             return (pop_overlay + eps_curve).cols(1)
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
@@ -697,10 +711,11 @@ class InteractiveInterferogramDynamics:
     """Main coordinator class for the interactive dashboard."""
     
     def __init__(self, eps0_min, eps0_max, A_min, A_max, N_points_target,
-                 delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range,
+                 delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range, sigma_eps_range,
                  N_steps_period_array, N_periods_array, N_periods_avg_array, N_samples_noise_array,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default,
+                 Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
+                 N_periods_avg_default, N_samples_noise_default,
                  dC_default_thresholds,
                  platform_type,
                  repo_path,
@@ -714,18 +729,17 @@ class InteractiveInterferogramDynamics:
         self.A_max = A_max
         self.N_points_target = N_points_target
         
-        # Convert arrays to tuples if needed
         N_steps_period_range = N_steps_period_array if isinstance(N_steps_period_array, tuple) else (int(N_steps_period_array[0]), int(N_steps_period_array[-1]))
         N_periods_range = N_periods_array if isinstance(N_periods_array, tuple) else (int(N_periods_array[0]), int(N_periods_array[-1]))
         N_periods_avg_range = N_periods_avg_array if isinstance(N_periods_avg_array, tuple) else (int(N_periods_avg_array[0]), int(N_periods_avg_array[-1]))
         N_samples_noise_range = N_samples_noise_array if isinstance(N_samples_noise_array, tuple) else (int(N_samples_noise_array[0]), int(N_samples_noise_array[-1]))
 
-        # Create component objects
         self.sim_params = SimulationParameters(
-            delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range,
+            delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range, sigma_eps_range,
             N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
             delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-            Gamma_phi0_default, N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default
+            Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
+            N_periods_avg_default, N_samples_noise_default
         )
         
         self.interferogram = InterferogramPlot(
@@ -735,14 +749,10 @@ class InteractiveInterferogramDynamics:
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max)
         
-        # Control widgets
         self.auto_update_enabled = False
         self._is_generating = False
         
-        # Create control widgets FIRST (they check hasattr)
         self._create_control_widgets()
-        
-        # THEN generate initial data
         self._generate_interferogram_data()
     
     def _create_control_widgets(self):
@@ -783,14 +793,14 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Watch auto-update toggle
         self.auto_update_toggle.param.watch(self._on_auto_update_toggle, 'value')
         
-        # Watch parameter sliders for auto-update
-        for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0',
+        for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
             slider.param.watch(self._on_parameter_change, 'value')
+        
+        self.sim_params.quasi_static_toggle.param.watch(self._on_parameter_change, 'value')
     
     def _on_auto_update_toggle(self, event):
         """Handle auto-update toggle."""
@@ -851,13 +861,14 @@ class InteractiveInterferogramDynamics:
         if hasattr(self, 'timing_text'):
             self.timing_text.object = f"**Last computation:** {elapsed:.2f} seconds"
         
-        # Build log
         log_text = f"**Computation completed in {elapsed:.2f}s**\n\n"
         log_text += "**Parameters:**\n"
         log_text += f"- delta_C = {self.sim_params.delta_C:.6e}\n"
         log_text += f"- GammaL0 = {self.sim_params.GammaL0}, GammaR0 = {self.sim_params.GammaR0}\n"
         log_text += f"- Gamma_eg0 = {self.sim_params.Gamma_eg0}, Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
-        log_text += f"- N_steps_period = {self.sim_params.N_steps_period}, N_periods = {self.sim_params.N_periods}, N_periods_avg = {self.sim_params.N_periods_avg}, N_samples_noise = {self.sim_params.N_samples_noise}\n\n"
+        log_text += f"- sigma_eps = {self.sim_params.sigma_eps}\n"
+        log_text += f"- N_steps_period = {self.sim_params.N_steps_period}, N_periods = {self.sim_params.N_periods}, N_periods_avg = {self.sim_params.N_periods_avg}, N_samples_noise = {self.sim_params.N_samples_noise}\n"
+        log_text += f"- Quasi-static mode: {self.sim_params.quasi_static}\n\n"
         
         stdout_content = captured_stdout.getvalue()
         stderr_content = captured_stderr.getvalue()
@@ -881,15 +892,12 @@ class InteractiveInterferogramDynamics:
         eps0, A = x, y
         
         if self.dynamics.auto_update:
-            # Cycle through click states
             if self.dynamics.click_count % 2 == 0:
-                # First click: Start hover mode, clear marker
                 self.dynamics.hover_active = True
                 self.interferogram.marker_eps0 = None
                 self.interferogram.marker_A = None
                 self._generate_dynamics(eps0, A)
             else:
-                # Second click: Stop hover mode, set marker
                 self.dynamics.hover_active = False
                 if (self.eps0_min <= eps0 <= self.eps0_max and 
                     self.A_min <= A <= self.A_max):
@@ -902,7 +910,6 @@ class InteractiveInterferogramDynamics:
             
             self.dynamics.click_count += 1
         else:
-            # Manual mode: always set marker and generate
             if (self.eps0_min <= eps0 <= self.eps0_max and 
                 self.A_min <= A <= self.A_max):
                 self.interferogram.marker_eps0 = eps0
@@ -911,11 +918,6 @@ class InteractiveInterferogramDynamics:
                 self.interferogram.marker_eps0 = None
                 self.interferogram.marker_A = None
             self._generate_dynamics(eps0, A)
-        
-        # DON'T update marker_version here - remove these lines:
-        # self.interferogram.marker_version += 1
-        # if hasattr(self.interferogram, 'marker_version_widget'):
-        #     self.interferogram.marker_version_widget.value = self.interferogram.marker_version
     
     def _on_interferogram_hover(self, x, y):
         """Handle hover on interferogram."""
@@ -936,7 +938,6 @@ class InteractiveInterferogramDynamics:
             self.log_display.param.trigger('object')
         
         def marker_update_callback():
-            # Always update marker version after dynamics completes
             self.interferogram.marker_version += 1
             if hasattr(self.interferogram, 'marker_version_widget'):
                 self.interferogram.marker_version_widget.value = self.interferogram.marker_version
@@ -951,31 +952,24 @@ class InteractiveInterferogramDynamics:
         eps0 = self.dynamics.eps0_input.value
         A = self.dynamics.A_input.value
         
-        # Set marker (only if in range)
         self.interferogram.set_marker(eps0, A)
         
-        # Turn off auto-update mode
         self.dynamics.auto_toggle.value = False
         self.dynamics.hover_active = False
         
-        # Generate dynamics
         self._generate_dynamics(eps0, A)
     
     def create_dashboard(self):
         """Create the complete Panel dashboard."""
         
-        # Connect buttons
         self.update_button.on_click(self._update_and_regenerate)
         self.dynamics.generate_button.on_click(self._on_manual_dynamics_generate)
         
-        # Create interferogram plot with interaction
         interferogram_dmap = self.interferogram.create_plot()
         
-        # Create tap and hover streams and subscribe them to the plot
         self.tap_stream = hv.streams.Tap(source=interferogram_dmap, x=None, y=None)
         self.hover_stream = hv.streams.PointerXY(source=interferogram_dmap, x=None, y=None)
         
-        # Watch for stream events - watch only one parameter to avoid double triggers
         def handle_tap(event):
             if self.tap_stream.x is not None and self.tap_stream.y is not None:
                 self._on_interferogram_click(self.tap_stream.x, self.tap_stream.y)
@@ -984,11 +978,9 @@ class InteractiveInterferogramDynamics:
             if self.hover_stream.x is not None and self.hover_stream.y is not None:
                 self._on_interferogram_hover(self.hover_stream.x, self.hover_stream.y)
         
-        # Only watch 'x' to avoid double-triggering (y changes at the same time)
         self.tap_stream.param.watch(handle_tap, 'x')
         self.hover_stream.param.watch(handle_hover, 'x')
         
-        # Sidebar
         sidebar = pn.Column(
             "## 🎛️ Simulation Parameters",
             pn.layout.Divider(),
@@ -1001,24 +993,20 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Interferogram section
         interferogram_section = pn.Column(
             self.interferogram.get_control_panel(),
             interferogram_dmap,
             sizing_mode='fixed'
         )
         
-        # Create dynamics plot ONCE
         dynamics_dmap = self.dynamics.create_plot()
         
-        # Create dynamics plot panel (always exists, but visibility controlled)
         dynamics_plot_panel = pn.Column(
             dynamics_dmap,
             sizing_mode='fixed',
-            visible=False  # Initially hidden
+            visible=False
         )
         
-        # Create static dynamics section
         dynamics_section = pn.Column(
             pn.layout.Divider(),
             "### Dynamics Plot",
@@ -1028,13 +1016,11 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Control visibility with a callback instead of pn.bind
         def update_dynamics_visibility(event):
             dynamics_plot_panel.visible = event.new
         
         self.dynamics.show_toggle.param.watch(update_dynamics_visibility, 'value')
         
-        # Main plot area
         plot_area = pn.Column(
             interferogram_section,
             dynamics_section,
@@ -1044,7 +1030,6 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        # Complete dashboard
         dashboard = pn.Row(
             sidebar,
             plot_area,
@@ -1052,5 +1037,3 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
-
