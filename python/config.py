@@ -90,7 +90,6 @@ class SimRunGridMode:
                           ("GammaL0", GammaL0),
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
-                          ("Gamma_phi0", Gamma_phi0),
                           ("eps0_min", eps0_min),
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
@@ -99,8 +98,10 @@ class SimRunGridMode:
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
-        if not (isinstance(sigma_eps, int) or sigma_eps is None):
-            raise TypeError(f"sigma_eps must be an float, or None, got {sigma_eps} ({type(sigma_eps)})")        
+        for name, val in [("Gamma_phi0", Gamma_phi0),
+                          ("sigma_eps", sigma_eps)]:
+            if not (isinstance(val, float) or val is None):
+                raise TypeError(f"{name} must be an float, or None, got {val} ({type(val)})")        
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
@@ -162,15 +163,16 @@ class SimRunSingleMode:
                           ("GammaL0", GammaL0),
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
-                          ("Gamma_phi0", Gamma_phi0),
                           ("eps0_target_singlepoint", eps0_target_singlepoint),
                           ("A_target_singlepoint", A_target_singlepoint)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
         
-        if not (isinstance(sigma_eps, int) or sigma_eps is None):
-            raise TypeError(f"sigma_eps must be an float, or None, got {sigma_eps} ({type(sigma_eps)})")        
+        for name, val in [("Gamma_phi0", Gamma_phi0),
+                          ("sigma_eps", sigma_eps)]:
+            if not (isinstance(val, float) or val is None):
+                raise TypeError(f"{name} must be an float, or None, got {val} ({type(val)})")        
         
         for name, val in [("N_steps_period", N_steps_period),
                           ("N_periods", N_periods),
