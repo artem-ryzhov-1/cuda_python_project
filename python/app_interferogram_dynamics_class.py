@@ -393,6 +393,10 @@ class InterferogramPlot:
         if hasattr(self, 'data_version_widget'):
             self.data_version_widget.value = self.data_version
             print(f"[INTERFEROGRAM] Widget value updated to: {self.data_version_widget.value}")  # DEBUG PRINT
+        
+        self.marker_version += 1
+        if hasattr(self, 'marker_version_widget'):
+            self.marker_version_widget.value = self.marker_version
     
     def set_marker(self, eps0, A):
         """Set marker position."""
@@ -403,12 +407,19 @@ class InterferogramPlot:
         else:
             self.marker_eps0 = None
             self.marker_A = None
+        
+        self.marker_version += 1
+        if hasattr(self, 'marker_version_widget'):
+            self.marker_version_widget.value = self.marker_version
     
     def clear_marker(self):
         """Clear marker."""
         self.marker_eps0 = None
         self.marker_A = None
-    
+        self.marker_version += 1
+        if hasattr(self, 'marker_version_widget'):
+            self.marker_version_widget.value = self.marker_version
+            
     def get_level_data(self, level):
         """Get data for a specific level."""
         if level in self.avg_grids:
@@ -668,8 +679,8 @@ class DynamicsPlot:
                     show_grid=True,
                     xlim=(0, 1), ylim=(0, 1)
                 )
-                # Use Layout instead of + operator
-                return hv.Layout([empty_pop, empty_eps]).cols(1)
+                # Fixed: Use + operator instead of Layout
+                return (empty_pop + empty_eps).opts(shared_axes=False)
             
             time = self.time_dynamics
             p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
@@ -702,8 +713,8 @@ class DynamicsPlot:
                 ylim=(eps_min, eps_max)
             )
             
-            # Use Layout instead of + operator
-            return hv.Layout([pop_overlay, eps_curve]).cols(1)
+            # Fixed: Use + operator instead of Layout
+            return (pop_overlay + eps_curve).opts(shared_axes=False)
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
@@ -942,6 +953,10 @@ class InteractiveInterferogramDynamics:
                 self.interferogram.marker_eps0 = None
                 self.interferogram.marker_A = None
             self._generate_dynamics(eps0, A)
+        
+        self.interferogram.marker_version += 1
+        if hasattr(self.interferogram, 'marker_version_widget'):
+            self.interferogram.marker_version_widget.value = self.interferogram.marker_version
     
     def _on_interferogram_hover(self, x, y):
         """Handle hover on interferogram."""
