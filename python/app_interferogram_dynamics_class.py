@@ -97,7 +97,7 @@ class SimulationParameters:
         
         self.sigma_eps_slider = pn.widgets.FloatSlider(
             name='sigma_eps', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
-            value=self.sigma_eps, step=0.1, disabled=True
+            value=self.sigma_eps, step=0.00001, disabled=True
         )
         self.sigma_eps_input = pn.widgets.FloatInput(value=self.sigma_eps, width=100, disabled=True)
         
