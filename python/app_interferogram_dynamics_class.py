@@ -654,29 +654,22 @@ class DynamicsPlot:
         
         def make_plot(version):
             if self.time_dynamics is None or self.rho_dynamics is None:
-                empty_p00 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p00').opts(color='red', line_width=1.5)
-                empty_p01 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p01').opts(color='blue', line_width=1.5)
-                empty_p10 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p10').opts(color='green', line_width=1.5)
-                empty_p11 = hv.Curve([(0, 0)], kdims=['time'], vdims=['population'], label='p11').opts(color='orange', line_width=1.5)
-                
-                empty_pop_overlay = (empty_p00 * empty_p01 * empty_p10 * empty_p11).opts(
+                empty_pop = hv.Curve([(0, 0)], kdims=['time'], vdims=['population']).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
-                    show_grid=True, legend_position='right',
+                    show_grid=True,
                     xlim=(0, 1), ylim=(0, 1)
                 )
-                
                 empty_eps = hv.Curve([(0, 0)], kdims=['time'], vdims=['epsilon']).opts(
-                    color='purple', line_width=1.5,
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     xlim=(0, 1), ylim=(0, 1)
                 )
-                
-                return (empty_pop_overlay + empty_eps).cols(1)
+                # Use Layout instead of + operator
+                return hv.Layout([empty_pop, empty_eps]).cols(1)
             
             time = self.time_dynamics
             p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
@@ -709,7 +702,8 @@ class DynamicsPlot:
                 ylim=(eps_min, eps_max)
             )
             
-            return (pop_overlay + eps_curve).cols(1)
+            # Use Layout instead of + operator
+            return hv.Layout([pop_overlay, eps_curve]).cols(1)
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
