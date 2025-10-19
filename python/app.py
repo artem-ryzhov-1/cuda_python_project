@@ -72,7 +72,8 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     dC_default_thresholds=(-3000, 1000),
     platform_type=platform_type,
     repo_path=repo_path,
-    cmap_name='fire'
+    cmap_name='fire',
+    render_mode='raster_dynamic'    # ['vector', 'raster_static', 'raster_dynamic']
 )
 
 # Create the dashboard

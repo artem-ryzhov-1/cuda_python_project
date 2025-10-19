@@ -235,7 +235,7 @@ class InterferogramPlot:
     """Manages the interferogram plot and its data."""
     
     def __init__(self, eps0_min, eps0_max, A_min, A_max, N_points_target,
-                 dC_default_thresholds, cmap_name='fire'):
+                 dC_default_thresholds, cmap_name, render_mode):
         
         self.eps0_min = eps0_min
         self.eps0_max = eps0_max
@@ -244,6 +244,11 @@ class InterferogramPlot:
         self.N_points_target = N_points_target
         self.cmap_name = cmap_name
         self.dC_default_thresholds = dC_default_thresholds
+        
+        # Render mode: 'vector', 'raster_static', or 'raster_dynamic'
+        if render_mode not in ['vector', 'raster_static', 'raster_dynamic']:
+            raise ValueError(f"render_mode must be 'vector', 'raster_static', or 'raster_dynamic', got {render_mode}")
+        self.render_mode = render_mode
         
         # Level labels
         self.level_labels = ["00", "01", "10", "11", "C", "dC"]
@@ -427,7 +432,17 @@ class InterferogramPlot:
         return self.avg_grids["00"]
     
     def create_plot(self):
-        """Create the interactive interferogram plot."""
+        """Create the interactive interferogram plot using selected render mode."""
+        
+        if self.render_mode == 'vector':
+            return self._create_plot_vector()
+        elif self.render_mode == 'raster_static':
+            return self._create_plot_raster_static()
+        elif self.render_mode == 'raster_dynamic':
+            return self._create_plot_raster_dynamic()
+    
+    def _create_plot_vector(self):
+        """Vector approach - all points sent to browser."""
         
         def make_plot(level, clim_low, clim_high, data_version, marker_version):
             data = self.get_level_data(level)
@@ -462,10 +477,10 @@ class InterferogramPlot:
                 width=800,
                 height=600,
                 clim=(clim_low, clim_high),
-                title=f'Interactive Interferogram - Level: {level}',
+                title=f'Interactive Interferogram - Level: {level} [VECTOR]',
                 xlabel='eps0',
                 ylabel='A',
-                tools=['hover', 'tap'],
+                tools=['hover', 'tap', 'save'],
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
@@ -486,6 +501,149 @@ class InterferogramPlot:
                     self.data_version_widget,
                     self.marker_version_widget)
         )
+    
+    def _create_plot_raster_static(self):
+        """Raster approach with dynamic=False - pre-rendered, no zoom quality."""
+        from holoviews.operation.datashader import rasterize
+        
+        def make_plot(level, clim_low, clim_high, data_version, marker_version):
+            data = self.get_level_data(level)
+            
+            if data is None or self.eps0_grid is None or self.A_grid is None:
+                return hv.Image(
+                    (np.array([self.eps0_min, self.eps0_max]), 
+                     np.array([self.A_min, self.A_max]), 
+                     np.zeros((2, 2))),
+                    kdims=['eps0', 'A'],
+                    vdims=['value']
+                ).opts(
+                    cmap=self.cmap_name,
+                    colorbar=True,
+                    width=800, height=600,
+                    title='Interactive Interferogram (loading...)',
+                    xlabel='eps0', ylabel='A',
+                    xlim=(self.eps0_min, self.eps0_max),
+                    ylim=(self.A_min, self.A_max)
+                )
+            
+            marker_eps0_local = self.marker_eps0
+            marker_A_local = self.marker_A
+            
+            img = hv.Image(
+                (self.eps0_grid, self.A_grid, data),
+                kdims=['eps0', 'A'],
+                vdims=['value']
+            )
+            
+            # Apply rasterization with dynamic=False
+            img_rasterized = rasterize(img, aggregator='mean', dynamic=False, precompute=True)
+            
+            img_rasterized = img_rasterized.opts(
+                cmap=self.cmap_name,
+                colorbar=True,
+                width=800,
+                height=600,
+                clim=(clim_low, clim_high),
+                title=f'Interactive Interferogram - Level: {level} [RASTER-STATIC]',
+                xlabel='eps0',
+                ylabel='A',
+                tools=['hover', 'tap', 'save'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+            )
+            
+            if marker_eps0_local is not None and marker_A_local is not None:
+                vline = hv.VLine(marker_eps0_local).opts(color='blue', line_width=2, line_dash='solid')
+                hline = hv.HLine(marker_A_local).opts(color='blue', line_width=2, line_dash='solid')
+            else:
+                vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
+                hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
+            
+            return img_rasterized * vline * hline
+        
+        return hv.DynamicMap(
+            pn.bind(make_plot,
+                    self.level_selector,
+                    self.clim_low_slider,
+                    self.clim_high_slider,
+                    self.data_version_widget,
+                    self.marker_version_widget)
+        )
+    
+    def _create_plot_raster_dynamic(self):
+        """Raster approach with dynamic=True - re-aggregates on zoom for quality."""
+        from holoviews.operation.datashader import rasterize
+        
+        def make_image(level, clim_low, clim_high, data_version):
+            """Just the image, no markers."""
+            data = self.get_level_data(level)
+            
+            if data is None or self.eps0_grid is None or self.A_grid is None:
+                return hv.Image(
+                    (np.array([self.eps0_min, self.eps0_max]), 
+                     np.array([self.A_min, self.A_max]), 
+                     np.zeros((2, 2))),
+                    kdims=['eps0', 'A'],
+                    vdims=['value']
+                ).opts(
+                    cmap=self.cmap_name,
+                    colorbar=True,
+                    width=800, height=600,
+                    title='Interactive Interferogram (loading...)',
+                    xlabel='eps0', ylabel='A',
+                    xlim=(self.eps0_min, self.eps0_max),
+                    ylim=(self.A_min, self.A_max),
+                    tools=['hover', 'tap', 'save'],
+                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+                )
+            
+            img = hv.Image(
+                (self.eps0_grid, self.A_grid, data),
+                kdims=['eps0', 'A'],
+                vdims=['value']
+            ).opts(
+                cmap=self.cmap_name,
+                colorbar=True,
+                width=800,
+                height=600,
+                clim=(clim_low, clim_high),
+                title=f'Interactive Interferogram - Level: {level} [RASTER-DYNAMIC]',
+                xlabel='eps0',
+                ylabel='A',
+                tools=['hover', 'tap', 'save'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+            )
+            
+            return img
+        
+        def make_markers(marker_version):
+            """Just the markers."""
+            if self.marker_eps0 is not None and self.marker_A is not None:
+                vline = hv.VLine(self.marker_eps0).opts(color='blue', line_width=2, line_dash='solid')
+                hline = hv.HLine(self.marker_A).opts(color='blue', line_width=2, line_dash='solid')
+            else:
+                vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
+                hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
+            
+            return vline * hline
+        
+        # Separate DynamicMaps for image and markers
+        image_dmap = hv.DynamicMap(
+            pn.bind(make_image,
+                    self.level_selector,
+                    self.clim_low_slider,
+                    self.clim_high_slider,
+                    self.data_version_widget)
+        )
+        
+        markers_dmap = hv.DynamicMap(
+            pn.bind(make_markers, self.marker_version_widget)
+        )
+        
+        # Apply rasterization with dynamic=True (default) for zoom updates
+        image_rasterized = rasterize(image_dmap, aggregator='mean', precompute=True)
+        
+        # Overlay rasterized image with vector markers
+        return image_rasterized * markers_dmap
     
     def get_control_panel(self):
         """Return control panel for interferogram."""
@@ -759,7 +917,8 @@ class InteractiveInterferogramDynamics:
                  dC_default_thresholds,
                  platform_type,
                  repo_path,
-                 cmap_name='fire'):
+                 cmap_name,
+                 render_mode):
         
         self.platform_type = platform_type
         self.repo_path = repo_path
@@ -784,7 +943,7 @@ class InteractiveInterferogramDynamics:
         
         self.interferogram = InterferogramPlot(
             eps0_min, eps0_max, A_min, A_max, N_points_target,
-            dC_default_thresholds, cmap_name
+            dC_default_thresholds, cmap_name, render_mode
         )
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max)
