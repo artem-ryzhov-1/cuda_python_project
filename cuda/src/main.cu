@@ -270,7 +270,7 @@ int main(int argc, char** argv)
     const float host_Gamma_eg0 = std::stof(argv[41]);    // prefactor (GHz etc.)
     const float omega_c_norm = std::stof(argv[42]);    // high-frequency cutoff
 
-    const float host_Gamma_phi0 = std::stof(argv[43]);    // prefactor (GHz etc.)
+    const float host_Gamma_phi0 = safe_stof(argv[43]);    // prefactor (GHz etc.)
     
     const float sigma_eps = safe_stof(argv[44]);
     
