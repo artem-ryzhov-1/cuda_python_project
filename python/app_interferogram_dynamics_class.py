@@ -872,66 +872,85 @@ class InteractiveInterferogramDynamics:
         """Generate interferogram data."""
         
         if self._is_generating:
-            print("[GENERATE] Already generating, skipping...")  # DEBUG
+            print("[GENERATE] Already generating, skipping...")
             return
         
         self._is_generating = True
-        print("[GENERATE] Starting data generation...")  # DEBUG
+        print("[GENERATE] Starting data generation...")
         
         captured_stdout = StringIO()
         captured_stderr = StringIO()
         
-        with redirect_stdout(captured_stdout), redirect_stderr(captured_stderr):
-            if hasattr(self, 'status_text'):
-                self.status_text.object = "**Status:** 🔄 Generating data..."
-            start_time = time.perf_counter()
-            
-            simr = SimRunGridMode(
-                **self.sim_params.get_simrun_kwargs(
-                    self.platform_type, self.repo_path,
-                    eps0_min=self.eps0_min,
-                    eps0_max=self.eps0_max,
-                    A_min=self.A_min,
-                    A_max=self.A_max,
-                    N_points_target=self.N_points_target
-                )
-            )
-            
-            eps0_grid, A_grid, rho_avg_cdc_3d, _ = run_simulation(simr)
-            
-            print("[GENERATE] Calling interferogram.update_data...")  # DEBUG
-            self.interferogram.update_data(eps0_grid, A_grid, rho_avg_cdc_3d)
-            print("[GENERATE] update_data completed")  # DEBUG
-            
-            end_time = time.perf_counter()
-            elapsed = end_time - start_time
-        
         if hasattr(self, 'status_text'):
-            self.status_text.object = "**Status:** ✅ Data ready"
-        if hasattr(self, 'timing_text'):
-            self.timing_text.object = f"**Last computation:** {elapsed:.2f} seconds"
+            self.status_text.object = "**Status:** 🔄 Generating data..."
         
-        log_text = f"**Computation completed in {elapsed:.2f}s**\n\n"
+        try:
+            with redirect_stdout(captured_stdout), redirect_stderr(captured_stderr):
+                start_time = time.perf_counter()
+                
+                simr = SimRunGridMode(
+                    **self.sim_params.get_simrun_kwargs(
+                        self.platform_type, self.repo_path,
+                        eps0_min=self.eps0_min,
+                        eps0_max=self.eps0_max,
+                        A_min=self.A_min,
+                        A_max=self.A_max,
+                        N_points_target=self.N_points_target
+                    )
+                )
+                
+                eps0_grid, A_grid, rho_avg_cdc_3d, _ = run_simulation(simr)
+                
+                end_time = time.perf_counter()
+                elapsed = end_time - start_time
+            
+            # Success - update display
+            self.interferogram.update_data(eps0_grid, A_grid, rho_avg_cdc_3d)
+            
+            if hasattr(self, 'status_text'):
+                self.status_text.object = "**Status:** ✅ Data ready"
+            if hasattr(self, 'timing_text'):
+                self.timing_text.object = f"**Last computation:** {elapsed:.2f} seconds"
+            
+            log_text = f"**✅ Computation completed in {elapsed:.2f}s**\n\n"
+            
+        except Exception as e:
+            # Error - capture and display
+            end_time = time.perf_counter()
+            elapsed = end_time - start_time if 'start_time' in locals() else 0
+            
+            if hasattr(self, 'status_text'):
+                self.status_text.object = "**Status:** ❌ Error occurred"
+            if hasattr(self, 'timing_text'):
+                self.timing_text.object = f"**Failed after:** {elapsed:.2f} seconds"
+            
+            log_text = f"**❌ ERROR after {elapsed:.2f}s**\n\n"
+            log_text += f"**Exception Type:** {type(e).__name__}\n\n"
+            log_text += f"**Error Message:**\n```\n{str(e)}\n```\n\n"
+        
+        # Always show parameters and output
         log_text += "**Parameters:**\n"
         log_text += f"- delta_C = {self.sim_params.delta_C:.6e}\n"
         log_text += f"- GammaL0 = {self.sim_params.GammaL0}, GammaR0 = {self.sim_params.GammaR0}\n"
-        log_text += f"- Gamma_eg0 = {self.sim_params.Gamma_eg0}, Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
-        log_text += f"- sigma_eps = {self.sim_params.sigma_eps}\n"
-        log_text += f"- N_steps_period = {self.sim_params.N_steps_period}, N_periods = {self.sim_params.N_periods}, N_periods_avg = {self.sim_params.N_periods_avg}, N_samples_noise = {self.sim_params.N_samples_noise}\n"
+        log_text += f"- Gamma_eg0 = {self.sim_params.Gamma_eg0}"
+        if self.sim_params.quasi_static:
+            log_text += f"\n- sigma_eps = {self.sim_params.sigma_eps}\n"
+            log_text += f"- N_samples_noise = {self.sim_params.N_samples_noise}\n"
+        else:
+            log_text += f", Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
         log_text += f"- Quasi-static mode: {self.sim_params.quasi_static}\n\n"
         
         stdout_content = captured_stdout.getvalue()
         stderr_content = captured_stderr.getvalue()
         
         if stdout_content:
-            log_text += f"**Output:**\n```\n{stdout_content}\n```\n"
+            log_text += f"**CUDA Output:**\n```\n{stdout_content}\n```\n"
         if stderr_content:
-            log_text += f"**Warnings:**\n```\n{stderr_content}\n```\n"
+            log_text += f"**CUDA Errors:**\n```\n{stderr_content}\n```\n"
     
         if hasattr(self, 'log_display'):
             self.log_display.object = log_text
         
-        print("[GENERATE] Data generation completed")  # DEBUG
         self._is_generating = False
     
     def _on_interferogram_click(self, x, y):

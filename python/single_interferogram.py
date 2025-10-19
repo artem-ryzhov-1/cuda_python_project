@@ -64,11 +64,11 @@ print(f"Platform type: {platform_type}")
 time2 = time.time()
 
 simr = SimRunGridMode(
-    delta_C=0.001,
+    delta_C=0.00011608757555650906,
     GammaL0=50.0,
     GammaR0=12.0,
     Gamma_eg0=0.8,
-    Gamma_phi0=3.6,
+    Gamma_phi0=None,
     
     eps0_min=-0.006,
     eps0_max=0.006,
@@ -79,9 +79,9 @@ simr = SimRunGridMode(
     N_periods=10,
     N_periods_avg=1,
     
-    quasi_static_ensemble_dephasing_flag=False,
-    sigma_eps=None,
-    N_samples_noise=None,
+    quasi_static_ensemble_dephasing_flag=True,
+    sigma_eps=0.0002,
+    N_samples_noise=10,
     
     platform_type = platform_type,
     repo_path=repo_path
