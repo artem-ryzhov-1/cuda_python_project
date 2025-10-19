@@ -664,57 +664,73 @@ class DynamicsPlot:
         """Create the dynamics plot."""
         
         def make_plot(version):
+            # Always create both plots to maintain consistent Layout structure
+            time = self.time_dynamics if self.time_dynamics is not None else np.array([0, 1])
+            
             if self.time_dynamics is None or self.rho_dynamics is None:
-                empty_pop = hv.Curve([(0, 0)], kdims=['time'], vdims=['population']).opts(
+                # Empty population plot
+                pop_data = np.zeros(len(time))
+                curves = [
+                    hv.Curve((time, pop_data), label='p00'),
+                    hv.Curve((time, pop_data), label='p01'),
+                    hv.Curve((time, pop_data), label='p10'),
+                    hv.Curve((time, pop_data), label='p11')
+                ]
+                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
+                pop_plot = pop_overlay.opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
-                    xlim=(0, 1), ylim=(0, 1)
+                    ylim=(0, 1)
                 )
-                empty_eps = hv.Curve([(0, 0)], kdims=['time'], vdims=['epsilon']).opts(
+                
+                # Empty epsilon plot
+                eps_data = np.zeros(len(time))
+                eps_plot = hv.Curve((time, eps_data)).opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
-                    xlim=(0, 1), ylim=(0, 1)
+                    ylim=(0, 1)
                 )
-                # Fixed: Use + operator instead of Layout
-                return (empty_pop + empty_eps).opts(shared_axes=False)
+            else:
+                # Real population plot
+                p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
+                
+                pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
+                pop_ylim = (0, pop_max * 1.1)
+                
+                curves = [
+                    hv.Curve((time, p00), label='p00'),
+                    hv.Curve((time, p01), label='p01'),
+                    hv.Curve((time, p10), label='p10'),
+                    hv.Curve((time, p11), label='p11')
+                ]
+                
+                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
+                pop_plot = pop_overlay.opts(
+                    width=800, height=350,
+                    title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
+                    xlabel='Time', ylabel='Population',
+                    show_grid=True, legend_position='right',
+                    ylim=pop_ylim
+                )
+                
+                # Real epsilon plot
+                eps_min = self.current_eps0 - self.current_A * 1.1
+                eps_max = self.current_eps0 + self.current_A * 1.1
+                
+                eps_plot = hv.Curve((time, self.eps_dynamics)).opts(
+                    width=800, height=200,
+                    title='Epsilon Dynamics',
+                    xlabel='Time', ylabel='ε(t)',
+                    show_grid=True,
+                    ylim=(eps_min, eps_max)
+                )
             
-            time = self.time_dynamics
-            p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
-            
-            pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
-            pop_ylim = (0, pop_max * 1.1)
-            
-            curve_p00 = hv.Curve((time, p00), kdims=['time'], vdims=['population'], label='p00').opts(color='red', line_width=1.5)
-            curve_p01 = hv.Curve((time, p01), kdims=['time'], vdims=['population'], label='p01').opts(color='blue', line_width=1.5)
-            curve_p10 = hv.Curve((time, p10), kdims=['time'], vdims=['population'], label='p10').opts(color='green', line_width=1.5)
-            curve_p11 = hv.Curve((time, p11), kdims=['time'], vdims=['population'], label='p11').opts(color='orange', line_width=1.5)
-            
-            pop_overlay = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
-                width=800, height=350,
-                title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
-                xlabel='Time', ylabel='Population',
-                show_grid=True, legend_position='right',
-                ylim=pop_ylim
-            )
-            
-            eps_min = self.current_eps0 - self.current_A * 1.1
-            eps_max = self.current_eps0 + self.current_A * 1.1
-            
-            eps_curve = hv.Curve((time, self.eps_dynamics), kdims=['time'], vdims=['epsilon']).opts(
-                color='purple', line_width=1.5,
-                width=800, height=200,
-                title='Epsilon Dynamics',
-                xlabel='Time', ylabel='ε(t)',
-                show_grid=True,
-                ylim=(eps_min, eps_max)
-            )
-            
-            # Fixed: Use + operator instead of Layout
-            return (pop_overlay + eps_curve).opts(shared_axes=False)
+            # Always return the same Layout structure
+            return hv.Layout([pop_plot, eps_plot]).cols(1)
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
@@ -1084,10 +1100,6 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
-
-
-
 
 
 
