@@ -17,9 +17,10 @@ import copy
 pn.extension()
 hv.extension('bokeh')
 
-# Import your simulation modules
+# Import simulation modules
 from simulation import run_simulation
 from config import SimRunGridMode, SimRunSingleMode
+
 
 
 class SimulationParameters:
@@ -245,11 +246,14 @@ class InterferogramPlot:
         self.cmap_name = cmap_name
         self.dC_default_thresholds = dC_default_thresholds
         
-        # Render mode: 'vector', 'raster_static', or 'raster_dynamic'
-        if render_mode not in ['vector', 'raster_static', 'raster_dynamic']:
-            raise ValueError(f"render_mode must be 'vector', 'raster_static', or 'raster_dynamic', got {render_mode}")
-        self.render_mode = render_mode
+        # Render mode: 'vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', or 'raster_dynamic_gpu'
+        valid_modes = ['vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu']
+        if render_mode not in valid_modes:
+            raise ValueError(f"render_mode must be one of {valid_modes}, got {render_mode}")
         
+        self.render_mode = render_mode
+        self.gpu_enabled = (render_mode == 'raster_dynamic_gpu')
+                            
         # Level labels
         self.level_labels = ["00", "01", "10", "11", "C", "dC"]
         
@@ -436,9 +440,9 @@ class InterferogramPlot:
         
         if self.render_mode == 'vector':
             return self._create_plot_vector()
-        elif self.render_mode == 'raster_static':
+        elif self.render_mode in ['raster_static', 'raster_static_gpu']:
             return self._create_plot_raster_static()
-        elif self.render_mode == 'raster_dynamic':
+        elif self.render_mode in ['raster_dynamic', 'raster_dynamic_gpu']:
             return self._create_plot_raster_dynamic()
     
     def _create_plot_vector(self):
@@ -503,7 +507,8 @@ class InterferogramPlot:
         )
     
     def _create_plot_raster_static(self):
-        """Raster approach with dynamic=False - pre-rendered, no zoom quality."""
+        """Raster approach with dynamic=False - pre-rendered, no zoom quality.
+        Uses GPU only if gpu_enabled=True."""
         from holoviews.operation.datashader import rasterize
         
         def make_plot(level, clim_low, clim_high, data_version, marker_version):
@@ -529,14 +534,32 @@ class InterferogramPlot:
             marker_eps0_local = self.marker_eps0
             marker_A_local = self.marker_A
             
+            # Title shows GPU status
+            title_suffix = "[RASTER-STATIC-GPU]" if self.gpu_enabled else "[RASTER-STATIC-CPU]"
+            
             img = hv.Image(
                 (self.eps0_grid, self.A_grid, data),
                 kdims=['eps0', 'A'],
                 vdims=['value']
             )
             
-            # Apply rasterization with dynamic=False
-            img_rasterized = rasterize(img, aggregator='mean', dynamic=False, precompute=True)
+            # Apply rasterization with explicit GPU control
+            if self.gpu_enabled:
+                # Enable GPU
+                img_rasterized = rasterize(
+                    img, 
+                    aggregator=ds.mean('value'),  # Use ds.mean object (enables GPU path)
+                    dynamic=False, 
+                    precompute=True
+                )
+            else:
+                # Disable GPU
+                img_rasterized = rasterize(
+                    img, 
+                    aggregator='mean',  # Use string (forces CPU path)
+                    dynamic=False, 
+                    precompute=True
+                )
             
             img_rasterized = img_rasterized.opts(
                 cmap=self.cmap_name,
@@ -544,7 +567,7 @@ class InterferogramPlot:
                 width=800,
                 height=600,
                 clim=(clim_low, clim_high),
-                title=f'Interactive Interferogram - Level: {level} [RASTER-STATIC]',
+                title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='eps0',
                 ylabel='A',
                 tools=['hover', 'tap', 'save'],
@@ -570,8 +593,8 @@ class InterferogramPlot:
         )
     
     def _create_plot_raster_dynamic(self):
-        """Raster approach with dynamic=True - re-aggregates on zoom for quality."""
-        from holoviews.operation.datashader import rasterize
+        """Raster approach with dynamic=True - re-aggregates on zoom for quality.
+        Uses GPU only if gpu_enabled=True."""
         
         def make_image(level, clim_low, clim_high, data_version):
             """Just the image, no markers."""
@@ -596,6 +619,9 @@ class InterferogramPlot:
                     default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
                 )
             
+            # Title shows GPU status
+            title_suffix = "[RASTER-DYNAMIC-GPU]" if self.gpu_enabled else "[RASTER-DYNAMIC-CPU]"
+            
             img = hv.Image(
                 (self.eps0_grid, self.A_grid, data),
                 kdims=['eps0', 'A'],
@@ -606,7 +632,7 @@ class InterferogramPlot:
                 width=800,
                 height=600,
                 clim=(clim_low, clim_high),
-                title=f'Interactive Interferogram - Level: {level} [RASTER-DYNAMIC]',
+                title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='eps0',
                 ylabel='A',
                 tools=['hover', 'tap', 'save'],
@@ -639,8 +665,21 @@ class InterferogramPlot:
             pn.bind(make_markers, self.marker_version_widget)
         )
         
-        # Apply rasterization with dynamic=True (default) for zoom updates
-        image_rasterized = rasterize(image_dmap, aggregator='mean', precompute=True)
+        # Apply rasterization with explicit GPU control
+        if self.gpu_enabled:
+            # Enable GPU: datashader will transfer NumPy arrays to GPU and use CuPy
+            image_rasterized = rasterize(
+                image_dmap, 
+                aggregator=ds.mean('value'),  # Use ds.mean object (enables GPU path)
+                precompute=True
+            )
+        else:
+            # Disable GPU: force CPU-only processing
+            image_rasterized = rasterize(
+                image_dmap, 
+                aggregator='mean',  # Use string (forces CPU path)
+                precompute=True
+            )
         
         # Overlay rasterized image with vector markers
         return image_rasterized * markers_dmap

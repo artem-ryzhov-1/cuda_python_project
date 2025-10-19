@@ -38,6 +38,31 @@ print(f"Repo directory: {repo_path}")
 import panel as pn
 from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
 
+
+
+# Cupy detection for interferogram rendering
+try:
+    import cupy as cp
+    CUPY_AVAILABLE = True
+    print("[GPU] CuPy detected - GPU acceleration available")
+    print(f"[GPU] {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
+except ImportError:
+    CUPY_AVAILABLE = False
+    print("[GPU] CuPy not available - GPU acceleration not available")
+except Exception as e:
+    CUPY_AVAILABLE = False
+    print(f"[GPU] CuPy import failed: {e}")
+
+
+render_mode = 'raster_dynamic_gpu' # ['vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu']
+
+
+# Auto-fallback if GPU requested but not available
+if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not CUPY_AVAILABLE:
+    print("[GPU] GPU mode requested but CuPy not available - falling back to CPU version")
+    render_mode = render_mode.replace('_gpu', '')
+
+
 # Make sure you have Panel and any other required libraries installed
 pn.extension()
 
@@ -73,7 +98,7 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     platform_type=platform_type,
     repo_path=repo_path,
     cmap_name='fire',
-    render_mode='raster_dynamic'    # ['vector', 'raster_static', 'raster_dynamic']
+    render_mode=render_mode
 )
 
 # Create the dashboard
