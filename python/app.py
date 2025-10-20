@@ -98,7 +98,8 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     platform_type=platform_type,
     repo_path=repo_path,
     cmap_name='fire',
-    render_mode=render_mode
+    render_mode=render_mode,
+    CUPY_AVAILABLE=CUPY_AVAILABLE
 )
 
 # Create the dashboard

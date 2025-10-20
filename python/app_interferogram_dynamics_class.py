@@ -537,26 +537,35 @@ class InterferogramPlot:
             # Title shows GPU status
             title_suffix = "[RASTER-STATIC-GPU]" if self.gpu_enabled else "[RASTER-STATIC-CPU]"
             
+            # Convert to GPU arrays if GPU enabled
+            if self.gpu_enabled and GPU_AVAILABLE:
+                eps0_array = cp.asarray(self.eps0_grid)
+                A_array = cp.asarray(self.A_grid)
+                data_array = cp.asarray(data)
+            else:
+                eps0_array = self.eps0_grid
+                A_array = self.A_grid
+                data_array = data
+            
             img = hv.Image(
-                (self.eps0_grid, self.A_grid, data),
-                kdims=['eps0', 'A'],
-                vdims=['value']
+                (eps0_array, A_array, data_array),  # Use converted arrays
+                kdims=['eps0', 'A']
             )
             
             # Apply rasterization with explicit GPU control
             if self.gpu_enabled:
-                # Enable GPU
+                # Enable GPU - use reduction object
                 img_rasterized = rasterize(
                     img, 
-                    aggregator=ds.mean('value'),  # Use ds.mean object (enables GPU path)
+                    aggregator=ds.mean('z'),  # Reference the vdim name
                     dynamic=False, 
                     precompute=True
                 )
             else:
-                # Disable GPU
+                # Disable GPU - use string
                 img_rasterized = rasterize(
                     img, 
-                    aggregator='mean',  # Use string (forces CPU path)
+                    aggregator='mean',  # String forces CPU
                     dynamic=False, 
                     precompute=True
                 )
@@ -605,8 +614,7 @@ class InterferogramPlot:
                     (np.array([self.eps0_min, self.eps0_max]), 
                      np.array([self.A_min, self.A_max]), 
                      np.zeros((2, 2))),
-                    kdims=['eps0', 'A'],
-                    vdims=['value']
+                    kdims=['eps0', 'A']
                 ).opts(
                     cmap=self.cmap_name,
                     colorbar=True,
@@ -622,10 +630,15 @@ class InterferogramPlot:
             # Title shows GPU status
             title_suffix = "[RASTER-DYNAMIC-GPU]" if self.gpu_enabled else "[RASTER-DYNAMIC-CPU]"
             
+            # ALWAYS keep data on CPU for HoloViews Image initialization
+            # Datashader will handle GPU conversion during rasterization if available
+            eps0_array = self.eps0_grid
+            A_array = self.A_grid
+            data_array = data
+            
             img = hv.Image(
-                (self.eps0_grid, self.A_grid, data),
-                kdims=['eps0', 'A'],
-                vdims=['value']
+                (eps0_array, A_array, data_array),
+                kdims=['eps0', 'A']
             ).opts(
                 cmap=self.cmap_name,
                 colorbar=True,
@@ -665,21 +678,13 @@ class InterferogramPlot:
             pn.bind(make_markers, self.marker_version_widget)
         )
         
-        # Apply rasterization with explicit GPU control
-        if self.gpu_enabled:
-            # Enable GPU: datashader will transfer NumPy arrays to GPU and use CuPy
-            image_rasterized = rasterize(
-                image_dmap, 
-                aggregator=ds.mean('value'),  # Use ds.mean object (enables GPU path)
-                precompute=True
-            )
-        else:
-            # Disable GPU: force CPU-only processing
-            image_rasterized = rasterize(
-                image_dmap, 
-                aggregator='mean',  # Use string (forces CPU path)
-                precompute=True
-            )
+        # Rasterize with GPU support if available
+        # Datashader automatically uses CuPy if available and DATASHADER_USE_CUPY=1
+        image_rasterized = rasterize(
+            image_dmap, 
+            aggregator='mean',
+            precompute=True
+        )
         
         # Overlay rasterized image with vector markers
         return image_rasterized * markers_dmap
