@@ -1245,21 +1245,23 @@ class InteractiveInterferogramDynamics:
         
         interferogram_dmap = self.interferogram.create_plot()
         
+        # Create streams - ONLY create once
         self.tap_stream = hv.streams.Tap(source=interferogram_dmap, x=None, y=None)
         self.hover_stream = hv.streams.PointerXY(source=interferogram_dmap, x=None, y=None)
         
-        def handle_tap(event):
-            print(f"[TAP] Interferogram clicked at x={self.tap_stream.x}, y={self.tap_stream.y}")
-            if self.tap_stream.x is not None and self.tap_stream.y is not None:
-                self._on_interferogram_click(self.tap_stream.x, self.tap_stream.y)
+        # Define callback handlers
+        def on_tap(x, y):
+            print(f"[TAP] Interferogram clicked at x={x}, y={y}")
+            if x is not None and y is not None:
+                self._on_interferogram_click(x, y)
         
-        def handle_hover(event):
-            if self.hover_stream.x is not None and self.hover_stream.y is not None:
-                self._on_interferogram_hover(self.hover_stream.x, self.hover_stream.y)
+        def on_hover(x, y):
+            if x is not None and y is not None:
+                self._on_interferogram_hover(x, y)
         
-        # Use param.watch with single parameter
-        self.tap_stream.param.watch(handle_tap, 'x')
-        self.hover_stream.param.watch(handle_hover, 'x')
+        # Subscribe to streams using add_subscriber
+        self.tap_stream.add_subscriber(on_tap)
+        self.hover_stream.add_subscriber(on_hover)
         
         sidebar = pn.Column(
             "## 🎛️ Simulation Parameters",
@@ -1322,6 +1324,5 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
 
 

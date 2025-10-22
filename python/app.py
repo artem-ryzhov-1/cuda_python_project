@@ -36,25 +36,44 @@ print(f"Repo directory: {repo_path}")
 
 
 import panel as pn
+import holoviews as hv
 from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
 
 
 
-# Cupy detection for interferogram rendering
+# GPU detection and configuration
+CUPY_AVAILABLE = False
+CUDF_AVAILABLE = False
+
 try:
     import cupy as cp
-    CUPY_AVAILABLE = True
-    print("[GPU] CuPy detected - GPU acceleration available")
-    print(f"[GPU] {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
+    CUPY_AVAILABLE = cp.cuda.is_available()
+    if CUPY_AVAILABLE:
+        print(f"[GPU] CuPy detected - {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
+    else:
+        print("[GPU] CUDA not available")
 except ImportError:
-    CUPY_AVAILABLE = False
-    print("[GPU] CuPy not available - GPU acceleration not available")
+    print("[GPU] CuPy not available - install cupy for GPU acceleration")
 except Exception as e:
-    CUPY_AVAILABLE = False
-    print(f"[GPU] CuPy import failed: {e}")
+    print(f"[GPU] CuPy error: {e}")
 
+# Check for cuDF (required for Datashader GPU acceleration)
+try:
+    import cudf
+    CUDF_AVAILABLE = True
+    print("[GPU] cuDF detected - Datashader GPU acceleration available")
+    os.environ['DATASHADER_USE_CUPY'] = '1'
+except ImportError:
+    print("[GPU] cuDF not available - Datashader will use CPU")
+    print("[GPU] Install with: conda install -c rapidsai -c conda-forge cudf")
+except Exception as e:
+    print(f"[GPU] cuDF error: {e}")
 
-render_mode = 'raster_dynamic_gpu' # ['vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu']
+CUPY_CUDF_AVAILABLE = CUPY_AVAILABLE and CUDF_AVAILABLE
+
+        
+
+render_mode = 'raster_dynamic' # ['vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu']
 
 
 # Auto-fallback if GPU requested but not available
@@ -63,8 +82,21 @@ if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not CUPY_AVAIL
     render_mode = render_mode.replace('_gpu', '')
 
 
-# Make sure you have Panel and any other required libraries installed
+# Convert to GPU arrays if GPU enabled
+#if self.gpu_enabled and CUPY_AVAILABLE:
+#    eps0_array = cp.asarray(self.eps0_grid)
+#    A_array = cp.asarray(self.A_grid)
+#    data_array = cp.asarray(data)
+#else:
+#    eps0_array = self.eps0_grid
+#    A_array = self.A_grid
+#    data_array = data
+
+
+
+# Enable Panel extension
 pn.extension()
+hv.extension('bokeh')
 
 
 # Define your app parameters
@@ -74,20 +106,20 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     A_min=0.0,
     A_max=0.01,
     N_points_target=500_000,
-    delta_C_range=(0, 0.0006),
-    GammaL0_range=(0, 100),
-    GammaR0_range=(0, 24),
-    Gamma_eg0_range=(0, 16),
-    Gamma_phi0_range=(0, 72),
+    delta_C_range=(0, 0.001),
+    GammaL0_range=(0, 1000),
+    GammaR0_range=(0, 150),
+    Gamma_eg0_range=(0, 50),
+    Gamma_phi0_range=(0, 100),
     sigma_eps_range=(1, 10),
     N_steps_period_array=(100, 2000),
     N_periods_array=(1, 20),
     N_periods_avg_array=(1, 10),
     N_samples_noise_array=(0, 1000),
-    delta_C_default=0.00011608757555650906,
-    GammaL0_default=50.0,
-    GammaR0_default=12.0,
-    Gamma_eg0_default=0.8,
+    delta_C_default=0.0003,
+    GammaL0_default=420,
+    GammaR0_default=68,
+    Gamma_eg0_default=10,
     Gamma_phi0_default=3.6,
     sigma_eps_default=2.0,
     N_steps_period_default=1000,
@@ -98,9 +130,11 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     platform_type=platform_type,
     repo_path=repo_path,
     cmap_name='fire',
-    render_mode=render_mode,
-    CUPY_AVAILABLE=CUPY_AVAILABLE
+    render_mode=render_mode
 )
+
+
+
 
 # Create the dashboard
 dashboard = app_interferogram_dynamics.create_dashboard()
