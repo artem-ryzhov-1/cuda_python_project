@@ -483,9 +483,7 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} [VECTOR]',
                 xlabel='eps0',
-                ylabel='A',
-                tools=['hover', 'tap', 'save'],
-                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+                ylabel='A'
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -495,7 +493,15 @@ class InterferogramPlot:
                 vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
                 hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
             
-            return img * vline * hline
+            # Create invisible rectangle for capturing interactions
+            invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
+                alpha=0,
+                line_alpha=0,
+                tools=['tap', 'hover'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+            )
+            
+            return img * invisible_rect * vline * hline
         
         return hv.DynamicMap(
             pn.bind(make_plot,
@@ -578,9 +584,7 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='eps0',
-                ylabel='A',
-                tools=['hover', 'tap', 'save'],
-                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+                ylabel='A'
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -590,7 +594,15 @@ class InterferogramPlot:
                 vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
                 hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
             
-            return img_rasterized * vline * hline
+            # Create invisible rectangle for capturing interactions
+            invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
+                alpha=0,
+                line_alpha=0,
+                tools=['tap', 'hover'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+            )
+            
+            return img_rasterized * invisible_rect * vline * hline
         
         return hv.DynamicMap(
             pn.bind(make_plot,
@@ -622,9 +634,7 @@ class InterferogramPlot:
                     title='Interactive Interferogram (loading...)',
                     xlabel='eps0', ylabel='A',
                     xlim=(self.eps0_min, self.eps0_max),
-                    ylim=(self.A_min, self.A_max),
-                    tools=['hover', 'tap', 'save'],
-                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+                    ylim=(self.A_min, self.A_max)
                 )
             
             # Title shows GPU status
@@ -647,15 +657,22 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='eps0',
-                ylabel='A',
-                tools=['hover', 'tap', 'save'],
-                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+                ylabel='A'
             )
             
             return img
         
-        def make_markers(marker_version):
-            """Just the markers."""
+        def make_markers_and_overlay(marker_version):
+            """Markers plus invisible overlay for interactions."""
+            # Create invisible rectangle for capturing clicks
+            # This is CRITICAL for rasterized plots to capture tap/hover events
+            invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
+                alpha=0,
+                line_alpha=0,
+                tools=['tap', 'hover'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+            )
+            
             if self.marker_eps0 is not None and self.marker_A is not None:
                 vline = hv.VLine(self.marker_eps0).opts(color='blue', line_width=2, line_dash='solid')
                 hline = hv.HLine(self.marker_A).opts(color='blue', line_width=2, line_dash='solid')
@@ -663,7 +680,7 @@ class InterferogramPlot:
                 vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
                 hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
             
-            return vline * hline
+            return invisible_rect * vline * hline
         
         # Separate DynamicMaps for image and markers
         image_dmap = hv.DynamicMap(
@@ -674,8 +691,8 @@ class InterferogramPlot:
                     self.data_version_widget)
         )
         
-        markers_dmap = hv.DynamicMap(
-            pn.bind(make_markers, self.marker_version_widget)
+        markers_overlay_dmap = hv.DynamicMap(
+            pn.bind(make_markers_and_overlay, self.marker_version_widget)
         )
         
         # Rasterize with GPU support if available
@@ -686,8 +703,7 @@ class InterferogramPlot:
             precompute=True
         )
         
-        # Overlay rasterized image with vector markers
-        return image_rasterized * markers_dmap
+        return image_rasterized * markers_overlay_dmap
     
     def get_control_panel(self):
         """Return control panel for interferogram."""
@@ -803,7 +819,10 @@ class DynamicsPlot:
     def compute(self, eps0, A, sim_params, platform_type, repo_path, log_callback=None, marker_update_callback=None):
         """Compute dynamics for given coordinates."""
         
+        print(f"[DYNAMICS COMPUTE] Called with eps0={eps0}, A={A}")  # DEBUG PRINT
+        
         if self.computing:
+            print(f"[DYNAMICS COMPUTE] Already computing, returning...")  # DEBUG PRINT
             return
         
         self.computing = True
@@ -859,6 +878,8 @@ class DynamicsPlot:
         self.dynamics_version += 1
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
+        
+        print(f"[DYNAMICS COMPUTE] Version updated to {self.dynamics_version}")  # DEBUG PRINT
         
         self.computing = False
     
@@ -1159,6 +1180,8 @@ class InteractiveInterferogramDynamics:
     def _on_interferogram_click(self, x, y):
         """Handle click on interferogram."""
         
+        print(f"[CLICK HANDLER] Received click at eps0={x}, A={y}")  # DEBUG PRINT
+        
         if not self.dynamics.enabled or x is None or y is None:
             return
         
@@ -1210,6 +1233,8 @@ class InteractiveInterferogramDynamics:
     def _generate_dynamics(self, eps0, A):
         """Generate dynamics for given coordinates."""
         
+        print(f"[GENERATE DYNAMICS] Starting computation for eps0={eps0}, A={A}")  # DEBUG PRINT
+        
         def log_callback(text):
             self.log_display.object = text
             self.log_display.param.trigger('object')
@@ -1222,6 +1247,8 @@ class InteractiveInterferogramDynamics:
         self.dynamics.compute(eps0, A, self.sim_params, 
                             self.platform_type, self.repo_path, 
                             log_callback, marker_update_callback)
+        
+        print(f"[GENERATE DYNAMICS] Computation completed")  # DEBUG PRINT
     
     def _on_manual_dynamics_generate(self, event=None):
         """Handle manual coordinate entry for dynamics."""
@@ -1235,21 +1262,32 @@ class InteractiveInterferogramDynamics:
         
         self._generate_dynamics(eps0, A)
     
-    
     def create_dashboard(self):
         """Create the complete Panel dashboard."""
         
-        # Use ONLY on_click for button callbacks (works in both Jupyter and panel serve)
+        # Button callbacks
         self.update_button.on_click(self._update_and_regenerate)
         self.dynamics.generate_button.on_click(self._on_manual_dynamics_generate)
         
         interferogram_dmap = self.interferogram.create_plot()
+    
+        # CRITICAL FIX: Create a STATIC invisible overlay for capturing interactions
+        # This must be outside the DynamicMap to work with streams
+        interaction_overlay = hv.Rectangles([
+            (self.interferogram.eps0_min, self.interferogram.A_min, 
+             self.interferogram.eps0_max, self.interferogram.A_max)
+        ]).opts(
+            alpha=0, 
+            line_alpha=0,
+            tools=['tap', 'hover'],
+            default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+        )
         
-        # Create streams - ONLY create once
-        self.tap_stream = hv.streams.Tap(source=interferogram_dmap, x=None, y=None)
-        self.hover_stream = hv.streams.PointerXY(source=interferogram_dmap, x=None, y=None)
+        # Create streams attached to the STATIC overlay
+        self.tap_stream = hv.streams.Tap(source=interaction_overlay, x=None, y=None)
+        self.hover_stream = hv.streams.PointerXY(source=interaction_overlay, x=None, y=None)
         
-        # Define callback handlers
+        # Callback handlers
         def on_tap(x, y):
             print(f"[TAP] Interferogram clicked at x={x}, y={y}")
             if x is not None and y is not None:
@@ -1259,9 +1297,12 @@ class InteractiveInterferogramDynamics:
             if x is not None and y is not None:
                 self._on_interferogram_hover(x, y)
         
-        # Subscribe to streams using add_subscriber
+        # Subscribe to streams
         self.tap_stream.add_subscriber(on_tap)
         self.hover_stream.add_subscriber(on_hover)
+        
+        # Combine interferogram with the static interaction overlay
+        interferogram_plot = interferogram_dmap * interaction_overlay
         
         sidebar = pn.Column(
             "## 🎛️ Simulation Parameters",
@@ -1277,7 +1318,7 @@ class InteractiveInterferogramDynamics:
         
         interferogram_section = pn.Column(
             self.interferogram.get_control_panel(),
-            interferogram_dmap,
+            interferogram_plot,
             # Include version widgets (invisible but needed for panel serve)
             self.interferogram.data_version_widget,
             self.interferogram.marker_version_widget,
