@@ -69,7 +69,7 @@ class SimulationConfig:
     muR:      float
     T_K:      float
     Gamma_eg0:  float
-    nu_c:    float
+    omega_c:    float
     Gamma_phi0: float
     quasi_static_ensemble_dephasing_flag: bool
     sigma_eps: float
