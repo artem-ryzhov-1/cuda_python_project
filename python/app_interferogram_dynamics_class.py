@@ -30,7 +30,7 @@ class SimulationParameters:
                  Gamma_phi0_range, sigma_eps_range, N_steps_period_range, N_periods_range, 
                  N_periods_avg_range, N_samples_noise_range,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
+                 Gamma_phi0_default, sigma_eps_default, nu, N_steps_period_default, N_periods_default, 
                  N_periods_avg_default, N_samples_noise_default):
         
         # Current values
@@ -57,6 +57,9 @@ class SimulationParameters:
         self.N_periods_range = N_periods_range
         self.N_periods_avg_range = N_periods_avg_range
         self.N_samples_noise_range = N_samples_noise_range
+        
+        # Constant values
+        self.nu = nu
         
         # Create widgets
         self._create_widgets()
@@ -199,6 +202,7 @@ class SimulationParameters:
             'GammaR0': self.GammaR0,
             'Gamma_eg0': self.Gamma_eg0,
             'Gamma_phi0': None if self.quasi_static else self.Gamma_phi0,
+            'nu': self.nu,
             'N_steps_period': self.N_steps_period,
             'N_periods': self.N_periods,
             'N_periods_avg': self.N_periods_avg,
@@ -980,6 +984,7 @@ class InteractiveInterferogramDynamics:
                  Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
                  N_periods_avg_default, N_samples_noise_default,
                  dC_default_thresholds,
+                 nu,
                  platform_type,
                  repo_path,
                  cmap_name,
@@ -1002,7 +1007,9 @@ class InteractiveInterferogramDynamics:
             delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range, sigma_eps_range,
             N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
             delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-            Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
+            Gamma_phi0_default, sigma_eps_default,
+            nu,
+            N_steps_period_default, N_periods_default, 
             N_periods_avg_default, N_samples_noise_default
         )
         

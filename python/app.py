@@ -127,6 +127,9 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     N_periods_avg_default=1,
     N_samples_noise_default=100,
     dC_default_thresholds=(-3000, 1000),
+    
+    nu=21,
+    
     platform_type=platform_type,
     repo_path=repo_path,
     cmap_name='fire',

@@ -69,6 +69,7 @@ simr = SimRunGridMode(
     GammaR0=12.0,
     Gamma_eg0=0.8,
     Gamma_phi0=None,
+    nu=21,
     
     eps0_min=-0.006,
     eps0_max=0.006,

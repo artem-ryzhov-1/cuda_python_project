@@ -106,7 +106,7 @@ def run_simulation(simr):
     delta_R = 0
     
     alpha = 70_819 # or 1?
-    nu    = 21
+    nu    = simr.nu
     
     
     #rho00_init = 0

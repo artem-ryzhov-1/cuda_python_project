@@ -69,7 +69,7 @@ class SimulationConfig:
     muR:      float
     T_K:      float
     Gamma_eg0:  float
-    omega_c:    float
+    nu_c:    float
     Gamma_phi0: float
     quasi_static_ensemble_dephasing_flag: bool
     sigma_eps: float
@@ -81,6 +81,7 @@ class SimulationConfig:
 class SimRunGridMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
+                 nu,
                  eps0_min, eps0_max, A_min, A_max,
                  N_points_target, N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
@@ -90,6 +91,7 @@ class SimRunGridMode:
                           ("GammaL0", GammaL0),
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
+                          ("nu", nu),
                           ("eps0_min", eps0_min),
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
@@ -130,6 +132,7 @@ class SimRunGridMode:
         self.Gamma_eg0  = float(Gamma_eg0)
         self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
+        self.nu         = float(nu)
         
         self.eps0_min = float(eps0_min)
         self.eps0_max = float(eps0_max)
@@ -154,6 +157,7 @@ class SimRunGridMode:
 class SimRunSingleMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
+                 nu,
                  eps0_target_singlepoint, A_target_singlepoint,
                  N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
@@ -163,6 +167,7 @@ class SimRunSingleMode:
                           ("GammaL0", GammaL0),
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
+                          ("nu", nu),
                           ("eps0_target_singlepoint", eps0_target_singlepoint),
                           ("A_target_singlepoint", A_target_singlepoint)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
@@ -200,6 +205,7 @@ class SimRunSingleMode:
         self.Gamma_eg0  = float(Gamma_eg0)
         self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
+        self.nu         = float(nu)
         
         self.eps0_target_singlepoint = float(eps0_target_singlepoint)
         self.A_target_singlepoint = float(A_target_singlepoint)
