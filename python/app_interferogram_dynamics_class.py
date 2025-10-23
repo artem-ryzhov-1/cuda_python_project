@@ -723,7 +723,7 @@ class InterferogramPlot:
 class DynamicsPlot:
     """Manages the dynamics plot and computation."""
     
-    def __init__(self, eps0_min, eps0_max, A_min, A_max):
+    def __init__(self, eps0_min, eps0_max, A_min, A_max, t_max_default):
         
         self.eps0_min = eps0_min
         self.eps0_max = eps0_max
@@ -736,6 +736,7 @@ class DynamicsPlot:
         self.current_eps0 = None
         self.current_A = None
         self.computation_time = 0
+        self.t_max_plot = t_max_default
         
         self.enabled = False
         self.auto_update = False
@@ -789,7 +790,7 @@ class DynamicsPlot:
         
         self.status_text = pn.pane.Markdown(
             "**Dynamics:** Not computed",
-            width=300,
+            width=500,
             sizing_mode='fixed'
         )
         
@@ -856,6 +857,11 @@ class DynamicsPlot:
                 end_time = time.perf_counter()
                 self.computation_time = end_time - start_time
                 
+                # ADD THIS BLOCK - Update plot time limit after successful computation
+                if self.time_dynamics is not None and len(self.time_dynamics) > 0:
+                    self.t_max_plot = self.time_dynamics[-1]
+                    print(f"[DYNAMICS COMPUTE] Updated t_max_plot to {self.t_max_plot}")  # DEBUG PRINT
+                
                 self.status_text.object = f"**Dynamics:** ✅ Ready ({self.computation_time:.2f}s) | eps0={eps0:.6f}, A={A:.6f}"
             except Exception as e:
                 self.status_text.object = f"**Dynamics:** ❌ Error: {str(e)}"
@@ -909,7 +915,8 @@ class DynamicsPlot:
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
-                    ylim=(0, 1)
+                    ylim=(0, 1),
+                    xlim=(0, self.t_max_plot)
                 )
                 
                 # Empty epsilon plot
@@ -919,7 +926,8 @@ class DynamicsPlot:
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
-                    ylim=(0, 1)
+                    ylim=(-0.01, 0.01),
+                    xlim=(0, self.t_max_plot)
                 )
             else:
                 # Real population plot
@@ -941,7 +949,8 @@ class DynamicsPlot:
                     title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
                     xlabel='Time', ylabel='Population',
                     show_grid=True, legend_position='right',
-                    ylim=pop_ylim
+                    ylim=pop_ylim,
+                    xlim=(0, self.t_max_plot)
                 )
                 
                 # Real epsilon plot
@@ -953,11 +962,19 @@ class DynamicsPlot:
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
-                    ylim=(eps_min, eps_max)
+                    ylim=(eps_min, eps_max),
+                    xlim=(0, self.t_max_plot)
                 )
             
-            # Always return the same Layout structure
-            return hv.Layout([pop_plot, eps_plot]).cols(1)
+            # Create Layout - link X axes explicitly via RangeToolLink
+            from holoviews.plotting.links import RangeToolLink
+            
+            layout = (pop_plot + eps_plot).cols(1)
+            
+            # Link the x_range of both plots
+            RangeToolLink(pop_plot, eps_plot, axes=['x'])
+            
+            return layout
         
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
@@ -1018,7 +1035,9 @@ class InteractiveInterferogramDynamics:
             dC_default_thresholds, cmap_name, render_mode
         )
         
-        self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max)
+        t_max_default = N_periods_default/nu
+        
+        self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
         self.auto_update_enabled = False
         self._is_generating = False

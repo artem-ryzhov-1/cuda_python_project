@@ -68,21 +68,21 @@ simr = SimRunGridMode(
     GammaL0=50.0,
     GammaR0=12.0,
     Gamma_eg0=0.8,
-    Gamma_phi0=None,
+    Gamma_phi0=3.6,
     nu=21,
     
     eps0_min=-0.006,
     eps0_max=0.006,
     A_min=0.0,
     A_max=0.01,
-    N_points_target=10000,
+    N_points_target=1000000,
     N_steps_period=1000,
     N_periods=10,
     N_periods_avg=1,
     
-    quasi_static_ensemble_dephasing_flag=True,
-    sigma_eps=0.0002,
-    N_samples_noise=10,
+    quasi_static_ensemble_dephasing_flag=False,
+    sigma_eps=None,
+    N_samples_noise=None,
     
     platform_type = platform_type,
     repo_path=repo_path
