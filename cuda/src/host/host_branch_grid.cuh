@@ -257,7 +257,7 @@ __host__ inline void run_grid_mode(
         printf("Launching kernel gridmode unrolled one_thread_one_traj no_ensemble: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_unrolled <<<blocks, threads_per_block >>> (
+        lindblad_rk4_kernel_unrolled_fsal <<<blocks, threads_per_block >>> (
             d_eps0, d_A,
             d_rho_avg,
 
