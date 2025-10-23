@@ -58,16 +58,16 @@ extern "C" __global__ void lindblad_rk4_kernel(
 
     //const int total_steps = N_steps_per_period * N_periods;
 
-    for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-        const float t_step = t * dt;
+    for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+        const float t_step = t_idx_rk4_step * dt;
 
 
-        //if (tid == 0 && t % 1000 == 0)
-        //if (tid == 0 && t < 100)
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0)
+        //if (tid == 0 && t_idx_rk4_step < 100)
         //if (tid == 0)
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //}
 
         rk4_step(
@@ -75,15 +75,15 @@ extern "C" __global__ void lindblad_rk4_kernel(
             eps0, A
         );
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //}
 
         // post-step stabilization
         clamp_and_renormalize_vec16(rho_vec);
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //    printf("\n");
         //}
 
@@ -92,7 +92,7 @@ extern "C" __global__ void lindblad_rk4_kernel(
 //#pragma unroll
         //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-        const int period_idx = t / N_steps_per_period;
+        const int period_idx = t_idx_rk4_step / N_steps_per_period;
         if (period_idx == N_periods - 1) {
 #pragma unroll
             for (int q = 0; q < 4; q++) sum_last[q] += rho_vec[q];
@@ -190,16 +190,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
 
     //const int total_steps = N_steps_per_period * N_periods;
 
-    for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-        const float t_step = t * dt;
+    for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+        const float t_step = t_idx_rk4_step * dt;
 
 
-        /*if (tid == 0 && t % 1000 == 0)*/
-        /*if (tid == 0 && t < 100)*/
+        /*if (tid == 0 && t_idx_rk4_step % 1000 == 0)*/
+        /*if (tid == 0 && t_idx_rk4_step < 100)*/
         /*if (tid == 0)*/
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //}
 
         rk4_step_unrolled_v3_safe(
@@ -214,8 +214,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
         );
 
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //}
 
         // post-step stabilization
@@ -226,8 +226,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
             rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
         );
 
-        //if (tid == 0 && t % 1000 == 0) {
-        //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+        //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+        //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
         //    printf("\n");
         //}
 
@@ -236,7 +236,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled(
 //#pragma unroll
         //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-        const int period_idx = t / N_steps_per_period;
+        const int period_idx = t_idx_rk4_step / N_steps_per_period;
         if (period_idx >= N_periods - N_periods_avg) {
 
             sum_last_0 += rho_vec_0;
@@ -361,16 +361,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            /*if (tid == 0 && t % 1000 == 0)*/
-            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0 && t_idx_rk4_step % 1000 == 0)*/
+            /*if (tid == 0 && t_idx_rk4_step < 100)*/
             /*if (tid == 0)*/
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_v3_safe_ensemble(
@@ -385,8 +385,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -397,8 +397,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -407,7 +407,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt1(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx >= N_periods - N_periods_avg) {
 
                 sum_last_0 += rho_vec_0;
@@ -525,16 +525,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            /*if (tid == 0 && t % 1000 == 0)*/
-            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0 && t_idx_rk4_step % 1000 == 0)*/
+            /*if (tid == 0 && t_idx_rk4_step < 100)*/
             /*if (tid == 0)*/
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_v3_safe_ensemble(
@@ -549,8 +549,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -561,8 +561,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -571,7 +571,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt2(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx >= N_periods - N_periods_avg) {
 
                 sum_last_0 += rho_vec_0;
@@ -675,16 +675,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            /*if (tid == 0 && t % 1000 == 0)*/
-            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0 && t_idx_rk4_step % 1000 == 0)*/
+            /*if (tid == 0 && t_idx_rk4_step < 100)*/
             /*if (tid == 0)*/
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_v3_safe_ensemble(
@@ -699,8 +699,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -711,8 +711,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -721,7 +721,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt3(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx >= N_periods - N_periods_avg) {
 
                 avg00 += rho_vec_0;
@@ -824,16 +824,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            /*if (tid == 0 && t % 1000 == 0)*/
-            /*if (tid == 0 && t < 100)*/
+            /*if (tid == 0 && t_idx_rk4_step % 1000 == 0)*/
+            /*if (tid == 0 && t_idx_rk4_step < 100)*/
             /*if (tid == 0)*/
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_v3_safe_ensemble(
@@ -848,8 +848,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -860,8 +860,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -870,7 +870,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx >= N_periods - N_periods_avg) {
 
                 avg00 += rho_vec_0;
@@ -924,9 +924,9 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
 
     // Each warp handles K_TRAJ_PER_WARP trajectories, divided into groups of lanes
     // LANE_GROUP_SIZE - Number of lanes per trajectory group. E.g. 16 if K_TRAJ_PER_WARP = 2
-    const int group_id = lane_id / LANE_GROUP_SIZE;             // Which trajectory group (among K_TRAJ_PER_WARP per warp) this lane belongs to     
+    const int group_id = lane_id / LANE_GROUP_SIZE;             // Which trajectory group (among K_TRAJ_PER_WARP per warp) this lane belongs to
     const int lane_in_group = lane_id % LANE_GROUP_SIZE;        // Lane's index inside its group (which part of trajectory work it does)
-    
+
     // Calculate the global trajectory ID handled by this thread
     // warp_id * K_TRAJ_PER_WARP gives the base trajectory index for the warp
     // group_id adds the offset for the trajectory within the warp
@@ -937,7 +937,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
 
     const int group_base_lane = group_id * LANE_GROUP_SIZE;  // the first lane of the group
 
-    
+
 
 
 
@@ -1000,16 +1000,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            //if (tid == 0 && t % 1000 == 0)
-            //if (tid == 0 && t < 100)
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0)
+            //if (tid == 0 && t_idx_rk4_step < 100)
             //if (tid == 0)
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_warp_shfl_v3_safe(
@@ -1027,8 +1027,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -1040,8 +1040,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -1050,7 +1050,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx == N_periods - 1) {
 
                 sum_last_0 += rho_vec_0;
@@ -1123,7 +1123,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shmem(
 
     // Each warp handles K_TRAJ_PER_WARP trajectories, divided into groups of lanes
     // LANE_GROUP_SIZE - Number of lanes per trajectory group. E.g. 16 if K_TRAJ_PER_WARP = 2
-    const int group_id = lane_id / LANE_GROUP_SIZE;             // Which trajectory group (among K_TRAJ_PER_WARP per warp) this lane belongs to     
+    const int group_id = lane_id / LANE_GROUP_SIZE;             // Which trajectory group (among K_TRAJ_PER_WARP per warp) this lane belongs to
     const int lane_in_group = lane_id % LANE_GROUP_SIZE;        // Lane's index inside its group (which part of trajectory work it does)
 
     // Calculate the global trajectory ID handled by this thread
@@ -1197,16 +1197,16 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shmem(
 
         //const int total_steps = N_steps_per_period * N_periods;
 
-        for (int t = 0; t < N_steps_per_period * N_periods; ++t) {
-            const float t_step = t * dt;
+        for (int t_idx_rk4_step = 0; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
 
 
-            //if (tid == 0 && t % 1000 == 0)
-            //if (tid == 0 && t < 100)
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0)
+            //if (tid == 0 && t_idx_rk4_step < 100)
             //if (tid == 0)
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf("before RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf("before RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             rk4_step_unrolled_warp_shmem_v3_safe(
@@ -1223,8 +1223,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shmem(
             );
 
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after RK4: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after RK4: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //}
 
             // post-step stabilization
@@ -1235,8 +1235,8 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shmem(
                 rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
             );
 
-            //if (tid == 0 && t % 1000 == 0) {
-            //    printf(" after ren: t=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
+            //if (tid == 0 && t_idx_rk4_step % 1000 == 0) {
+            //    printf(" after ren: t_idx_rk4_step=%d, rho_vec[0..3] = %.7f, %.7f, %.7f, %.7f\n", t_idx_rk4_step, rho_vec[0], rho_vec[1], rho_vec[2], rho_vec[3]);
             //    printf("\n");
             //}
 
@@ -1245,7 +1245,7 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shmem(
     //#pragma unroll
             //for (int q = 0; q < 4; q++) sum_whole[q] += rho_vec[q];
 
-            const int period_idx = t / N_steps_per_period;
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
             if (period_idx == N_periods - 1) {
 
                 sum_last_0 += rho_vec_0;
