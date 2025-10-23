@@ -283,7 +283,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_unrolled <<< 1, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode_unrolled_fsal <<< 1, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg,
