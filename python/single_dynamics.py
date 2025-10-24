@@ -64,12 +64,13 @@ print(f"Platform type: {platform_type}")
 
 time2 = time.time()
 
+
 simr = SimRunSingleMode(
     delta_C=0.001,
     GammaL0=50.0,
     GammaR0=12.0,
     Gamma_eg0=0.8,
-    Gamma_phi0=3.6,
+    Gamma_phi0=None,
     nu=21,
     
     eps0_target_singlepoint=0.001,
@@ -85,6 +86,8 @@ simr = SimRunSingleMode(
     platform_type = platform_type,
     repo_path=repo_path
 )
+
+
 
 time3 = time.time()
 
