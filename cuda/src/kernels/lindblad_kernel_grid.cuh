@@ -1041,6 +1041,143 @@ extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10(
 
 
 
+
+
+extern "C" __global__ void lindblad_rk4_kernel_unrolled_ensemble_opt10_fsal(
+    const float* __restrict__ d_eps0,
+    const float* __restrict__ d_A,
+    float* __restrict__ d_out_avg,
+
+    const int N_periods_avg,
+    const int N_samples_noise,
+    const float scale_total,
+    const float* __restrict__ eps_offsets
+) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid >= Npoints) return;
+
+
+
+    const float eps0 = d_eps0[tid];
+    const float A = d_A[tid];
+
+
+    // Accumulators for averaged output over noise realizations
+    float avg00 = 0.f;
+    float avg11 = 0.f;
+    float avg22 = 0.f;
+    float avg33 = 0.f;
+
+
+    // noise ensemble loop
+    for (int j = 0; j < N_samples_noise; ++j) {
+
+        const float eps0_noise = eps0 + eps_offsets[j];
+
+
+
+        // rho in vec16 form, initial state
+        float rho_vec_0 = rho00_init; float rho_vec_1 = rho11_init;
+        float rho_vec_2 = rho22_init; float rho_vec_3 = rho33_init;
+        float rho_vec_4 = 0.f;  float rho_vec_5 = 0.f;  float rho_vec_6 = 0.f;
+        float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
+        float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
+        float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
+
+
+
+        // persistent between steps
+        float k_saved_0 = 0.f;  float k_saved_1 = 0.f;  float k_saved_2 = 0.f;
+        float k_saved_3 = 0.f;  float k_saved_4 = 0.f;  float k_saved_5 = 0.f;
+        float k_saved_6 = 0.f;  float k_saved_7 = 0.f;  float k_saved_8 = 0.f;
+        float k_saved_9 = 0.f;  float k_saved_10 = 0.f; float k_saved_11 = 0.f;
+        float k_saved_12 = 0.f; float k_saved_13 = 0.f; float k_saved_14 = 0.f;
+        float k_saved_15 = 0.f;
+
+        // First step
+        rk4_step_unrolled_v3_safe_ensemble_fsal(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+            k_saved_0, k_saved_1, k_saved_2, k_saved_3,
+            k_saved_4, k_saved_5, k_saved_6, k_saved_7,
+            k_saved_8, k_saved_9, k_saved_10, k_saved_11,
+            k_saved_12, k_saved_13, k_saved_14, k_saved_15,
+
+            0.0f,
+            eps0_noise,
+            A,
+            true
+        );
+
+
+        // Subsequent steps
+        for (int t_idx_rk4_step = 1; t_idx_rk4_step < N_steps_per_period * N_periods; ++t_idx_rk4_step) {
+            const float t_step = t_idx_rk4_step * dt;
+
+            rk4_step_unrolled_v3_safe_ensemble_fsal(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+                k_saved_0, k_saved_1, k_saved_2, k_saved_3,
+                k_saved_4, k_saved_5, k_saved_6, k_saved_7,
+                k_saved_8, k_saved_9, k_saved_10, k_saved_11,
+                k_saved_12, k_saved_13, k_saved_14, k_saved_15,
+
+                t_step,
+                eps0_noise,
+                A,
+                false
+            );
+
+
+            // post-step stabilization
+            clamp_and_renormalize_vec16_unrolled(
+                rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+                rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+                rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+                rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+            );
+
+            const int period_idx = t_idx_rk4_step / N_steps_per_period;
+            if (period_idx >= N_periods - N_periods_avg) {
+
+                avg00 += rho_vec_0;
+                avg11 += rho_vec_1;
+                avg22 += rho_vec_2;
+                avg33 += rho_vec_3;
+
+            }
+
+        }
+
+        // final normalization safeguard
+        clamp_and_renormalize_vec16_unrolled(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+        );
+
+    }
+
+    // average over time steps and over noise realizations alltogether
+    const size_t base = (size_t)tid * 4u;
+    d_out_avg[base + 0] = avg00 * scale_total;
+    d_out_avg[base + 1] = avg11 * scale_total;
+    d_out_avg[base + 2] = avg22 * scale_total;
+    d_out_avg[base + 3] = avg33 * scale_total;
+
+}
+
+
+
+
 /*
 extern "C" __global__ void lindblad_rk4_kernel_unrolled_warp_shfl(
     const float* __restrict__ d_eps0,

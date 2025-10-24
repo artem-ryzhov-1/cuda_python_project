@@ -254,7 +254,7 @@ __host__ inline void run_grid_mode(
 
     if (!quasi_static_ensemble_dephasing_flag) {
 
-        printf("Launching kernel gridmode unrolled one_thread_one_traj no_ensemble: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        printf("Launching kernel gridmode unrolled one_thread_one_traj no_ensemble fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_unrolled_fsal <<<blocks, threads_per_block >>> (
@@ -267,7 +267,7 @@ __host__ inline void run_grid_mode(
     }
     else if (quasi_static_ensemble_dephasing_flag) {
 
-        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         //lindblad_rk4_kernel_unrolled_ensemble_opt1 <<<blocks, threads_per_block >>> (
@@ -295,8 +295,18 @@ __host__ inline void run_grid_mode(
         //    scale_total
         //    );
 
+        // const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
+        // lindblad_rk4_kernel_unrolled_ensemble_opt10 <<<blocks, threads_per_block >>> (
+        //     d_eps0, d_A,
+        //     d_rho_avg,
+        //     N_periods_avg,
+        //     N_samples_noise,
+        //     scale_total,
+        //     eps_offsets
+        //     );
+
         const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
-        lindblad_rk4_kernel_unrolled_ensemble_opt10 <<<blocks, threads_per_block >>> (
+        lindblad_rk4_kernel_unrolled_ensemble_opt10_fsal <<<blocks, threads_per_block >>> (
             d_eps0, d_A,
             d_rho_avg,
             N_periods_avg,
