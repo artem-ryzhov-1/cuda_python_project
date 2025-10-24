@@ -394,7 +394,7 @@ class InterferogramPlot:
     
     def update_data(self, eps0_grid, A_grid, rho_avg_cdc_3d):
         """Update interferogram data."""
-        print(f"[INTERFEROGRAM] Updating data...")  # DEBUG PRINT
+        #print(f"[INTERFEROGRAM] Updating data...")  #DEBUG PRINT
         self.eps0_grid = eps0_grid
         self.A_grid = A_grid
         
@@ -402,10 +402,10 @@ class InterferogramPlot:
             self.avg_grids[label] = rho_avg_cdc_3d[i]
         
         self.data_version += 1
-        print(f"[INTERFEROGRAM] Data version incremented to: {self.data_version}")  # DEBUG PRINT
+        #print(f"[INTERFEROGRAM] Data version incremented to: {self.data_version}")  #DEBUG PRINT
         if hasattr(self, 'data_version_widget'):
             self.data_version_widget.value = self.data_version
-            print(f"[INTERFEROGRAM] Widget value updated to: {self.data_version_widget.value}")  # DEBUG PRINT
+            #print(f"[INTERFEROGRAM] Widget value updated to: {self.data_version_widget.value}")  #DEBUG PRINT
         
         self.marker_version += 1
         if hasattr(self, 'marker_version_widget'):
@@ -824,10 +824,10 @@ class DynamicsPlot:
     def compute(self, eps0, A, sim_params, platform_type, repo_path, log_callback=None, marker_update_callback=None):
         """Compute dynamics for given coordinates."""
         
-        print(f"[DYNAMICS COMPUTE] Called with eps0={eps0}, A={A}")  # DEBUG PRINT
+        #print(f"[DYNAMICS COMPUTE] Called with eps0={eps0}, A={A}")  #DEBUG PRINT
         
         if self.computing:
-            print(f"[DYNAMICS COMPUTE] Already computing, returning...")  # DEBUG PRINT
+            #print(f"[DYNAMICS COMPUTE] Already computing, returning...")  #DEBUG PRINT
             return
         
         self.computing = True
@@ -860,7 +860,7 @@ class DynamicsPlot:
                 # ADD THIS BLOCK - Update plot time limit after successful computation
                 if self.time_dynamics is not None and len(self.time_dynamics) > 0:
                     self.t_max_plot = self.time_dynamics[-1]
-                    print(f"[DYNAMICS COMPUTE] Updated t_max_plot to {self.t_max_plot}")  # DEBUG PRINT
+                    #print(f"[DYNAMICS COMPUTE] Updated t_max_plot to {self.t_max_plot}")  #DEBUG PRINT
                 
                 self.status_text.object = f"**Dynamics:** ✅ Ready ({self.computation_time:.2f}s) | eps0={eps0:.6f}, A={A:.6f}"
             except Exception as e:
@@ -889,7 +889,7 @@ class DynamicsPlot:
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
         
-        print(f"[DYNAMICS COMPUTE] Version updated to {self.dynamics_version}")  # DEBUG PRINT
+        #print(f"[DYNAMICS COMPUTE] Version updated to {self.dynamics_version}")  #DEBUG PRINT
         
         self.computing = False
     
@@ -1110,11 +1110,11 @@ class InteractiveInterferogramDynamics:
     
     def _update_and_regenerate(self, event=None):
         """Update parameters and regenerate interferogram."""
-        print(f"[BUTTON] Regenerate button clicked!")  # DEBUG PRINT
+        #print(f"[BUTTON] Regenerate button clicked!")  #DEBUG PRINT
         if self._is_generating:
-            print(f"[BUTTON] Already generating, skipping...")  # DEBUG PRINT
+            #print(f"[BUTTON] Already generating, skipping...")  #DEBUG PRINT
             return
-        print(f"[BUTTON] Starting regeneration...")  # DEBUG PRINT
+        #print(f"[BUTTON] Starting regeneration...")  #DEBUG PRINT
         self.sim_params.update_from_sliders()
         self._generate_interferogram_data()
     
@@ -1126,7 +1126,7 @@ class InteractiveInterferogramDynamics:
             return
         
         self._is_generating = True
-        print("[GENERATE] Starting data generation...")
+        #print("[GENERATE] Starting data generation...")  #DEBUG PRINT
         
         captured_stdout = StringIO()
         captured_stderr = StringIO()
@@ -1206,7 +1206,7 @@ class InteractiveInterferogramDynamics:
     def _on_interferogram_click(self, x, y):
         """Handle click on interferogram."""
         
-        print(f"[CLICK HANDLER] Received click at eps0={x}, A={y}")  # DEBUG PRINT
+        #print(f"[CLICK HANDLER] Received click at eps0={x}, A={y}")  #DEBUG PRINT
         
         if not self.dynamics.enabled or x is None or y is None:
             return
@@ -1259,7 +1259,7 @@ class InteractiveInterferogramDynamics:
     def _generate_dynamics(self, eps0, A):
         """Generate dynamics for given coordinates."""
         
-        print(f"[GENERATE DYNAMICS] Starting computation for eps0={eps0}, A={A}")  # DEBUG PRINT
+        #print(f"[GENERATE DYNAMICS] Starting computation for eps0={eps0}, A={A}")  #DEBUG PRINT
         
         def log_callback(text):
             self.log_display.object = text
@@ -1274,7 +1274,7 @@ class InteractiveInterferogramDynamics:
                             self.platform_type, self.repo_path, 
                             log_callback, marker_update_callback)
         
-        print(f"[GENERATE DYNAMICS] Computation completed")  # DEBUG PRINT
+        #print(f"[GENERATE DYNAMICS] Computation completed")  #DEBUG PRINT
     
     def _on_manual_dynamics_generate(self, event=None):
         """Handle manual coordinate entry for dynamics."""
