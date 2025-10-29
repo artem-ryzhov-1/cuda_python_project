@@ -22,6 +22,9 @@ from simulation import run_simulation
 from config import SimRunGridMode, SimRunSingleMode
 
 
+from matplotlib import rcParams
+colors = rcParams['axes.prop_cycle'].by_key()['color']
+
 
 class SimulationParameters:
     """Manages simulation parameters and their widgets."""
@@ -894,89 +897,100 @@ class DynamicsPlot:
         self.computing = False
     
     def create_plot(self):
-        """Create the dynamics plot."""
-        
+        """Create the dynamics plot with linked X axes and independent Y axes."""
+    
         def make_plot(version):
-            # Always create both plots to maintain consistent Layout structure
+            # Always use the same key dimension for automatic x-axis linking
             time = self.time_dynamics if self.time_dynamics is not None else np.array([0, 1])
-            
+    
             if self.time_dynamics is None or self.rho_dynamics is None:
                 # Empty population plot
                 pop_data = np.zeros(len(time))
-                curves = [
-                    hv.Curve((time, pop_data), label='p00'),
-                    hv.Curve((time, pop_data), label='p01'),
-                    hv.Curve((time, pop_data), label='p10'),
-                    hv.Curve((time, pop_data), label='p11')
-                ]
-                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
-                pop_plot = pop_overlay.opts(
+                curve_p00 = hv.Curve((time, pop_data), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, pop_data), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, pop_data), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, pop_data), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+    
+                pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
                     ylim=(0, 1),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    legend_position='right',
+                    framewise=False,  # IMPORTANT
+                    shared_axes=True  # ensures X linking
                 )
-                
+    
                 # Empty epsilon plot
                 eps_data = np.zeros(len(time))
-                eps_plot = hv.Curve((time, eps_data)).opts(
+                eps_curve = hv.Curve((time, eps_data), 'time', 'epsilon').opts(color=colors[4], line_width=1.5)
+    
+                eps_plot = eps_curve.opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(-0.01, 0.01),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=False,  # no per-frame scaling
+                    shared_axes=True
                 )
             else:
                 # Real population plot
-                p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
-                
+                time = self.time_dynamics
+                p00 = self.rho_dynamics[:, 0]
+                p01 = self.rho_dynamics[:, 1]
+                p10 = self.rho_dynamics[:, 2]
+                p11 = self.rho_dynamics[:, 3]
+    
                 pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
                 pop_ylim = (0, pop_max * 1.1)
-                
-                curves = [
-                    hv.Curve((time, p00), label='p00'),
-                    hv.Curve((time, p01), label='p01'),
-                    hv.Curve((time, p10), label='p10'),
-                    hv.Curve((time, p11), label='p11')
-                ]
-                
-                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
-                pop_plot = pop_overlay.opts(
+    
+                curve_p00 = hv.Curve((time, p00), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, p01), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, p10), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, p11), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+    
+                pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
                     xlabel='Time', ylabel='Population',
-                    show_grid=True, legend_position='right',
+                    show_grid=True,
+                    legend_position='right',
                     ylim=pop_ylim,
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=False,
+                    shared_axes=True
                 )
-                
+    
                 # Real epsilon plot
                 eps_min = self.current_eps0 - self.current_A * 1.1
                 eps_max = self.current_eps0 + self.current_A * 1.1
-                
-                eps_plot = hv.Curve((time, self.eps_dynamics)).opts(
+    
+                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon').opts(
+                    color=colors[4], line_width=1.5
+                )
+    
+                eps_plot = eps_curve.opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(eps_min, eps_max),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=False,
+                    shared_axes=True
                 )
-            
-            # Create Layout - link X axes explicitly via RangeToolLink
-            from holoviews.plotting.links import RangeToolLink
-            
+    
+            # Stack vertically: + links X automatically, Y stays separate
             layout = (pop_plot + eps_plot).cols(1)
-            
-            # Link the x_range of both plots
-            RangeToolLink(pop_plot, eps_plot, axes=['x'])
-            
             return layout
-        
+    
+        # Create DynamicMap that updates when version changes
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
+
     
     def get_control_panel(self):
         """Return control panel for dynamics."""
