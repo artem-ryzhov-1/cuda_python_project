@@ -31,7 +31,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     # Build argument list (convert numbers to strings)
     args = [
         str(c.cuda_program_path),
-        str(c.grid_or_single_mode),
+        str(c.grid_single_mode),
         str(c.avg_periods_ouput_option),
         str(c.ouput_option),
         str(c.unrolled_option),
@@ -53,7 +53,8 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         str(c.rho22_init),
         str(c.rho33_init),
         str(c.path_output_csv),
-        str(c.path_output_bin_file),
+        str(c.path_output_bin_file_gridmode),
+        str(c.path_output_bin_file_singlemode),
         str(c.path_dynamics_single_mode_output_csv),
         str(c.delta_C),
         str(c.delta_L),

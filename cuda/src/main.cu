@@ -36,75 +36,76 @@ int main(int argc, char** argv)
 {
 
     std::cout << "\n--- Listing received arguments ---\n";
-    if (argc > 1) std::cout << "1.  single_mode_flag: " << argv[1] << "\n";
-    if (argc > 2) std::cout << "2.  avg_periods_ouput_option: " << argv[2] << "\n";
-    if (argc > 3) std::cout << "3.  ouput_option: " << argv[3] << "\n";
-    if (argc > 4) std::cout << "4.  unrolled_option: " << argv[4] << "\n";
-    if (argc > 5) std::cout << "5.  ram_shared_mmap_name: " << argv[5] << "\n";
+if (argc > 1) std::cout << "1.  grid_single_mode: " << argv[1] << "\n";
+if (argc > 2) std::cout << "2.  avg_periods_ouput_option: " << argv[2] << "\n";
+if (argc > 3) std::cout << "3.  ouput_option: " << argv[3] << "\n";
+if (argc > 4) std::cout << "4.  unrolled_option: " << argv[4] << "\n";
+if (argc > 5) std::cout << "5.  ram_shared_mmap_name: " << argv[5] << "\n";
 
-    if (argc > 6) std::cout << "6.  eps0_min: " << argv[6] << "\n";
-    if (argc > 7) std::cout << "7.  eps0_max: " << argv[7] << "\n";
-    if (argc > 8) std::cout << "8.  A_min: " << argv[8] << "\n";
-    if (argc > 9) std::cout << "9.  A_max: " << argv[9] << "\n";
+if (argc > 6) std::cout << "6.  eps0_min: " << argv[6] << "\n";
+if (argc > 7) std::cout << "7.  eps0_max: " << argv[7] << "\n";
+if (argc > 8) std::cout << "8.  A_min: " << argv[8] << "\n";
+if (argc > 9) std::cout << "9.  A_max: " << argv[9] << "\n";
 
-    if (argc > 10) std::cout << "10. N_points_eps0_range: " << argv[10] << "\n";
-    if (argc > 11) std::cout << "11. N_points_A_range: " << argv[11] << "\n";
-    if (argc > 12) std::cout << "12. N_steps_period: " << argv[12] << "\n";
-    if (argc > 13) std::cout << "13. N_periods: " << argv[13] << "\n";
-    if (argc > 14) std::cout << "14. N_periods_avg: " << argv[14] << "\n";
-    if (argc > 15) std::cout << "15. N_samples_noise: " << argv[15] << "\n";
+if (argc > 10) std::cout << "10. N_points_eps0_range: " << argv[10] << "\n";
+if (argc > 11) std::cout << "11. N_points_A_range: " << argv[11] << "\n";
+if (argc > 12) std::cout << "12. N_steps_period: " << argv[12] << "\n";
+if (argc > 13) std::cout << "13. N_periods: " << argv[13] << "\n";
+if (argc > 14) std::cout << "14. N_periods_avg: " << argv[14] << "\n";
+if (argc > 15) std::cout << "15. N_samples_noise: " << argv[15] << "\n";
 
-    if (argc > 16) std::cout << "16. alpha: " << argv[16] << "\n";
-    if (argc > 17) std::cout << "17. nu: " << argv[17] << "\n";
-    if (argc > 18) std::cout << "18. eps0_target_singlepoint: " << argv[18] << "\n";
-    if (argc > 19) std::cout << "19. A_target_singlepoint: " << argv[19] << "\n";
+if (argc > 16) std::cout << "16. alpha: " << argv[16] << "\n";
+if (argc > 17) std::cout << "17. nu: " << argv[17] << "\n";
+if (argc > 18) std::cout << "18. eps0_target_singlepoint: " << argv[18] << "\n";
+if (argc > 19) std::cout << "19. A_target_singlepoint: " << argv[19] << "\n";
 
-    if (argc > 20) std::cout << "20. rho00_init: " << argv[20] << "\n";
-    if (argc > 21) std::cout << "21. rho11_init: " << argv[21] << "\n";
-    if (argc > 22) std::cout << "22. rho22_init: " << argv[22] << "\n";
-    if (argc > 23) std::cout << "23. rho33_init: " << argv[23] << "\n";
+if (argc > 20) std::cout << "20. rho00_init: " << argv[20] << "\n";
+if (argc > 21) std::cout << "21. rho11_init: " << argv[21] << "\n";
+if (argc > 22) std::cout << "22. rho22_init: " << argv[22] << "\n";
+if (argc > 23) std::cout << "23. rho33_init: " << argv[23] << "\n";
 
-    if (argc > 24) std::cout << "24. path_output_csv: " << argv[24] << "\n";
-    if (argc > 25) std::cout << "25. path_output_bin_file: " << argv[25] << "\n";
-    if (argc > 26) std::cout << "26. path_dynamics_single_mode_output_csv: " << argv[26] << "\n";
+if (argc > 24) std::cout << "24. path_output_csv: " << argv[24] << "\n";
+if (argc > 25) std::cout << "25. path_output_bin_file_gridmode: " << argv[25] << "\n";
+if (argc > 26) std::cout << "26. path_output_bin_file_singlemode: " << argv[26] << "\n";
+if (argc > 27) std::cout << "27. path_dynamics_single_mode_output_csv: " << argv[27] << "\n";
 
-    if (argc > 27) std::cout << "27. delta_C: " << argv[27] << "\n";
-    if (argc > 28) std::cout << "28. delta_L: " << argv[28] << "\n";
-    if (argc > 29) std::cout << "29. delta_R: " << argv[29] << "\n";
+if (argc > 28) std::cout << "28. delta_C: " << argv[28] << "\n";
+if (argc > 29) std::cout << "29. delta_L: " << argv[29] << "\n";
+if (argc > 30) std::cout << "30. delta_R: " << argv[30] << "\n";
 
-    if (argc > 30) std::cout << "30. g_en: " << argv[30] << "\n";
-    if (argc > 31) std::cout << "31. g_phi: " << argv[31] << "\n";
-    if (argc > 32) std::cout << "32. gL_en: " << argv[32] << "\n";
-    if (argc > 33) std::cout << "33. gL_phi: " << argv[33] << "\n";
-    if (argc > 34) std::cout << "34. gR_en: " << argv[34] << "\n";
-    if (argc > 35) std::cout << "35. gR_phi: " << argv[35] << "\n";
+if (argc > 31) std::cout << "31. g_en: " << argv[31] << "\n";
+if (argc > 32) std::cout << "32. g_phi: " << argv[32] << "\n";
+if (argc > 33) std::cout << "33. gL_en: " << argv[33] << "\n";
+if (argc > 34) std::cout << "34. gL_phi: " << argv[34] << "\n";
+if (argc > 35) std::cout << "35. gR_en: " << argv[35] << "\n";
+if (argc > 36) std::cout << "36. gR_phi: " << argv[36] << "\n";
 
-    if (argc > 36) std::cout << "36. Gamma_L0: " << argv[36] << "\n";
-    if (argc > 37) std::cout << "37. Gamma_R0: " << argv[37] << "\n";
-    if (argc > 38) std::cout << "38. muL: " << argv[38] << "\n";
-    if (argc > 39) std::cout << "39. muR: " << argv[39] << "\n";
-    if (argc > 40) std::cout << "40. T_K: " << argv[40] << "\n";
+if (argc > 37) std::cout << "37. Gamma_L0: " << argv[37] << "\n";
+if (argc > 38) std::cout << "38. Gamma_R0: " << argv[38] << "\n";
+if (argc > 39) std::cout << "39. muL: " << argv[39] << "\n";
+if (argc > 40) std::cout << "40. muR: " << argv[40] << "\n";
+if (argc > 41) std::cout << "41. T_K: " << argv[41] << "\n";
 
-    if (argc > 41) std::cout << "41. Gamma_eg0: " << argv[41] << "\n";
-    if (argc > 42) std::cout << "42. omega_c: " << argv[42] << "\n";
+if (argc > 42) std::cout << "42. Gamma_eg0: " << argv[42] << "\n";
+if (argc > 43) std::cout << "43. omega_c: " << argv[43] << "\n";
 
-    if (argc > 43) std::cout << "43. Gamma_phi0: " << argv[43] << "\n";
-    if (argc > 44) std::cout << "44. sigma_eps: " << argv[44] << "\n";
+if (argc > 44) std::cout << "44. Gamma_phi0: " << argv[44] << "\n";
+if (argc > 45) std::cout << "45. sigma_eps: " << argv[45] << "\n";
 
-    if (argc > 45) std::cout << "45. single_mode_log_option: " << argv[45] << "\n";
-    if (argc > 46) std::cout << "46. path_dynamics_single_mode_output_log_csv: " << argv[46] << "\n";
-    if (argc > 47) std::cout << "47. path_dynamics_single_mode_output_log_hdf5: " << argv[47] << "\n";
-    if (argc > 48) std::cout << "48. threads_per_traj_opt: " << argv[48] << "\n";
-    if (argc > 48) std::cout << "48. threads_per_traj_opt: " << argv[48] << "\n";
-    if (argc > 49) std::cout << "49. quasi_static_ensemble_dephasing_flag: " << argv[49] << "\n";
+if (argc > 46) std::cout << "46. single_mode_log_option: " << argv[46] << "\n";
+if (argc > 47) std::cout << "47. path_dynamics_single_mode_output_log_csv: " << argv[47] << "\n";
+if (argc > 48) std::cout << "48. path_dynamics_single_mode_output_log_hdf5: " << argv[48] << "\n";
+if (argc > 49) std::cout << "49. threads_per_traj_opt: " << argv[49] << "\n";
+if (argc > 50) std::cout << "50. threads_per_traj_opt: " << argv[50] << "\n";
+if (argc > 51) std::cout << "51. quasi_static_ensemble_dephasing_flag: " << argv[51] << "\n";
 
-    std::cout << "==================================================" << std::endl;
+std::cout << "==================================================" << std::endl;
 
 
     
 
 
-    if (argc != 50) {
+    if (argc != 51) {
         /*std::cout << "Usage: ./lindblad_gpu single_mode_flag "
             << "avg_periods_ouput_option ouput_option unrolled_option ram_shared_mmap_name "
             << "eps0_min eps0_max A_min A_max N_points_eps0_range N_points_A_range "
@@ -138,15 +139,11 @@ int main(int argc, char** argv)
 #endif
 
 
-    bool single_mode;
-    if (argv[1] == std::string("single")) {
-        single_mode = true;
-    }
-    else if (argv[1] == std::string("grid")) {
-        single_mode = false;
-    }
-    else {
-        std::cerr << "ERROR: first argument must be 'single' or 'grid'. Got '" << argv[1] << "'\n";
+    const std::string grid_single_mode = argv[1];
+    if (!(grid_single_mode == "grid" ||
+          grid_single_mode == "single" ||
+          grid_single_mode == "grid_single")) {
+        std::cerr << "ERROR: first argument must be 'grid' or 'single' or 'grid_single'. Got '" << argv[1] << "'\n";
         std::exit(EXIT_FAILURE);
         return 1;
     }
@@ -193,11 +190,12 @@ int main(int argc, char** argv)
     const int   N_points_eps0_range = safe_stoi(argv[10]);
     const int   N_points_A_range = safe_stoi(argv[11]);
 
-    if ((!single_mode && (std::isnan(eps0_min) || std::isnan(eps0_max) || std::isnan(A_min) || std::isnan(A_max)
+    if (((grid_single_mode == "grid" || grid_single_mode == "grid_single") && (std::isnan(eps0_min) || std::isnan(eps0_max) || std::isnan(A_min) || std::isnan(A_max)
         || N_points_eps0_range == INT_MIN || N_points_A_range == INT_MIN)) ||
-        (single_mode && !(std::isnan(eps0_min) && std::isnan(eps0_max) && std::isnan(A_min) && std::isnan(A_max)
-            && N_points_eps0_range == INT_MIN && N_points_A_range == INT_MIN))) {
-        std::cerr << "ERROR: eps0_min, eps0_max, A_min, or A_max is NAN in grid mode, or not NAN in single mode."
+        ((grid_single_mode == "single") && !(std::isnan(eps0_min) && std::isnan(eps0_max) && std::isnan(A_min) && std::isnan(A_max)
+            && N_points_eps0_range == INT_MIN && N_points_A_range == INT_MIN))
+        ) {
+        std::cerr << "ERROR: eps0_min, eps0_max, A_min, or A_max is NAN in grid or grid_single mode, or not NAN in single mode."
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -222,9 +220,9 @@ int main(int argc, char** argv)
     const float eps0_target = safe_stof(argv[18]);
     const float A_target = safe_stof(argv[19]);
 
-    if ((single_mode && (std::isnan(eps0_target) || std::isnan(A_target))) ||
-        (!single_mode && !(std::isnan(eps0_target) && std::isnan(A_target)))) {
-        std::cerr << "ERROR: eps0_target or A_target is NAN in single mode, or not NAN in grid mode."
+    if (((grid_single_mode == "single" || grid_single_mode == "grid_single") && (std::isnan(eps0_target) || std::isnan(A_target))) ||
+        ((grid_single_mode == "grid") && !(std::isnan(eps0_target) && std::isnan(A_target)))) {
+        std::cerr << "ERROR: eps0_target or A_target is NAN in single or grid_single mode, or not NAN in grid mode."
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -238,12 +236,13 @@ int main(int argc, char** argv)
     float rho33_init = std::stof(argv[23]);
 
     const std::string path_output_csv = argv[24];
-    const std::string path_output_bin_file = argv[25];
-    const std::string path_dynamics_single_mode_output_csv = argv[26];
+    const std::string path_output_bin_file_gridmode = argv[25];
+    const std::string path_output_bin_file_singlemode = argv[26];
+    const std::string path_dynamics_single_mode_output_csv = argv[27];
 
-    const float delta_C = std::stof(argv[27]);
-    const float delta_L = std::stof(argv[28]);
-    const float delta_R = std::stof(argv[29]);
+    const float delta_C = std::stof(argv[28]);
+    const float delta_L = std::stof(argv[29]);
+    const float delta_R = std::stof(argv[30]);
 
     if (delta_L != 0.0f || delta_R != 0.0f) {
         std::cerr << "ERROR: delta_L and delta_R are expected to be zero. Got: " << delta_L << delta_R << std::endl;
@@ -253,31 +252,31 @@ int main(int argc, char** argv)
 
 
     // these Gammas are only for printing into CSV. not used elsewhere in program
-    const float g_en = std::stof(argv[30]);
-    const float g_phi = std::stof(argv[31]);
-    const float gL_en = std::stof(argv[32]);
-    const float gL_phi = std::stof(argv[33]);
-    const float gR_en = std::stof(argv[34]);
-    const float gR_phi = std::stof(argv[35]);
+    const float g_en = std::stof(argv[31]);
+    const float g_phi = std::stof(argv[32]);
+    const float gL_en = std::stof(argv[33]);
+    const float gL_phi = std::stof(argv[34]);
+    const float gR_en = std::stof(argv[35]);
+    const float gR_phi = std::stof(argv[36]);
 
 
-    const float host_Gamma_L0 = std::stof(argv[36]);    // prefactor (GHz etc.)
-    const float host_Gamma_R0 = std::stof(argv[37]);    // prefactor (GHz etc.)
-    const float host_muL = std::stof(argv[38]);    // µeV
-    const float host_muR = std::stof(argv[39]);    // µeV
-    const float T_K = std::stof(argv[40]);    // Kelvin
+    const float host_Gamma_L0 = std::stof(argv[37]);    // prefactor (GHz etc.)
+    const float host_Gamma_R0 = std::stof(argv[38]);    // prefactor (GHz etc.)
+    const float host_muL = std::stof(argv[39]);    // µeV
+    const float host_muR = std::stof(argv[40]);    // µeV
+    const float T_K = std::stof(argv[41]);    // Kelvin
 
-    const float host_Gamma_eg0 = std::stof(argv[41]);    // prefactor (GHz etc.)
-    const float omega_c_norm = std::stof(argv[42]);    // high-frequency cutoff
+    const float host_Gamma_eg0 = std::stof(argv[42]);    // prefactor (GHz etc.)
+    const float omega_c_norm = std::stof(argv[43]);    // high-frequency cutoff
 
-    const float host_Gamma_phi0 = safe_stof(argv[43]);    // prefactor (GHz etc.)
+    const float host_Gamma_phi0 = safe_stof(argv[44]);    // prefactor (GHz etc.)
     
-    const float sigma_eps = safe_stof(argv[44]);
+    const float sigma_eps = safe_stof(argv[45]);
     
     /////// have not implemented the output of these vars.
 
 
-    const std::string single_mode_log_option_str = argv[45];
+    const std::string single_mode_log_option_str = argv[46];
     bool single_mode_log_option;
 
     if (single_mode_log_option_str == "True") {
@@ -292,11 +291,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    const std::string path_dynamics_single_mode_output_log_csv = argv[46];
+    const std::string path_dynamics_single_mode_output_log_csv = argv[47];
 
-    const std::string path_dynamics_single_mode_output_log_hdf5 = argv[47];
+    const std::string path_dynamics_single_mode_output_log_hdf5 = argv[48];
 
-    const std::string threads_per_traj_opt = argv[48];
+    const std::string threads_per_traj_opt = argv[49];
 
     if (!(threads_per_traj_opt == "one_thread_per_traj" ||
         threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
@@ -309,7 +308,7 @@ int main(int argc, char** argv)
     }
     
 
-    const std::string quasi_static_ensemble_dephasing_flag_str = argv[49];
+    const std::string quasi_static_ensemble_dephasing_flag_str = argv[50];
     bool quasi_static_ensemble_dephasing_flag;
 
     if (quasi_static_ensemble_dephasing_flag_str == "True") {
@@ -441,31 +440,31 @@ int main(int argc, char** argv)
 
     }
 
-    if (single_mode) {
-        run_single_mode(
-            eps0_target, A_target, N_steps_period, N_periods,
-            N_samples_noise, quasi_static_ensemble_dephasing_flag,
-            dt, nu, alpha,
-            rho00_init, rho11_init, rho22_init, rho33_init,
-            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
-            path_dynamics_single_mode_output_csv, path_output_bin_file, ouput_option, unrolled_option,
-            single_mode_log_option, path_dynamics_single_mode_output_log_csv,
-            path_dynamics_single_mode_output_log_hdf5,
-            threads_per_traj_opt,
-            host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
-        );
-    }
-    else {
+    if (grid_single_mode == "grid" || grid_single_mode == "grid_single") {
         run_grid_mode(
             eps0_min, eps0_max, A_min, A_max,
             N_points_eps0_range, N_points_A_range,
             N_steps_period, N_periods, N_periods_avg,
             N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
             dt, nu, alpha,
-            path_output_csv, path_output_bin_file, avg_periods_ouput_option, ouput_option, unrolled_option,
+            path_output_csv, path_output_bin_file_gridmode, avg_periods_ouput_option, ouput_option, unrolled_option,
             ram_shared_mmap_name, threads_per_traj_opt,
             rho00_init, rho11_init, rho22_init, rho33_init,
             delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
+        );
+    }
+    if (grid_single_mode == "single" || grid_single_mode == "grid_single") {
+        run_single_mode(
+            eps0_target, A_target, N_steps_period, N_periods,
+            N_samples_noise, quasi_static_ensemble_dephasing_flag,
+            dt, nu, alpha,
+            rho00_init, rho11_init, rho22_init, rho33_init,
+            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            path_dynamics_single_mode_output_csv, path_output_bin_file_singlemode, ouput_option, unrolled_option,
+            single_mode_log_option, path_dynamics_single_mode_output_log_csv,
+            path_dynamics_single_mode_output_log_hdf5,
+            threads_per_traj_opt,
             host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
         );
     }

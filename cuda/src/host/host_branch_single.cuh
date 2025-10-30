@@ -63,7 +63,7 @@ __host__ inline void run_single_mode(
     const float gL_phi, const float gR_en, const float gR_phi,
 
     const std::string& path_dynamics_single_mode_output_csv,
-    const std::string& path_output_bin_file,
+    const std::string& path_output_bin_file_singlemode,
     const std::string& output_option,
     const std::string& unrolled_option,
     const bool single_mode_log_option,
@@ -106,13 +106,13 @@ __host__ inline void run_single_mode(
     std::vector<float> rho_avg(16);
 
     // allocate outputs
-    float* d_rho_avg = nullptr;
+    float* d_rho_avg_singlemode = nullptr;
     float* d_rho_dynamics = nullptr;
     float* d_time_dynamics = nullptr;
     float* d_eps_dynamics = nullptr;
 
 
-    gpuCheck(cudaMalloc(&d_rho_avg, 16 * sizeof(float)), "cudaMalloc d_rho_avg");
+    gpuCheck(cudaMalloc(&d_rho_avg_singlemode, 16 * sizeof(float)), "cudaMalloc d_rho_avg_singlemode");
     gpuCheck(cudaMalloc(&d_rho_dynamics, N_steps_total * 4 * sizeof(float)), "cudaMalloc d_rho_dynamics");
     gpuCheck(cudaMalloc(&d_time_dynamics, N_steps_total * sizeof(float)), "cudaMalloc d_time_dynamics");
     gpuCheck(cudaMalloc(&d_eps_dynamics, N_steps_total * sizeof(float)), "cudaMalloc d_eps_dynamics");
@@ -247,7 +247,7 @@ __host__ inline void run_single_mode(
         lindblad_rk4_kernel_singlemode <<< 1, threads_per_block >>> (
             eps0_target, A_target,
 
-            d_rho_avg,
+            d_rho_avg_singlemode,
             d_rho_dynamics,
             d_time_dynamics,
             d_eps_dynamics
@@ -265,7 +265,7 @@ __host__ inline void run_single_mode(
         lindblad_rk4_kernel_singlemode_log <<< 1, threads_per_block >>> (
             eps0_target, A_target,
 
-            d_rho_avg,
+            d_rho_avg_singlemode,
             d_rho_dynamics,
             d_time_dynamics,
             d_eps_dynamics,
@@ -286,7 +286,7 @@ __host__ inline void run_single_mode(
         lindblad_rk4_kernel_singlemode_unrolled_fsal <<< 1, threads_per_block >>> (
             eps0_target, A_target,
 
-            d_rho_avg,
+            d_rho_avg_singlemode,
             d_rho_dynamics,
             d_time_dynamics,
             d_eps_dynamics
@@ -305,7 +305,7 @@ __host__ inline void run_single_mode(
         lindblad_rk4_kernel_singlemode_unrolled_log <<< 1, threads_per_block >>> (
             eps0_target, A_target,
 
-            d_rho_avg,
+            d_rho_avg_singlemode,
             d_rho_dynamics,
             d_time_dynamics,
             d_eps_dynamics,
@@ -326,7 +326,7 @@ __host__ inline void run_single_mode(
         //lindblad_rk4_kernel_singlemode_unrolled_ensemble <<< 1, threads_per_block >>> (
         //    eps0_target, A_target,
 
-        //    d_rho_avg,
+        //    d_rho_avg_singlemode,
         //    d_rho_dynamics,
         //    d_time_dynamics,
         //    d_eps_dynamics,
@@ -350,7 +350,7 @@ __host__ inline void run_single_mode(
     // nvtxRangePop();
 
     // copy data back
-    gpuCheck(cudaMemcpy(rho_avg.data(),         d_rho_avg,       16 * sizeof(float),                cudaMemcpyDeviceToHost), "cudaMemcpy single rho_avg");
+    gpuCheck(cudaMemcpy(rho_avg.data(),         d_rho_avg_singlemode,       16 * sizeof(float),                cudaMemcpyDeviceToHost), "cudaMemcpy single rho_avg");
     gpuCheck(cudaMemcpy(h_rho_dynamics.data(),  d_rho_dynamics,  N_steps_total * 4 * sizeof(float), cudaMemcpyDeviceToHost), "cudaMemcpy rho_dynamics");
     gpuCheck(cudaMemcpy(h_time_dynamics.data(), d_time_dynamics, N_steps_total * sizeof(float),     cudaMemcpyDeviceToHost), "cudaMemcpy time_dynamics");
     gpuCheck(cudaMemcpy(h_eps_dynamics.data(),  d_eps_dynamics,  N_steps_total * sizeof(float),     cudaMemcpyDeviceToHost), "cudaMemcpy eps_dynamics");
@@ -366,7 +366,7 @@ __host__ inline void run_single_mode(
         //cudaEventRecord(start, 0);
 
         // Open binary file for writing
-        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        std::ofstream ofs(path_output_bin_file_singlemode, std::ios::binary);
         if (!ofs) {
             std::cerr << "Failed to open file!" << std::endl;
             return;
@@ -473,7 +473,7 @@ __host__ inline void run_single_mode(
 */
 
     // cleanup
-    cudaFree(d_rho_avg);
+    cudaFree(d_rho_avg_singlemode);
     cudaFree(d_rho_dynamics);
     cudaFree(d_time_dynamics);
     cudaFree(d_eps_dynamics);

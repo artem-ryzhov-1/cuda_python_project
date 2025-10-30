@@ -6,7 +6,7 @@ import time
 
 time1 = time.time()
 
-from config import SimRunGridMode
+from config import SimRunGridSingleMode
 from simulation import run_simulation
 from pathlib import Path
 
@@ -91,7 +91,7 @@ simr = SimRunGridMode(
 
 '''
 
-simr = SimRunGridMode(
+simr = SimRunGridSingleMode(
     delta_C=0.00011608757555650906,
     GammaL0=50.0,
     GammaR0=12.0,
@@ -103,6 +103,8 @@ simr = SimRunGridMode(
     eps0_max=0.006,
     A_min=0.0,
     A_max=0.01,
+    eps0_target_singlepoint=0.001,
+    A_target_singlepoint=0.003,
     N_points_target=50000,
     N_steps_period=1000,
     N_periods=10,
@@ -118,7 +120,7 @@ simr = SimRunGridMode(
 
 time3 = time.time()
 
-eps0_grid, A_grid, rho_avg_cdc_3d, returncode = run_simulation(simr)
+eps0_grid, A_grid, rho_avg_cdc_3d, time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode = run_simulation(simr)
 
 time4 = time.time()
 

@@ -53,7 +53,7 @@ __host__ inline void run_grid_mode(
     const float nu,
     const float alpha,
     const std::string& path_output_csv,
-    const std::string& path_output_bin_file,
+    const std::string& path_output_bin_file_gridmode,
     const std::string& avg_periods_ouput_option,
     const std::string& ouput_option,
     const std::string& unrolled_option,
@@ -394,7 +394,7 @@ __host__ inline void run_grid_mode(
 
         /*
         // Open binary file for writing
-        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        std::ofstream ofs(path_output_bin_file_gridmode, std::ios::binary);
         if (!ofs) {
             std::cerr << "Failed to open file!" << std::endl;
             return;
@@ -424,7 +424,7 @@ __host__ inline void run_grid_mode(
         //cudaEventRecord(start, 0);
 
         // Open binary file for writing
-        std::ofstream ofs(path_output_bin_file, std::ios::binary);
+        std::ofstream ofs(path_output_bin_file_gridmode, std::ios::binary);
         if (!ofs) {
             std::cerr << "Failed to open file!" << std::endl;
             return;

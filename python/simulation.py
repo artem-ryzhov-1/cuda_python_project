@@ -6,7 +6,7 @@ import platform
 import sys
 
 
-from config import SimulationConfig, SimRunGridMode, SimRunSingleMode
+from config import SimulationConfig, SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
 from cuda_runner import run_gpu_lindblad_program
 from file_io import read_bin_file_gridmode_and_calculate_deriv, read_bin_file_singlemode
 
@@ -33,7 +33,7 @@ def run_simulation(simr):
     
     if isinstance(simr, SimRunGridMode):
         print("grid mode")
-        grid_or_single_mode = "grid"
+        grid_single_mode = "grid"
         
         eps0_target_singlepoint = None
         A_target_singlepoint    = None
@@ -51,7 +51,7 @@ def run_simulation(simr):
         
     elif isinstance(simr, SimRunSingleMode):
         print("single mode")
-        grid_or_single_mode = "single"
+        grid_single_mode = "single"
         
         eps0_target_singlepoint = simr.eps0_target_singlepoint
         A_target_singlepoint    = simr.A_target_singlepoint
@@ -64,7 +64,23 @@ def run_simulation(simr):
         N_points_eps0_range = None
         N_points_A_range    = None
     
-    
+    elif isinstance(simr, SimRunGridSingleMode):
+        print("grid-single mode")
+        grid_single_mode = "grid_single"
+        
+        eps0_target_singlepoint = simr.eps0_target_singlepoint
+        A_target_singlepoint    = simr.A_target_singlepoint
+        
+        eps0_min =  simr.eps0_min
+        eps0_max =  simr.eps0_max
+        A_min =     simr.A_min
+        A_max =     simr.A_max
+        
+        N_points_eps0_range, N_points_A_range = compute_grid(N_points_target=simr.N_points_target,
+                                                             eps0_min=eps0_min,
+                                                             eps0_max=eps0_max,
+                                                             A_min=A_min,
+                                                             A_max=A_max)
     
     
     
@@ -170,9 +186,9 @@ def run_simulation(simr):
     
     ###################################
     
-    #cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
-    #cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
-    #output_dir        = cuda_cwd / "output"
+    cuda_cwd = Path(r"C:\Users\E-Store\Documents\projects\repos\lindblad_cuda3\x64\Release")
+    cuda_program_path = cuda_cwd / "lindblad_cuda3.exe"
+    output_dir        = cuda_cwd / "output"
     
     ###################################
     
@@ -183,10 +199,8 @@ def run_simulation(simr):
     
     # Combine the base path with the filenames
     
-    if grid_or_single_mode == "grid":
-        path_output_bin_file                  = output_dir / "rho_avg_out.bin"
-    elif grid_or_single_mode == "single":
-        path_output_bin_file                  = output_dir / "rho_dynamics_single_mode_out.bin"
+    path_output_bin_file_gridmode         = output_dir / "rho_avg_out.bin"
+    path_output_bin_file_singlemode       = output_dir / "rho_dynamics_single_mode_out.bin"
         
     path_output_csv                           = output_dir / "rho_avg_out.csv"
     path_dynamics_single_mode_output_csv      = output_dir / "rho_dynamics_single_mode_out.csv"
@@ -232,8 +246,8 @@ def run_simulation(simr):
     #checks
     
         
-    if grid_or_single_mode != "grid" and grid_or_single_mode != "single":
-        raise ValueError("variable grid_or_single_mode should be grid or single")
+    if grid_single_mode != "grid" and grid_single_mode != "single" and grid_single_mode != "grid_single":
+        raise ValueError("variable grid_single_mode should be grid or single or grid_single")
     
     if not(ouput_option == "bin_file"):
         raise ValueError("Other ouput_option not implemented yet")
@@ -250,7 +264,7 @@ def run_simulation(simr):
     
     
     cfg = SimulationConfig(
-        grid_or_single_mode=grid_or_single_mode,
+        grid_single_mode=grid_single_mode,
         avg_periods_ouput_option=avg_periods_ouput_option,
         ouput_option=ouput_option,
         unrolled_option=unrolled_option,
@@ -289,7 +303,8 @@ def run_simulation(simr):
         cuda_cwd=cuda_cwd,
         cuda_program_path=cuda_program_path,
         path_output_csv=path_output_csv,
-        path_output_bin_file=path_output_bin_file,
+        path_output_bin_file_gridmode=path_output_bin_file_gridmode,
+        path_output_bin_file_singlemode=path_output_bin_file_singlemode,
         path_dynamics_grid_mode_output_hdf5_after_ram=path_dynamics_grid_mode_output_hdf5_after_ram,
         path_dynamics_single_mode_output_csv=path_dynamics_single_mode_output_csv,
         path_dynamics_single_mode_output_log_csv=path_dynamics_single_mode_output_log_csv,
@@ -308,7 +323,7 @@ def run_simulation(simr):
         Gamma_phi0=Gamma_phi0,
         
         quasi_static_ensemble_dephasing_flag=simr.quasi_static_ensemble_dephasing_flag,
-        sigma_eps=simr.sigma_eps,
+        sigma_eps=sigma_eps,
         N_samples_noise=simr.N_samples_noise
     )
     
@@ -331,18 +346,25 @@ def run_simulation(simr):
         
         returncode = run_gpu_lindblad_program(cfg)
         
-        if grid_or_single_mode == "grid":
+        if grid_single_mode == "grid":
                  
-            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file)
+            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode)
         
             return eps0_grid, A_grid, rho_avg_cdc_3d, returncode
         
         
-        elif grid_or_single_mode == "single":
+        elif grid_single_mode == "single":
         
-            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file)
+            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode)
             
             return time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode
+        
+        elif grid_single_mode == "grid_single":
+            
+            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode)
+            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode)
+            
+            return eps0_grid, A_grid, rho_avg_cdc_3d, time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode
 
     else:
         return
