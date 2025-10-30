@@ -919,8 +919,7 @@ class DynamicsPlot:
                     ylim=(0, 1),
                     xlim=(0, self.t_max_plot),
                     legend_position='right',
-                    framewise=False,  # IMPORTANT
-                    shared_axes=True  # ensures X linking
+                    framewise=True
                 )
     
                 # Empty epsilon plot
@@ -934,8 +933,7 @@ class DynamicsPlot:
                     show_grid=True,
                     ylim=(-0.01, 0.01),
                     xlim=(0, self.t_max_plot),
-                    framewise=False,  # no per-frame scaling
-                    shared_axes=True
+                    framewise=True
                 )
             else:
                 # Real population plot
@@ -961,30 +959,28 @@ class DynamicsPlot:
                     legend_position='right',
                     ylim=pop_ylim,
                     xlim=(0, self.t_max_plot),
-                    framewise=False,
-                    shared_axes=True
+                    framewise=True
                 )
     
                 # Real epsilon plot
                 eps_min = self.current_eps0 - self.current_A * 1.1
                 eps_max = self.current_eps0 + self.current_A * 1.1
     
-                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon').opts(
-                    color=colors[4], line_width=1.5
-                )
+                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon')
     
                 eps_plot = eps_curve.opts(
+                    color=colors[4],
+                    line_width=1.5,
                     width=800, height=200,
-                    title='Epsilon Dynamics',
+                    title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}])',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(eps_min, eps_max),
                     xlim=(0, self.t_max_plot),
-                    framewise=False,
-                    shared_axes=True
+                    framewise=True
                 )
-    
-            # Stack vertically: + links X automatically, Y stays separate
+            
+            # Stack vertically - X axes link automatically because they share 'time' dimension
             layout = (pop_plot + eps_plot).cols(1)
             return layout
     
