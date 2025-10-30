@@ -1,4 +1,3 @@
-# attachemnt 2
 
 import numpy as np
 import pandas as pd
@@ -23,6 +22,11 @@ hv.extension('bokeh')
 from simulation import run_simulation
 from config import SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
 
+
+import matplotlib.pyplot as plt
+
+# Get default color cycle
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 
 class SimulationParameters:
@@ -792,6 +796,20 @@ class DynamicsPlot:
         
         self.show_toggle.param.watch(self._on_show_toggle, 'value')
         self.auto_toggle.param.watch(self._on_auto_toggle, 'value')
+        
+        # Epsilon bound widgets - invisible
+        self.epsilon_L_widget = pn.widgets.FloatInput(
+            value=0.0,
+            width=1,
+            height=1,
+            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+        )
+        self.epsilon_R_widget = pn.widgets.FloatInput(
+            value=0.0,
+            width=1,
+            height=1,
+            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+        )
     
     def _on_show_toggle(self, event):
         """Handle show toggle."""
@@ -893,10 +911,20 @@ class DynamicsPlot:
     def create_plot(self):
         """Create the dynamics plot with linked X axes and independent Y axes."""
     
-        def make_plot(version):
+        def make_plot(version, epsilon_L, epsilon_R):
             # Always use the same key dimension for automatic x-axis linking
             time = self.time_dynamics if self.time_dynamics is not None else np.array([0, 1])
-    
+            
+            # FIXED: Use self.current_eps0 and self.current_A instead of widget values
+            if self.time_dynamics is not None and self.current_eps0 is not None and self.current_A is not None:
+                # Use actual simulation parameters
+                eps_min = self.current_eps0 - self.current_A * 1.1
+                eps_max = self.current_eps0 + self.current_A * 1.1
+            else:
+                # No simulation → small default range
+                eps_min = -0.01
+                eps_max = 0.01
+            
             if self.time_dynamics is None or self.rho_dynamics is None:
                 # Empty population plot
                 pop_data = np.zeros(len(time))
@@ -917,15 +945,23 @@ class DynamicsPlot:
                 )
     
                 # Empty epsilon plot
-                eps_data = np.zeros(len(time))
-                eps_curve = hv.Curve((time, eps_data), 'time', 'epsilon').opts(color=colors[4], line_width=1.5)
-    
-                eps_plot = eps_curve.opts(
+                eps_curve = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon').opts(
+                    color=colors[4], line_width=1.5
+                )
+                
+                # Add horizontal lines for epsilon bounds
+                hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_neg = hv.HLine(-epsilon_L).opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
+                
+                eps_overlay = eps_curve * hline_eps_R_pos * hline_eps_R_neg * hline_eps_L_pos * hline_eps_L_neg
+                eps_plot = eps_overlay.opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
-                    ylim=(-0.01, 0.01),
+                    ylim=(eps_min, eps_max),
                     xlim=(0, self.t_max_plot),
                     framewise=True
                 )
@@ -944,8 +980,9 @@ class DynamicsPlot:
                 curve_p01 = hv.Curve((time, p01), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
                 curve_p10 = hv.Curve((time, p10), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
                 curve_p11 = hv.Curve((time, p11), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
-    
-                pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
+                
+                pop_overlay = (curve_p00 * curve_p01 * curve_p10 * curve_p11)
+                pop_plot = pop_overlay.opts(
                     width=800, height=350,
                     title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
                     xlabel='Time', ylabel='Population',
@@ -957,14 +994,18 @@ class DynamicsPlot:
                 )
     
                 # Real epsilon plot
-                eps_min = self.current_eps0 - self.current_A * 1.1
-                eps_max = self.current_eps0 + self.current_A * 1.1
+                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon').opts(
+                    color=colors[4], line_width=1.5
+                )
+                
+                # Add horizontal lines for epsilon bounds
+                hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
+                hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
+                hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
+                hline_eps_L_neg = hv.HLine(-epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
     
-                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon')
-    
-                eps_plot = eps_curve.opts(
-                    color=colors[4],
-                    line_width=1.5,
+                eps_overlay = eps_curve * hline_eps_R_pos * hline_eps_R_neg * hline_eps_L_pos * hline_eps_L_neg
+                eps_plot = eps_overlay.opts(
                     width=800, height=200,
                     title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}])',
                     xlabel='Time', ylabel='ε(t)',
@@ -978,8 +1019,11 @@ class DynamicsPlot:
             layout = (pop_plot + eps_plot).cols(1)
             return layout
     
-        # Create DynamicMap that updates when version changes
-        return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
+        # Create DynamicMap - removed eps0_input and A_input from pn.bind
+        return hv.DynamicMap(pn.bind(make_plot, 
+                              self.dynamics_version_widget,
+                              self.epsilon_L_widget,
+                              self.epsilon_R_widget))
     
     def get_control_panel(self):
         """Return control panel for dynamics."""
@@ -1008,7 +1052,7 @@ class InteractiveInterferogramDynamics:
                  Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
                  N_periods_avg_default, N_samples_noise_default,
                  dC_default_thresholds,
-                 nu,
+                 nu, m, B,
                  platform_type,
                  repo_path,
                  cmap_name,
@@ -1021,6 +1065,8 @@ class InteractiveInterferogramDynamics:
         self.A_min = A_min
         self.A_max = A_max
         self.N_points_target = N_points_target
+        self.m = m
+        self.B = B
         
         N_steps_period_range = N_steps_period_array if isinstance(N_steps_period_array, tuple) else (int(N_steps_period_array[0]), int(N_steps_period_array[-1]))
         N_periods_range = N_periods_array if isinstance(N_periods_array, tuple) else (int(N_periods_array[0]), int(N_periods_array[-1]))
@@ -1046,6 +1092,11 @@ class InteractiveInterferogramDynamics:
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
+        # Store current epsilon_L and epsilon_R values
+        self.epsilon_L = None
+        self.epsilon_R = None
+        self._update_epsilon_bounds()  # Calculate initial values
+                
         self.auto_update_enabled = False
         self.auto_update_dynamics_enabled = False
         self.auto_update_both_enabled = False
@@ -1193,6 +1244,9 @@ class InteractiveInterferogramDynamics:
     
     def _on_parameter_change(self, event):
         """Handle parameter slider changes."""
+        # Update epsilon bounds when delta_C changes
+        self._update_epsilon_bounds()
+        
         if self.auto_update_enabled and not self._is_generating:
             self._update_and_regenerate_interferogram()
         elif self.auto_update_dynamics_enabled and not self.dynamics.computing:
@@ -1413,6 +1467,33 @@ class InteractiveInterferogramDynamics:
             self.log_display.object = log_text
         
         self._is_generating = False
+    
+    def _update_epsilon_bounds(self):
+        """Calculate epsilon_L and epsilon_R based on current delta_C, m, and B."""
+        delta_C = self.sim_params.delta_C
+        m = self.m
+        B = self.B
+        
+        # Calculate epsilon_L and epsilon_R
+        # ε_{L,R} = [B ± sqrt(1 + m²(B² - 1)ΔC²)] / [m(B² - 1)]
+        
+        B2_minus_1 = B**2 - 1
+        
+        if abs(B2_minus_1) < 1e-10:  # Avoid division by zero
+            self.epsilon_L = 0.0
+            self.epsilon_R = 0.0
+            return
+        
+        sqrt_term = np.sqrt(1 + m**2 * B2_minus_1 * delta_C**2)
+        
+        self.epsilon_R = (B + sqrt_term) / (m * B2_minus_1)
+        self.epsilon_L = (B - sqrt_term) / (m * B2_minus_1)
+        
+        # Update widgets to trigger plot refresh
+        if hasattr(self.dynamics, 'epsilon_L_widget'):
+            self.dynamics.epsilon_L_widget.value = self.epsilon_L
+        if hasattr(self.dynamics, 'epsilon_R_widget'):
+            self.dynamics.epsilon_R_widget.value = self.epsilon_R
     
     def _on_interferogram_click(self, x, y):
         """Handle click on interferogram."""
