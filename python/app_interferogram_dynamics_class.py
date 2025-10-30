@@ -1,3 +1,5 @@
+# attachemnt 2
+
 import numpy as np
 import pandas as pd
 import panel as pn
@@ -19,7 +21,7 @@ hv.extension('bokeh')
 
 # Import simulation modules
 from simulation import run_simulation
-from config import SimRunGridMode, SimRunSingleMode
+from config import SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
 
 
 
@@ -236,6 +238,8 @@ class SimulationParameters:
         )
 
 
+
+
 class InterferogramPlot:
     """Manages the interferogram plot and its data."""
     
@@ -394,7 +398,6 @@ class InterferogramPlot:
     
     def update_data(self, eps0_grid, A_grid, rho_avg_cdc_3d):
         """Update interferogram data."""
-        #print(f"[INTERFEROGRAM] Updating data...")  #DEBUG PRINT
         self.eps0_grid = eps0_grid
         self.A_grid = A_grid
         
@@ -402,10 +405,8 @@ class InterferogramPlot:
             self.avg_grids[label] = rho_avg_cdc_3d[i]
         
         self.data_version += 1
-        #print(f"[INTERFEROGRAM] Data version incremented to: {self.data_version}")  #DEBUG PRINT
         if hasattr(self, 'data_version_widget'):
             self.data_version_widget.value = self.data_version
-            #print(f"[INTERFEROGRAM] Widget value updated to: {self.data_version_widget.value}")  #DEBUG PRINT
         
         self.marker_version += 1
         if hasattr(self, 'marker_version_widget'):
@@ -558,24 +559,22 @@ class InterferogramPlot:
                 data_array = data
             
             img = hv.Image(
-                (eps0_array, A_array, data_array),  # Use converted arrays
+                (eps0_array, A_array, data_array),
                 kdims=['eps0', 'A']
             )
             
             # Apply rasterization with explicit GPU control
             if self.gpu_enabled:
-                # Enable GPU - use reduction object
                 img_rasterized = rasterize(
                     img, 
-                    aggregator=ds.mean('z'),  # Reference the vdim name
+                    aggregator=ds.mean('z'),
                     dynamic=False, 
                     precompute=True
                 )
             else:
-                # Disable GPU - use string
                 img_rasterized = rasterize(
                     img, 
-                    aggregator='mean',  # String forces CPU
+                    aggregator='mean',
                     dynamic=False, 
                     precompute=True
                 )
@@ -598,7 +597,6 @@ class InterferogramPlot:
                 vline = hv.VLine(self.eps0_min - 1).opts(color='blue', line_width=0, alpha=0)
                 hline = hv.HLine(self.A_min - 1).opts(color='blue', line_width=0, alpha=0)
             
-            # Create invisible rectangle for capturing interactions
             invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
                 alpha=0,
                 line_alpha=0,
@@ -618,8 +616,7 @@ class InterferogramPlot:
         )
     
     def _create_plot_raster_dynamic(self):
-        """Raster approach with dynamic=True - re-aggregates on zoom for quality.
-        Uses GPU only if gpu_enabled=True."""
+        """Raster approach with dynamic=True - re-aggregates on zoom for quality."""
         
         def make_image(level, clim_low, clim_high, data_version):
             """Just the image, no markers."""
@@ -641,17 +638,10 @@ class InterferogramPlot:
                     ylim=(self.A_min, self.A_max)
                 )
             
-            # Title shows GPU status
             title_suffix = "[RASTER-DYNAMIC-GPU]" if self.gpu_enabled else "[RASTER-DYNAMIC-CPU]"
             
-            # ALWAYS keep data on CPU for HoloViews Image initialization
-            # Datashader will handle GPU conversion during rasterization if available
-            eps0_array = self.eps0_grid
-            A_array = self.A_grid
-            data_array = data
-            
             img = hv.Image(
-                (eps0_array, A_array, data_array),
+                (self.eps0_grid, self.A_grid, data),
                 kdims=['eps0', 'A']
             ).opts(
                 cmap=self.cmap_name,
@@ -668,8 +658,6 @@ class InterferogramPlot:
         
         def make_markers_and_overlay(marker_version):
             """Markers plus invisible overlay for interactions."""
-            # Create invisible rectangle for capturing clicks
-            # This is CRITICAL for rasterized plots to capture tap/hover events
             invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
                 alpha=0,
                 line_alpha=0,
@@ -686,7 +674,6 @@ class InterferogramPlot:
             
             return invisible_rect * vline * hline
         
-        # Separate DynamicMaps for image and markers
         image_dmap = hv.DynamicMap(
             pn.bind(make_image,
                     self.level_selector,
@@ -699,8 +686,6 @@ class InterferogramPlot:
             pn.bind(make_markers_and_overlay, self.marker_version_widget)
         )
         
-        # Rasterize with GPU support if available
-        # Datashader automatically uses CuPy if available and DATASHADER_USE_CUPY=1
         image_rasterized = rasterize(
             image_dmap, 
             aggregator='mean',
@@ -718,6 +703,9 @@ class InterferogramPlot:
                 pn.Row(self.clim_high_slider, self.clim_high_input)
             )
         )
+
+
+
 
 
 class DynamicsPlot:
@@ -821,13 +809,21 @@ class DynamicsPlot:
         self.click_count = 0
         self.hover_active = False
     
-    def compute(self, eps0, A, sim_params, platform_type, repo_path, log_callback=None, marker_update_callback=None):
-        """Compute dynamics for given coordinates."""
+    def compute(self, eps0, A, sim_params, platform_type, repo_path, log_callback=None, marker_update_callback=None, update_params=True):
+        """Compute dynamics for given coordinates.
         
-        #print(f"[DYNAMICS COMPUTE] Called with eps0={eps0}, A={A}")  #DEBUG PRINT
+        Args:
+            eps0: Target epsilon_0 value
+            A: Target amplitude value
+            sim_params: SimulationParameters instance
+            platform_type: Platform type for simulation
+            repo_path: Repository path for simulation
+            log_callback: Optional callback for logging
+            marker_update_callback: Optional callback for marker updates
+            update_params: If True, update sim_params from sliders before computing
+        """
         
         if self.computing:
-            #print(f"[DYNAMICS COMPUTE] Already computing, returning...")  #DEBUG PRINT
             return
         
         self.computing = True
@@ -836,6 +832,10 @@ class DynamicsPlot:
         
         self.eps0_input.value = eps0
         self.A_input.value = A
+        
+        # CRITICAL FIX: Update parameters if requested
+        if update_params:
+            sim_params.update_from_sliders()
         
         captured_stdout = StringIO()
         captured_stderr = StringIO()
@@ -857,10 +857,9 @@ class DynamicsPlot:
                 end_time = time.perf_counter()
                 self.computation_time = end_time - start_time
                 
-                # ADD THIS BLOCK - Update plot time limit after successful computation
+                # Update plot time limit after successful computation
                 if self.time_dynamics is not None and len(self.time_dynamics) > 0:
                     self.t_max_plot = self.time_dynamics[-1]
-                    #print(f"[DYNAMICS COMPUTE] Updated t_max_plot to {self.t_max_plot}")  #DEBUG PRINT
                 
                 self.status_text.object = f"**Dynamics:** ✅ Ready ({self.computation_time:.2f}s) | eps0={eps0:.6f}, A={A:.6f}"
             except Exception as e:
@@ -889,93 +888,97 @@ class DynamicsPlot:
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
         
-        #print(f"[DYNAMICS COMPUTE] Version updated to {self.dynamics_version}")  #DEBUG PRINT
-        
         self.computing = False
     
     def create_plot(self):
-        """Create the dynamics plot."""
-        
+        """Create the dynamics plot with linked X axes and independent Y axes."""
+    
         def make_plot(version):
-            # Always create both plots to maintain consistent Layout structure
+            # Always use the same key dimension for automatic x-axis linking
             time = self.time_dynamics if self.time_dynamics is not None else np.array([0, 1])
-            
+    
             if self.time_dynamics is None or self.rho_dynamics is None:
                 # Empty population plot
                 pop_data = np.zeros(len(time))
-                curves = [
-                    hv.Curve((time, pop_data), label='p00'),
-                    hv.Curve((time, pop_data), label='p01'),
-                    hv.Curve((time, pop_data), label='p10'),
-                    hv.Curve((time, pop_data), label='p11')
-                ]
-                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
-                pop_plot = pop_overlay.opts(
+                curve_p00 = hv.Curve((time, pop_data), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, pop_data), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, pop_data), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, pop_data), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+    
+                pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
                     ylim=(0, 1),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    legend_position='right',
+                    framewise=True
                 )
-                
+    
                 # Empty epsilon plot
                 eps_data = np.zeros(len(time))
-                eps_plot = hv.Curve((time, eps_data)).opts(
+                eps_curve = hv.Curve((time, eps_data), 'time', 'epsilon').opts(color=colors[4], line_width=1.5)
+    
+                eps_plot = eps_curve.opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(-0.01, 0.01),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=True
                 )
             else:
                 # Real population plot
-                p00, p01, p10, p11 = [self.rho_dynamics[:, i] for i in range(4)]
-                
+                time = self.time_dynamics
+                p00 = self.rho_dynamics[:, 0]
+                p01 = self.rho_dynamics[:, 1]
+                p10 = self.rho_dynamics[:, 2]
+                p11 = self.rho_dynamics[:, 3]
+    
                 pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
                 pop_ylim = (0, pop_max * 1.1)
-                
-                curves = [
-                    hv.Curve((time, p00), label='p00'),
-                    hv.Curve((time, p01), label='p01'),
-                    hv.Curve((time, p10), label='p10'),
-                    hv.Curve((time, p11), label='p11')
-                ]
-                
-                pop_overlay = curves[0] * curves[1] * curves[2] * curves[3]
-                pop_plot = pop_overlay.opts(
+    
+                curve_p00 = hv.Curve((time, p00), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, p01), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, p10), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, p11), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+    
+                pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
                     xlabel='Time', ylabel='Population',
-                    show_grid=True, legend_position='right',
+                    show_grid=True,
+                    legend_position='right',
                     ylim=pop_ylim,
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=True
                 )
-                
+    
                 # Real epsilon plot
                 eps_min = self.current_eps0 - self.current_A * 1.1
                 eps_max = self.current_eps0 + self.current_A * 1.1
-                
-                eps_plot = hv.Curve((time, self.eps_dynamics)).opts(
+    
+                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon')
+    
+                eps_plot = eps_curve.opts(
+                    color=colors[4],
+                    line_width=1.5,
                     width=800, height=200,
-                    title='Epsilon Dynamics',
+                    title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}])',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(eps_min, eps_max),
-                    xlim=(0, self.t_max_plot)
+                    xlim=(0, self.t_max_plot),
+                    framewise=True
                 )
             
-            # Create Layout - link X axes explicitly via RangeToolLink
-            from holoviews.plotting.links import RangeToolLink
-            
+            # Stack vertically - X axes link automatically because they share 'time' dimension
             layout = (pop_plot + eps_plot).cols(1)
-            
-            # Link the x_range of both plots
-            RangeToolLink(pop_plot, eps_plot, axes=['x'])
-            
             return layout
-        
+    
+        # Create DynamicMap that updates when version changes
         return hv.DynamicMap(pn.bind(make_plot, self.dynamics_version_widget))
     
     def get_control_panel(self):
@@ -989,6 +992,10 @@ class DynamicsPlot:
             self.generate_button,
             sizing_mode='fixed'
         )
+
+
+
+
 
 
 class InteractiveInterferogramDynamics:
@@ -1040,7 +1047,10 @@ class InteractiveInterferogramDynamics:
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
         self.auto_update_enabled = False
+        self.auto_update_dynamics_enabled = False
+        self.auto_update_both_enabled = False
         self._is_generating = False
+        self._is_generating_both = False
         
         self._create_control_widgets()
         self._generate_interferogram_data()
@@ -1048,17 +1058,46 @@ class InteractiveInterferogramDynamics:
     def _create_control_widgets(self):
         """Create main control widgets."""
         
+        # Interferogram controls
         self.update_button = pn.widgets.Button(
-            name='🔄 Regenerate Data',
+            name='🔄 Regenerate Interferogram',
             button_type='success',
-            width=180
+            width=200
         )
         
         self.auto_update_toggle = pn.widgets.Toggle(
-            name='Auto Update',
+            name='Auto-Update Interferogram',
             value=False,
             button_type='warning',
-            width=120
+            width=200
+        )
+        
+        # Dynamics controls
+        self.dynamics_regenerate_button = pn.widgets.Button(
+            name='🔄 Regenerate Dynamics',
+            button_type='success',
+            width=200
+        )
+        
+        self.auto_update_dynamics_toggle = pn.widgets.Toggle(
+            name='Auto-Update Dynamics',
+            value=False,
+            button_type='warning',
+            width=200
+        )
+        
+        # Both controls
+        self.regenerate_both_button = pn.widgets.Button(
+            name='🔄 Regenerate Both',
+            button_type='primary',
+            width=200
+        )
+        
+        self.auto_update_both_toggle = pn.widgets.Toggle(
+            name='Auto-Update Both',
+            value=False,
+            button_type='danger',
+            width=200
         )
         
         self.status_text = pn.pane.Markdown(
@@ -1083,9 +1122,11 @@ class InteractiveInterferogramDynamics:
             sizing_mode='fixed'
         )
         
-        self.auto_update_toggle.param.watch(self._on_auto_update_toggle, 'value')
+        self.auto_update_toggle.param.watch(self._on_auto_update_interferogram_toggle, 'value')
+        self.auto_update_dynamics_toggle.param.watch(self._on_auto_update_dynamics_toggle, 'value')
+        self.auto_update_both_toggle.param.watch(self._on_auto_update_both_toggle, 'value')
         
-        # ONLY watch parameter changes for auto-update, don't connect buttons here
+        # Watch parameter changes for auto-update
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
@@ -1093,40 +1134,210 @@ class InteractiveInterferogramDynamics:
         
         self.sim_params.quasi_static_toggle.param.watch(self._on_parameter_change, 'value')
     
-    def _on_auto_update_toggle(self, event):
-        """Handle auto-update toggle."""
+    def _on_auto_update_interferogram_toggle(self, event):
+        """Handle interferogram auto-update toggle."""
         self.auto_update_enabled = event.new
+        
+        # Sync state
+        if event.new and self.auto_update_both_enabled:
+            self.auto_update_both_toggle.value = False
+        
         if self.auto_update_enabled:
-            self.update_button.name = '🔄 Update (Auto On)'
+            self.update_button.name = '🔄 Regenerate Interferogram (Auto)'
             self.update_button.button_type = 'light'
         else:
-            self.update_button.name = '🔄 Regenerate Data'
+            self.update_button.name = '🔄 Regenerate Interferogram'
             self.update_button.button_type = 'success'
+    
+    def _on_auto_update_dynamics_toggle(self, event):
+        """Handle dynamics auto-update toggle."""
+        self.auto_update_dynamics_enabled = event.new
+        
+        # Sync state
+        if event.new and self.auto_update_both_enabled:
+            self.auto_update_both_toggle.value = False
+        
+        if self.auto_update_dynamics_enabled:
+            self.dynamics_regenerate_button.name = '🔄 Regenerate Dynamics (Auto)'
+            self.dynamics_regenerate_button.button_type = 'light'
+        else:
+            self.dynamics_regenerate_button.name = '🔄 Regenerate Dynamics'
+            self.dynamics_regenerate_button.button_type = 'success'
+    
+    def _on_auto_update_both_toggle(self, event):
+        """Handle both auto-update toggle."""
+        self.auto_update_both_enabled = event.new
+        
+        # Sync state - disable individual toggles when both is enabled
+        if event.new:
+            if self.auto_update_enabled:
+                self.auto_update_toggle.value = False
+            if self.auto_update_dynamics_enabled:
+                self.auto_update_dynamics_toggle.value = False
+            
+            # Transfer dynamics auto-update behavior to "both"
+            self.dynamics.auto_update = True
+            self.dynamics.click_count = 0
+            self.dynamics.hover_active = False
+        else:
+            self.dynamics.auto_update = False
+            self.dynamics.click_count = 0
+            self.dynamics.hover_active = False
+        
+        if self.auto_update_both_enabled:
+            self.regenerate_both_button.name = '🔄 Regenerate Both (Auto)'
+            self.regenerate_both_button.button_type = 'light'
+        else:
+            self.regenerate_both_button.name = '🔄 Regenerate Both'
+            self.regenerate_both_button.button_type = 'primary'
     
     def _on_parameter_change(self, event):
         """Handle parameter slider changes."""
         if self.auto_update_enabled and not self._is_generating:
-            self._update_and_regenerate()
+            self._update_and_regenerate_interferogram()
+        elif self.auto_update_dynamics_enabled and not self.dynamics.computing:
+            # Only regenerate dynamics if it has been computed before
+            if self.dynamics.current_eps0 is not None and self.dynamics.current_A is not None:
+                self._regenerate_dynamics_only()
+        elif self.auto_update_both_enabled and not self._is_generating_both:
+            self._regenerate_both()
     
-    def _update_and_regenerate(self, event=None):
-        """Update parameters and regenerate interferogram."""
-        #print(f"[BUTTON] Regenerate button clicked!")  #DEBUG PRINT
+    def _update_and_regenerate_interferogram(self, event=None):
+        """Update parameters and regenerate interferogram only."""
         if self._is_generating:
-            #print(f"[BUTTON] Already generating, skipping...")  #DEBUG PRINT
             return
-        #print(f"[BUTTON] Starting regeneration...")  #DEBUG PRINT
         self.sim_params.update_from_sliders()
         self._generate_interferogram_data()
+    
+    def _regenerate_dynamics_only(self, event=None):
+        """Regenerate dynamics at current position with updated parameters."""
+        if self.dynamics.current_eps0 is None or self.dynamics.current_A is None:
+            self.dynamics.status_text.object = "**Dynamics:** ⚠️ No position set. Click on interferogram first."
+            return
+        
+        if self.dynamics.computing:
+            return
+        
+        # FIXED: Pass update_params=True so it uses current slider values
+        self._generate_dynamics(
+            self.dynamics.current_eps0, 
+            self.dynamics.current_A,
+            update_params=True
+        )
+    
+    def _regenerate_both(self, event=None):
+        """Regenerate both interferogram and dynamics simultaneously using SimRunGridSingleMode."""
+        if self._is_generating_both:
+            return
+        
+        # Check if dynamics position is set
+        if self.dynamics.current_eps0 is None or self.dynamics.current_A is None:
+            self.status_text.object = "**Status:** ⚠️ Set dynamics position first (click on interferogram)"
+            return
+        
+        self._is_generating_both = True
+        self.sim_params.update_from_sliders()
+        
+        captured_stdout = StringIO()
+        captured_stderr = StringIO()
+        
+        self.status_text.object = "**Status:** 🔄 Generating both..."
+        
+        try:
+            with redirect_stdout(captured_stdout), redirect_stderr(captured_stderr):
+                start_time = time.perf_counter()
+                
+                simr = SimRunGridSingleMode(
+                    **self.sim_params.get_simrun_kwargs(
+                        self.platform_type, self.repo_path,
+                        eps0_min=self.eps0_min,
+                        eps0_max=self.eps0_max,
+                        A_min=self.A_min,
+                        A_max=self.A_max,
+                        N_points_target=self.N_points_target,
+                        eps0_target_singlepoint=self.dynamics.current_eps0,
+                        A_target_singlepoint=self.dynamics.current_A
+                    )
+                )
+                
+                (eps0_grid, A_grid, rho_avg_cdc_3d, 
+                 time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode) = run_simulation(simr)
+                
+                end_time = time.perf_counter()
+                elapsed = end_time - start_time
+            
+            # Update interferogram data
+            self.interferogram.update_data(eps0_grid, A_grid, rho_avg_cdc_3d)
+            
+            # Update dynamics data
+            self.dynamics.time_dynamics = time_dynamics
+            self.dynamics.eps_dynamics = eps_dynamics
+            self.dynamics.rho_dynamics = rho_dynamics
+            self.dynamics.computation_time = elapsed
+            
+            # Update t_max_plot for dynamics
+            if time_dynamics is not None and len(time_dynamics) > 0:
+                self.dynamics.t_max_plot = time_dynamics[-1]
+            
+            # Update dynamics version to trigger plot refresh
+            self.dynamics.dynamics_version += 1
+            if hasattr(self.dynamics, 'dynamics_version_widget'):
+                self.dynamics.dynamics_version_widget.value = self.dynamics.dynamics_version
+            
+            # Update status
+            self.status_text.object = "**Status:** ✅ Both ready"
+            self.timing_text.object = f"**Last computation:** {elapsed:.2f} seconds"
+            self.dynamics.status_text.object = (
+                f"**Dynamics:** ✅ Ready ({elapsed:.2f}s) | "
+                f"eps0={self.dynamics.current_eps0:.6f}, A={self.dynamics.current_A:.6f}"
+            )
+            
+            log_text = f"**✅ Both computed in {elapsed:.2f}s**\n\n"
+            
+        except Exception as e:
+            end_time = time.perf_counter()
+            elapsed = end_time - start_time if 'start_time' in locals() else 0
+            
+            self.status_text.object = "**Status:** ❌ Error occurred"
+            self.timing_text.object = f"**Failed after:** {elapsed:.2f} seconds"
+            self.dynamics.status_text.object = "**Dynamics:** ❌ Error"
+            
+            log_text = f"**❌ ERROR after {elapsed:.2f}s**\n\n"
+            log_text += f"**Exception Type:** {type(e).__name__}\n\n"
+            log_text += f"**Error Message:**\n```\n{str(e)}\n```\n\n"
+        
+        # Log parameters and output
+        log_text += "**Parameters:**\n"
+        log_text += f"- delta_C = {self.sim_params.delta_C:.6e}\n"
+        log_text += f"- GammaL0 = {self.sim_params.GammaL0}, GammaR0 = {self.sim_params.GammaR0}\n"
+        log_text += f"- Gamma_eg0 = {self.sim_params.Gamma_eg0}"
+        if self.sim_params.quasi_static:
+            log_text += f"\n- sigma_eps = {self.sim_params.sigma_eps}\n"
+            log_text += f"- N_samples_noise = {self.sim_params.N_samples_noise}\n"
+        else:
+            log_text += f", Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
+        log_text += f"- Quasi-static mode: {self.sim_params.quasi_static}\n"
+        log_text += f"- Dynamics at: eps0={self.dynamics.current_eps0:.8f}, A={self.dynamics.current_A:.8f}\n\n"
+        
+        stdout_content = captured_stdout.getvalue()
+        stderr_content = captured_stderr.getvalue()
+        
+        if stdout_content:
+            log_text += f"**CUDA Output:**\n```\n{stdout_content}\n```\n"
+        if stderr_content:
+            log_text += f"**CUDA Errors:**\n```\n{stderr_content}\n```\n"
+        
+        self.log_display.object = log_text
+        
+        self._is_generating_both = False
     
     def _generate_interferogram_data(self):
         """Generate interferogram data."""
         
         if self._is_generating:
-            print("[GENERATE] Already generating, skipping...")
             return
         
         self._is_generating = True
-        #print("[GENERATE] Starting data generation...")  #DEBUG PRINT
         
         captured_stdout = StringIO()
         captured_stderr = StringIO()
@@ -1206,19 +1417,18 @@ class InteractiveInterferogramDynamics:
     def _on_interferogram_click(self, x, y):
         """Handle click on interferogram."""
         
-        #print(f"[CLICK HANDLER] Received click at eps0={x}, A={y}")  #DEBUG PRINT
-        
         if not self.dynamics.enabled or x is None or y is None:
             return
         
         eps0, A = x, y
         
-        if self.dynamics.auto_update:
+        # Check if "Auto-Update Both" is active
+        if self.auto_update_both_enabled:
             if self.dynamics.click_count % 2 == 0:
                 self.dynamics.hover_active = True
                 self.interferogram.marker_eps0 = None
                 self.interferogram.marker_A = None
-                self._generate_dynamics(eps0, A)
+                self._generate_dynamics(eps0, A, update_params=False)
             else:
                 self.dynamics.hover_active = False
                 if (self.eps0_min <= eps0 <= self.eps0_max and 
@@ -1228,10 +1438,30 @@ class InteractiveInterferogramDynamics:
                 else:
                     self.interferogram.marker_eps0 = None
                     self.interferogram.marker_A = None
-                self._generate_dynamics(eps0, A)
+                self._generate_dynamics(eps0, A, update_params=False)
+            
+            self.dynamics.click_count += 1
+        elif self.dynamics.auto_update:
+            # Original dynamics auto-update behavior
+            if self.dynamics.click_count % 2 == 0:
+                self.dynamics.hover_active = True
+                self.interferogram.marker_eps0 = None
+                self.interferogram.marker_A = None
+                self._generate_dynamics(eps0, A, update_params=False)
+            else:
+                self.dynamics.hover_active = False
+                if (self.eps0_min <= eps0 <= self.eps0_max and 
+                    self.A_min <= A <= self.A_max):
+                    self.interferogram.marker_eps0 = eps0
+                    self.interferogram.marker_A = A
+                else:
+                    self.interferogram.marker_eps0 = None
+                    self.interferogram.marker_A = None
+                self._generate_dynamics(eps0, A, update_params=False)
             
             self.dynamics.click_count += 1
         else:
+            # Normal click behavior
             if (self.eps0_min <= eps0 <= self.eps0_max and 
                 self.A_min <= A <= self.A_max):
                 self.interferogram.marker_eps0 = eps0
@@ -1239,7 +1469,7 @@ class InteractiveInterferogramDynamics:
             else:
                 self.interferogram.marker_eps0 = None
                 self.interferogram.marker_A = None
-            self._generate_dynamics(eps0, A)
+            self._generate_dynamics(eps0, A, update_params=False)
         
         self.interferogram.marker_version += 1
         if hasattr(self.interferogram, 'marker_version_widget'):
@@ -1251,15 +1481,20 @@ class InteractiveInterferogramDynamics:
         if not self.dynamics.enabled or x is None or y is None:
             return
         
-        if not self.dynamics.auto_update or not self.dynamics.hover_active:
-            return
-        
-        self._generate_dynamics(x, y)
+        # Check for both auto-update modes
+        if self.auto_update_both_enabled:
+            if self.dynamics.hover_active:
+                self._generate_dynamics(x, y, update_params=False)
+        elif self.dynamics.auto_update:
+            if self.dynamics.hover_active:
+                self._generate_dynamics(x, y, update_params=False)
     
-    def _generate_dynamics(self, eps0, A):
-        """Generate dynamics for given coordinates."""
+    def _generate_dynamics(self, eps0, A, update_params=False):
+        """Generate dynamics for given coordinates.
         
-        #print(f"[GENERATE DYNAMICS] Starting computation for eps0={eps0}, A={A}")  #DEBUG PRINT
+        Args:
+            update_params: If True, update parameters from sliders before computing
+        """
         
         def log_callback(text):
             self.log_display.object = text
@@ -1272,9 +1507,8 @@ class InteractiveInterferogramDynamics:
         
         self.dynamics.compute(eps0, A, self.sim_params, 
                             self.platform_type, self.repo_path, 
-                            log_callback, marker_update_callback)
-        
-        #print(f"[GENERATE DYNAMICS] Computation completed")  #DEBUG PRINT
+                            log_callback, marker_update_callback, 
+                            update_params=update_params)
     
     def _on_manual_dynamics_generate(self, event=None):
         """Handle manual coordinate entry for dynamics."""
@@ -1286,19 +1520,21 @@ class InteractiveInterferogramDynamics:
         self.dynamics.auto_toggle.value = False
         self.dynamics.hover_active = False
         
-        self._generate_dynamics(eps0, A)
+        # Update parameters before generating
+        self._generate_dynamics(eps0, A, update_params=True)
     
     def create_dashboard(self):
         """Create the complete Panel dashboard."""
         
         # Button callbacks
-        self.update_button.on_click(self._update_and_regenerate)
+        self.update_button.on_click(self._update_and_regenerate_interferogram)
+        self.dynamics_regenerate_button.on_click(self._regenerate_dynamics_only)
+        self.regenerate_both_button.on_click(self._regenerate_both)
         self.dynamics.generate_button.on_click(self._on_manual_dynamics_generate)
         
         interferogram_dmap = self.interferogram.create_plot()
     
-        # CRITICAL FIX: Create a STATIC invisible overlay for capturing interactions
-        # This must be outside the DynamicMap to work with streams
+        # CRITICAL: Create a STATIC invisible overlay for capturing interactions
         interaction_overlay = hv.Rectangles([
             (self.interferogram.eps0_min, self.interferogram.A_min, 
              self.interferogram.eps0_max, self.interferogram.A_max)
@@ -1315,7 +1551,6 @@ class InteractiveInterferogramDynamics:
         
         # Callback handlers
         def on_tap(x, y):
-            print(f"[TAP] Interferogram clicked at x={x}, y={y}")
             if x is not None and y is not None:
                 self._on_interferogram_click(x, y)
         
@@ -1330,12 +1565,28 @@ class InteractiveInterferogramDynamics:
         # Combine interferogram with the static interaction overlay
         interferogram_plot = interferogram_dmap * interaction_overlay
         
+        # FIXED: New sidebar layout with all 6 buttons properly displayed
         sidebar = pn.Column(
             "## 🎛️ Simulation Parameters",
             pn.layout.Divider(),
             self.sim_params.get_control_panel(),
             pn.layout.Divider(),
-            pn.Row(self.update_button, self.auto_update_toggle),
+            "### Regeneration Controls",
+            pn.Column(
+                self.update_button,
+                self.dynamics_regenerate_button,
+                self.regenerate_both_button,
+                width=220
+            ),
+            pn.layout.Divider(),
+            "### Auto-Update Controls",
+            pn.Column(
+                self.auto_update_toggle,
+                self.auto_update_dynamics_toggle,
+                self.auto_update_both_toggle,
+                width=220
+            ),
+            pn.layout.Divider(),
             self.status_text,
             self.timing_text,
             width=500,
@@ -1391,5 +1642,7 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
+
+
 
 
