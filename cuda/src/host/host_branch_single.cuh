@@ -249,7 +249,7 @@ __host__ inline void run_single_mode(
         && threads_per_traj_opt == "one_thread_per_traj") {
 
         /* good. only for faster compilation
-        printf("Launching kernel singlemode as_arrays without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode as_arrays without log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode <<< blocks, threads_per_block >>> (
@@ -267,7 +267,7 @@ __host__ inline void run_single_mode(
         && threads_per_traj_opt == "one_thread_per_traj") {
 
         /* good. only for faster compilation
-        printf("Launching kernel singlemode as_arrays with log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode as_arrays with log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_log <<< blocks, threads_per_block >>> (
@@ -288,7 +288,7 @@ __host__ inline void run_single_mode(
         && !quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_unrolled_fsal <<< blocks, threads_per_block >>> (
@@ -307,7 +307,7 @@ __host__ inline void run_single_mode(
         && !quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         lindblad_rk4_kernel_singlemode_unrolled_log <<< blocks, threads_per_block >>> (
@@ -328,18 +328,18 @@ __host__ inline void run_single_mode(
         && quasi_static_ensemble_dephasing_flag)
     {
 
-        printf("Launching kernel singlemode unrolled ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
+        printf("Launching kernel singlemode unrolled ensemble without log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        //lindblad_rk4_kernel_singlemode_unrolled_ensemble <<< blocks, threads_per_block >>> (
-        //    eps0_target, A_target,
+        const float inv_N_samples_noise = 1.0f / N_samples_noise;
 
-        //    d_rho_avg_singlemode,
-        //    d_rho_dynamics,
-        //    d_time_dynamics,
-        //    d_eps_dynamics,
-        //    N_samples_noise
-        //    );
+        lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal <<< blocks, threads_per_block >>> (
+            eps0_target, A_target,
+
+			N_samples_noise, inv_N_samples_noise, eps_offsets,
+
+            d_rho_dynamics, d_time_dynamics, d_eps_dynamics
+            );
 
     }
 

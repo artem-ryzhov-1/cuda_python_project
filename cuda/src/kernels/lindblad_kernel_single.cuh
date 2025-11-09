@@ -745,31 +745,32 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_fsal(
 
 }
 
-/*
-// new
+
+
 extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal(
     // Single target point parameters
     const float eps0_single_target,
     const float A_single_target,
-    
+
     // Noise ensemble
     const int N_samples_noise,
+    const float inv_N_samples_noise,
     const float* __restrict__ eps_offsets,
-    
+
     // Output: ensemble-averaged dynamics
-    float* __restrict__ d_rho_dynamics_avg,  // length = total_steps * 4
+    float* __restrict__ d_rho_dynamics,  // length = total_steps * 4
     float* __restrict__ d_time_dynamics,      // length = total_steps
     float* __restrict__ d_eps_dynamics        // length = total_steps
 ) {
     const int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     // Each thread handles one noise realization
     if (tid >= N_samples_noise) return;
-    
+
     const float eps0_noise = eps0_single_target + eps_offsets[tid];
-    
+
     const int total_steps = N_steps_per_period * N_periods;
-    
+
     // Initialize density matrix
     float rho_vec_0 = rho00_init;
     float rho_vec_1 = rho11_init;
@@ -779,7 +780,7 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal
     float rho_vec_7 = 0.f;  float rho_vec_8 = 0.f;  float rho_vec_9 = 0.f;
     float rho_vec_10 = 0.f; float rho_vec_11 = 0.f; float rho_vec_12 = 0.f;
     float rho_vec_13 = 0.f; float rho_vec_14 = 0.f; float rho_vec_15 = 0.f;
-    
+
     // FSAL persistent k values
     float k_saved_0 = 0.f;  float k_saved_1 = 0.f;  float k_saved_2 = 0.f;
     float k_saved_3 = 0.f;  float k_saved_4 = 0.f;  float k_saved_5 = 0.f;
@@ -787,46 +788,46 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal
     float k_saved_9 = 0.f;  float k_saved_10 = 0.f; float k_saved_11 = 0.f;
     float k_saved_12 = 0.f; float k_saved_13 = 0.f; float k_saved_14 = 0.f;
     float k_saved_15 = 0.f;
-    
+
     // First step
     rk4_step_unrolled_v3_safe_ensemble_fsal(
         rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
         rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
         rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
         rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
-        
+
         k_saved_0, k_saved_1, k_saved_2, k_saved_3,
         k_saved_4, k_saved_5, k_saved_6, k_saved_7,
         k_saved_8, k_saved_9, k_saved_10, k_saved_11,
         k_saved_12, k_saved_13, k_saved_14, k_saved_15,
-        
+
         0.0f,
         eps0_noise,
         A_single_target,
         true
     );
-    
+
     // Time evolution loop
-    for (int t_idx = 1; t_idx < total_steps; ++t_idx) {
-        const float t_step = t_idx * dt;
+    for (int t_idx_rk4_step = 1; t_idx_rk4_step < total_steps; ++t_idx_rk4_step) {
+        const float t_step = t_idx_rk4_step * dt;
         
         rk4_step_unrolled_v3_safe_ensemble_fsal(
             rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
             rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
             rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
             rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
-            
+
             k_saved_0, k_saved_1, k_saved_2, k_saved_3,
             k_saved_4, k_saved_5, k_saved_6, k_saved_7,
             k_saved_8, k_saved_9, k_saved_10, k_saved_11,
             k_saved_12, k_saved_13, k_saved_14, k_saved_15,
-            
+
             t_step,
             eps0_noise,
             A_single_target,
             false
         );
-        
+
         // Post-step stabilization
         clamp_and_renormalize_vec16_unrolled(
             rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
@@ -834,21 +835,21 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal
             rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
             rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
         );
-        
+
         // Atomic add to accumulate ensemble average
-        const int base = t_idx * 4;
-        atomicAdd(&d_rho_dynamics_avg[base + 0], rho_vec_0);
-        atomicAdd(&d_rho_dynamics_avg[base + 1], rho_vec_1);
-        atomicAdd(&d_rho_dynamics_avg[base + 2], rho_vec_2);
-        atomicAdd(&d_rho_dynamics_avg[base + 3], rho_vec_3);
-        
+        const int base = t_idx_rk4_step * 4;
+        atomicAdd(&d_rho_dynamics[base + 0], rho_vec_0 * inv_N_samples_noise);
+        atomicAdd(&d_rho_dynamics[base + 1], rho_vec_1 * inv_N_samples_noise);
+        atomicAdd(&d_rho_dynamics[base + 2], rho_vec_2 * inv_N_samples_noise);
+        atomicAdd(&d_rho_dynamics[base + 3], rho_vec_3 * inv_N_samples_noise);
+
         // Only first thread writes time and epsilon dynamics
         if (tid == 0) {
-            d_time_dynamics[t_idx] = t_step;
-            d_eps_dynamics[t_idx] = eps0_single_target + A_single_target * cosf(omega * t_step);
+            d_time_dynamics[t_idx_rk4_step] = t_step;
+            d_eps_dynamics[t_idx_rk4_step] = eps0_single_target + A_single_target * cosf(omega * t_step);
         }
     }
-    
+
     // Final normalization
     clamp_and_renormalize_vec16_unrolled(
         rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
@@ -858,7 +859,8 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal
     );
 }
 
-*/
+
+
 
 //////////////////////////////////////////////////////////////
 
