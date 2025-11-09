@@ -49,6 +49,7 @@ __host__ inline void run_single_mode(
     const int host_N_periods,
     const int N_samples_noise,
     const bool quasi_static_ensemble_dephasing_flag,
+    float* eps_offsets,
 
     const float host_dt,
     const float nu,
@@ -226,12 +227,19 @@ __host__ inline void run_single_mode(
 
     // threads per block
     int threads_per_block;
+    int blocks;
+
     if (threads_per_traj_opt == "one_thread_per_traj") {
-        threads_per_block = 1;    // launch only 1 thread
-    }
-    else if (threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
-             threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem") {
-        threads_per_block = LANE_GROUP_SIZE;   // launch threads only for calculating 1 trajectory
+        
+        if (!quasi_static_ensemble_dephasing_flag){
+            threads_per_block = 1;    // launch only 1 thread
+            blocks = 1;               
+        }
+        else {
+            threads_per_block = std::min(128, N_samples_noise);  // launch min(128, N_samples_noise) threads for ensemble
+            blocks = (N_samples_noise + threads_per_block - 1) / threads_per_block;   // standard
+        }
+
     }
 
 
@@ -244,7 +252,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode as_arrays without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode <<< 1, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode <<< blocks, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg_singlemode,
@@ -262,7 +270,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode as_arrays with log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_log <<< 1, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode_log <<< blocks, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg_singlemode,
@@ -283,7 +291,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_unrolled_fsal <<< 1, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode_unrolled_fsal <<< blocks, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg_singlemode,
@@ -302,7 +310,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_unrolled_log <<< 1, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode_unrolled_log <<< blocks, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg_singlemode,
@@ -323,7 +331,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode unrolled ensemble without log: blocks=1 threads_per_block=%d\n", threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        //lindblad_rk4_kernel_singlemode_unrolled_ensemble <<< 1, threads_per_block >>> (
+        //lindblad_rk4_kernel_singlemode_unrolled_ensemble <<< blocks, threads_per_block >>> (
         //    eps0_target, A_target,
 
         //    d_rho_avg_singlemode,

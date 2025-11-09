@@ -457,7 +457,7 @@ std::cout << "==================================================" << std::endl;
     if (grid_single_mode == "single" || grid_single_mode == "grid_single") {
         run_single_mode(
             eps0_target, A_target, N_steps_period, N_periods,
-            N_samples_noise, quasi_static_ensemble_dephasing_flag,
+            N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
             dt, nu, alpha,
             rho00_init, rho11_init, rho22_init, rho33_init,
             delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
