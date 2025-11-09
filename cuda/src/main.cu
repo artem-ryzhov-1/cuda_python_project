@@ -96,8 +96,7 @@ if (argc > 46) std::cout << "46. single_mode_log_option: " << argv[46] << "\n";
 if (argc > 47) std::cout << "47. path_dynamics_single_mode_output_log_csv: " << argv[47] << "\n";
 if (argc > 48) std::cout << "48. path_dynamics_single_mode_output_log_hdf5: " << argv[48] << "\n";
 if (argc > 49) std::cout << "49. threads_per_traj_opt: " << argv[49] << "\n";
-if (argc > 50) std::cout << "50. threads_per_traj_opt: " << argv[50] << "\n";
-if (argc > 51) std::cout << "51. quasi_static_ensemble_dephasing_flag: " << argv[51] << "\n";
+if (argc > 50) std::cout << "50. quasi_static_ensemble_dephasing_flag: " << argv[50] << "\n";
 
 std::cout << "==================================================" << std::endl;
 
