@@ -210,3 +210,6 @@ __marimo__/
 cuda/bin/lindblad_gpu
 cuda/bin/lindblad_gpu.exe
 cuda/output/rho_avg_out.bin
+
+# Ingone Python cache files
+*.pyc

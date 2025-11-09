@@ -1,5 +1,6 @@
-#####################################
+########################################
 # python/app_interferogram_dynamics_class.py
+########################################
 
 import numpy as np
 import pandas as pd
@@ -1167,8 +1168,8 @@ class InteractiveInterferogramDynamics:
         
         self.log_display = pn.pane.Markdown(
             "**Log:** Waiting for first computation...",
-            width=650,
-            height=150,
+            width=700,
+            height=300,
             styles={'resize': 'both', 'overflow': 'auto', 'background': '#f5f5f5', 
                    'padding': '10px', 'font-family': 'monospace', 'font-size': '11px', 
                    'border': '1px solid #ddd'},

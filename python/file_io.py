@@ -1,11 +1,8 @@
-#####################################
+########################################
 # python/file_io.py
-
+########################################
 
 import numpy as np
-
-
-
 
 def read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file):
     

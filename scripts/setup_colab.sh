@@ -1,3 +1,7 @@
+########################################
+# scripts/setup_colab.sh
+########################################
+
 %%bash
 
 # Install necessary packages for Colab

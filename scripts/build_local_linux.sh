@@ -1,3 +1,7 @@
+########################################
+# scripts/build_local_linux.sh
+########################################
+
 #!/bin/bash
 clear # temp
 echo "Building CUDA code locally..."
