@@ -57,10 +57,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Set JSON include path
+set JSON_INCLUDE=external
+
 REM Set up MSVC environment by calling vcvars64.bat (Visual Studio environment setup)
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-REM Add MSVC tools to PATH explicitly (optional, if vcvars64.bat doesn’t already do this)
+REM Add MSVC tools to PATH explicitly (optional, if vcvars64.bat doesn't already do this)
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.34.31933\bin\Hostx64\x64;%PATH%
 
 REM Ensure bin directory exists
@@ -74,9 +77,8 @@ set OUTPUT=bin\lindblad_gpu.exe
 REM Compile CUDA code
 echo Compiling CUDA code...
 
-REM "%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc src\main.cu -o %OUTPUT%
-    "%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc src\main.cu -o %OUTPUT% -Xptxas -v
-
+REM "%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc -I%JSON_INCLUDE% src\main.cu -o %OUTPUT%
+"%NVCC_PATH%" -O3 -std=c++17 -arch=%ARCH% -Isrc -I%JSON_INCLUDE% src\main.cu -o %OUTPUT% -Xptxas -v
 
 if errorlevel 1 (
     echo Error: Compilation failed

@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/cuda/external",
                 "/usr/local/cuda/include"
             ],
             "defines": [],

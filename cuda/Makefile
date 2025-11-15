@@ -1,5 +1,5 @@
 # Detect if the environment is local (using shell to check the platform)
-LOCAL_RUNTIME := $(shell if [ -n "$USER" ]; then echo "true"; else echo "false"; fi)
+LOCAL_RUNTIME := $(shell if [ -n "$$USER" ]; then echo "true"; else echo "false"; fi)
 
 # Set NVCC based on the environment
 ifeq ($(LOCAL_RUNTIME), true)
@@ -25,8 +25,12 @@ endif
 #ARCH = sm_86 # for local machine
 #ARCH ?= sm_75  # Default, override in build scripts if needed
 
-#NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc
-NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc -Xptxas -v
+# JSON include path
+JSON_INCLUDE = external
+
+# Compiler flags
+#NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc -I$(JSON_INCLUDE)
+NVCCFLAGS = -O3 -std=c++17 -arch=$(ARCH) -Isrc -I$(JSON_INCLUDE) -Xptxas -v
 
 SRC = src/main.cu
 TARGET = bin/lindblad_gpu

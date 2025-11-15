@@ -5,6 +5,7 @@
 #include <cmath>
 #include <string>
 #include <random>
+#include <nlohmann/json.hpp>
 #include "constants.cuh"
 
 // #include "cuda_intellisense_fixes.cuh"
@@ -100,24 +101,8 @@ if (argc > 50) std::cout << "50. quasi_static_ensemble_dephasing_flag: " << argv
 
 std::cout << "==================================================" << std::endl;
 
-
-    
-
-
     if (argc != 51) {
-        /*std::cout << "Usage: ./lindblad_gpu single_mode_flag "
-            << "avg_periods_ouput_option ouput_option unrolled_option ram_shared_mmap_name "
-            << "eps0_min eps0_max A_min A_max N_points_eps0_range N_points_A_range "
-            << "N_steps_period N_periods alpha nu eps0_target_singlepoint A_target_singlepoint "
-            << "rho00_init rho11_init rho22_init rho33_init "
-            << "path_output_csv path_dynamics_single_mode_output_csv "
-            << "delta_C delta_L delta_R g_en g_phi gL_en gL_phi gR_en gR_phi "
-            << "host_Gamma_L0 host_Gamma_R0 host_muL host_muR T_K "
-            << "single_mode_log_option path_dynamics_single_mode_output_log_csv "
-            << "path_dynamics_single_mode_output_log_hdf5 "
-            << "trajectory_threading_option_str" << std::endl;*/
-
-
+        
         std::cout << "ERROR: Expected 46 arguments (including program path).\n";
         std::cout << "Received " << argc << " arguments. Exiting program.\n";
 
