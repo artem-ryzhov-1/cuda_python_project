@@ -142,13 +142,6 @@ int main(int argc, char** argv)
     const float delta_L = config["delta_L"];
     const float delta_R = config["delta_R"];
 
-    const float g_en = config["g_en"];  // these Gammas are only for printing into CSV. not used elsewhere in program
-    const float g_phi = config["g_phi"];
-    const float gL_en = config["gL_en"];
-    const float gL_phi = config["gL_phi"];
-    const float gR_en = config["gR_en"];
-    const float gR_phi = config["gR_phi"];
-
     const float host_Gamma_L0 = config["GammaL0"];     // prefactor (GHz etc.)
     const float host_Gamma_R0 = config["GammaR0"];     // prefactor (GHz etc.)
     const float host_muL = config["muL"];    // µeV
@@ -208,13 +201,6 @@ int main(int argc, char** argv)
     std::cout << "28. delta_C: " << delta_C << "\n";
     std::cout << "29. delta_L: " << delta_L << "\n";
     std::cout << "30. delta_R: " << delta_R << "\n";
-
-    std::cout << "31. g_en: " << g_en << "\n";
-    std::cout << "32. g_phi: " << g_phi << "\n";
-    std::cout << "33. gL_en: " << gL_en << "\n";
-    std::cout << "34. gL_phi: " << gL_phi << "\n";
-    std::cout << "35. gR_en: " << gR_en << "\n";
-    std::cout << "36. gR_phi: " << gR_phi << "\n";
 
     std::cout << "37. Gamma_L0: " << host_Gamma_L0 << "\n";
     std::cout << "38. Gamma_R0: " << host_Gamma_R0 << "\n";
@@ -413,7 +399,7 @@ int main(int argc, char** argv)
             path_output_csv, path_output_bin_file_gridmode, ouput_option, unrolled_option,
             ram_shared_mmap_name, threads_per_traj_opt,
             rho00_init, rho11_init, rho22_init, rho33_init,
-            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            delta_C, delta_L, delta_R,
             host_Gamma_L0, host_Gamma_R0, host_Gamma_eg0, omega_c_norm, host_Gamma_phi0
         );
     }
@@ -423,7 +409,7 @@ int main(int argc, char** argv)
             N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
             dt, nu, alpha,
             rho00_init, rho11_init, rho22_init, rho33_init,
-            delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
+            delta_C, delta_L, delta_R,
             path_dynamics_single_mode_output_csv, path_output_bin_file_singlemode, ouput_option, unrolled_option,
             single_mode_log_option, path_dynamics_single_mode_output_log_csv,
             path_dynamics_single_mode_output_log_hdf5,

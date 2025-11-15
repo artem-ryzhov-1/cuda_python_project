@@ -60,9 +60,6 @@ __host__ inline void run_single_mode(
 
     const float host_delta_C, const float host_delta_L, const float host_delta_R,
 
-    const float g_en, const float g_phi, const float gL_en,
-    const float gL_phi, const float gR_en, const float gR_phi,
-
     const std::string& path_dynamics_single_mode_output_csv,
     const std::string& path_output_bin_file_singlemode,
     const std::string& output_option,

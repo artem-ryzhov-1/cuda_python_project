@@ -43,14 +43,6 @@ class SimulationConfig:
     rho22_init: float
     rho33_init: float
 
-    gamma: float
-    g_en: float
-    g_phi: float
-    gL_en: float
-    gL_phi: float
-    gR_en: float
-    gR_phi: float
-
     a: float
     m: float
     

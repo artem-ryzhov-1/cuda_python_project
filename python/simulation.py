@@ -152,16 +152,7 @@ def run_simulation(simr):
     omega_c = 0.0015731484686413405
     
     Gamma_phi0 = simr.Gamma_phi0
-    sigma_eps  = simr.sigma_eps
-    
-    gamma  = 0.8
-    g_en   = gamma
-    g_phi  = gamma * 4.5
-    gL_en  = gamma * 62.5
-    gL_phi = gL_en * 4.5
-    gR_en  = gamma * 15.0
-    gR_phi = gR_en * 4.5
-    
+    sigma_eps  = simr.sigma_eps    
     
     
     a = 0.1
@@ -293,13 +284,6 @@ def run_simulation(simr):
         rho11_init=rho11_init,
         rho22_init=rho22_init,
         rho33_init=rho33_init,
-        gamma=gamma,
-        g_en=g_en,
-        g_phi=g_phi,
-        gL_en=gL_en,
-        gL_phi=gL_phi,
-        gR_en=gR_en,
-        gR_phi=gR_phi,
         a=a,
         m=m,
         cuda_cwd=cuda_cwd,

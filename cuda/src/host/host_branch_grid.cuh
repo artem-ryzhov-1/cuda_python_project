@@ -29,10 +29,6 @@
 
 
 
-#define K_TRAJ_PER_WARP 2
-#define LANE_GROUP_SIZE (32 / K_TRAJ_PER_WARP) // 16
-
-
 // -------------------------
 // grid mode execution without precomputed L
 // -------------------------
@@ -62,10 +58,6 @@ __host__ inline void run_grid_mode(
     const float host_rho00_init, const float host_rho11_init,
     const float host_rho22_init, const float host_rho33_init,
     const float host_delta_C, const float host_delta_L, const float host_delta_R,
-
-    const float g_en, const float g_phi,
-    const float gL_en, const float gL_phi,
-    const float gR_en, const float gR_phi,
 
     const float host_Gamma_L0,
     const float host_Gamma_R0,
@@ -461,7 +453,6 @@ __host__ inline void run_grid_mode(
             path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
             host_delta_C, host_delta_L, host_delta_R,
-            g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
 
             rho_avg_dim
         );
@@ -479,8 +470,7 @@ __host__ inline void run_grid_mode(
             host_dt, nu, alpha, B, m,
             path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
-            host_delta_C, host_delta_L, host_delta_R,
-            g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi
+            host_delta_C, host_delta_L, host_delta_R
 
         );
     }

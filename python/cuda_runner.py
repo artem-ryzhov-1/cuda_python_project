@@ -45,7 +45,6 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         "cuda_program_path", 
         "platform_type",
         "path_dynamics_grid_mode_output_hdf5_after_ram",  # Not used in CUDA
-        "gamma",  # If not used in CUDA
         "a",      # If not used in CUDA
         "m"       # If not used in CUDA
     ]
