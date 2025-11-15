@@ -3,7 +3,7 @@
 ########################################
 
 from pathlib import Path
-import platform
+import json
 
 import time
 import subprocess
@@ -18,6 +18,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     """
     Runs the CUDA Lindblad executable with parameters from SimulationConfig `c`.
     
+    Uses JSON config file instead of command-line arguments.
     Streams output live to console, supports graceful termination via ENTER or q.
     
     Raises subprocess.CalledProcessError on non-zero exit code, including full output.
@@ -31,70 +32,104 @@ def run_gpu_lindblad_program(c: SimulationConfig):
     
     print("\n==============================================")
     
-    # Build argument list (convert numbers to strings)
+    # Create configuration dictionary
+    config = {
+        "version": "1.0",  # For future compatibility
+        
+        # Mode and output options
+        "grid_single_mode": c.grid_single_mode,
+        "avg_periods_ouput_option": c.avg_periods_ouput_option,
+        "ouput_option": c.ouput_option,
+        "unrolled_option": c.unrolled_option,
+        "ram_shared_mmap_name": c.ram_shared_mmap_name,
+        
+        # Parameter ranges
+        "eps0_min": c.eps0_min,
+        "eps0_max": c.eps0_max,
+        "A_min": c.A_min,
+        "A_max": c.A_max,
+        "N_points_eps0_range": c.N_points_eps0_range,
+        "N_points_A_range": c.N_points_A_range,
+        
+        # Simulation parameters
+        "N_steps_period": c.N_steps_period,
+        "N_periods": c.N_periods,
+        "N_periods_avg": c.N_periods_avg,
+        "N_samples_noise": c.N_samples_noise,
+        
+        # Physical parameters
+        "alpha": c.alpha,
+        "nu": c.nu,
+        "eps0_target_singlepoint": c.eps0_target_singlepoint,
+        "A_target_singlepoint": c.A_target_singlepoint,
+        
+        # Initial density matrix
+        "rho00_init": c.rho00_init,
+        "rho11_init": c.rho11_init,
+        "rho22_init": c.rho22_init,
+        "rho33_init": c.rho33_init,
+        
+        # Output paths
+        "path_output_csv": str(c.path_output_csv),
+        "path_output_bin_file_gridmode": str(c.path_output_bin_file_gridmode),
+        "path_output_bin_file_singlemode": str(c.path_output_bin_file_singlemode),
+        "path_dynamics_single_mode_output_csv": str(c.path_dynamics_single_mode_output_csv),
+        
+        # Delta parameters
+        "delta_C": c.delta_C,
+        "delta_L": c.delta_L,
+        "delta_R": c.delta_R,
+        
+        # Coupling parameters
+        "g_en": c.g_en,
+        "g_phi": c.g_phi,
+        "gL_en": c.gL_en,
+        "gL_phi": c.gL_phi,
+        "gR_en": c.gR_en,
+        "gR_phi": c.gR_phi,
+        
+        # Reservoir parameters
+        "GammaL0": c.GammaL0,
+        "GammaR0": c.GammaR0,
+        "muL": c.muL,
+        "muR": c.muR,
+        "T_K": c.T_K,
+        
+        # Phonon parameters
+        "Gamma_eg0": c.Gamma_eg0,
+        "omega_c": c.omega_c,
+        
+        # Dephasing parameters
+        "Gamma_phi0": c.Gamma_phi0,
+        "sigma_eps": c.sigma_eps,
+        
+        # Logging options
+        "single_mode_log_option": c.single_mode_log_option,
+        "path_dynamics_single_mode_output_log_csv": str(c.path_dynamics_single_mode_output_log_csv),
+        "path_dynamics_single_mode_output_log_hdf5": str(c.path_dynamics_single_mode_output_log_hdf5),
+        
+        # Performance options
+        "threads_per_traj_opt": c.threads_per_traj_opt,
+        "quasi_static_ensemble_dephasing_flag": c.quasi_static_ensemble_dephasing_flag
+    }
+    
+    # Write config to JSON file
+    config_path = Path(c.cuda_cwd) / "run_config.json"
+    print(f"Writing configuration to: {config_path}")
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    print(f"Configuration saved with {len(config)} parameters")
+    print("==============================================")
+    
+    # Build argument list (now just program path + config file)
     args = [
         str(c.cuda_program_path),
-        str(c.grid_single_mode),
-        str(c.avg_periods_ouput_option),
-        str(c.ouput_option),
-        str(c.unrolled_option),
-        str(c.ram_shared_mmap_name),
-        str(c.eps0_min), str(c.eps0_max),
-        str(c.A_min), str(c.A_max),
-        str(c.N_points_eps0_range),
-        str(c.N_points_A_range),
-        str(c.N_steps_period),
-        str(c.N_periods),
-        str(c.N_periods_avg),
-        str(c.N_samples_noise),
-        str(c.alpha),
-        str(c.nu),
-        str(c.eps0_target_singlepoint),
-        str(c.A_target_singlepoint),
-        str(c.rho00_init),
-        str(c.rho11_init),
-        str(c.rho22_init),
-        str(c.rho33_init),
-        str(c.path_output_csv),
-        str(c.path_output_bin_file_gridmode),
-        str(c.path_output_bin_file_singlemode),
-        str(c.path_dynamics_single_mode_output_csv),
-        str(c.delta_C),
-        str(c.delta_L),
-        str(c.delta_R),
-        str(c.g_en),
-        str(c.g_phi),
-        str(c.gL_en),
-        str(c.gL_phi),
-        str(c.gR_en),
-        str(c.gR_phi),
-        
-        str(c.GammaL0),
-        str(c.GammaR0),
-        str(c.muL),
-        str(c.muR),
-        str(c.T_K),
-        str(c.Gamma_eg0),
-        str(c.omega_c),
-        str(c.Gamma_phi0),
-        str(c.sigma_eps),
-        
-        str(c.single_mode_log_option),
-        str(c.path_dynamics_single_mode_output_log_csv),
-        str(c.path_dynamics_single_mode_output_log_hdf5),
-        str(c.threads_per_traj_opt),
-        str(c.quasi_static_ensemble_dephasing_flag)
-        
+        str(config_path)
     ]
     
-    args_str = ' '.join(args)    
-    
     print("Args being passed to CUDA program:", args)
-    print()
-    print(args_str)
-    print()
-    print(f"Total arguments (including program path): {len(args)}")
-    print()
+    print(f"Total arguments: {len(args)}")
     print("==============================================")
     print("CUDA program run started. Console output:")
     print()
