@@ -45,25 +45,12 @@ __host__ inline void run_grid_mode(
     const int N_samples_noise,
     const bool quasi_static_ensemble_dephasing_flag,
     float* eps_offsets,
-    const float host_dt,
-    const float nu,
-    const float alpha,
     const std::string& path_output_csv,
     const std::string& path_output_bin_file_gridmode,
     const std::string& ouput_option,
     const std::string& unrolled_option,
     const std::string& ram_shared_mmap_name,
-    const std::string& threads_per_traj_opt,
-
-    const float host_rho00_init, const float host_rho11_init,
-    const float host_rho22_init, const float host_rho33_init,
-    const float host_delta_C, const float host_delta_L, const float host_delta_R,
-
-    const float host_Gamma_L0,
-    const float host_Gamma_R0,
-    const float host_Gamma_eg0,
-    const float omega_c_norm,
-    const float host_Gamma_phi0
+    const std::string& threads_per_traj_opt
 )
 {
 
@@ -71,28 +58,9 @@ __host__ inline void run_grid_mode(
 
     const int rho_avg_dim = 4;
 
-
-    const float host_GammaLR0 = host_Gamma_L0 + host_Gamma_R0;
-    const float host_omega = 2.0f * M_PIf * nu;
-    const float host_pi_alpha = M_PIf * alpha;
-
     const int host_N_points = N_points_eps0_range * N_points_A_range;
 
-    std::cout << " unrolled_option: " << unrolled_option << std::endl;
-    std::cout << " eps0 range: " << eps0_min << " .. " << eps0_max << std::endl;
-    std::cout << " A range   : " << A_min << " .. " << A_max << std::endl;
     std::cout << " N_points  : " << host_N_points << std::endl;
-    std::cout << " N_points_eps0_range: " << N_points_eps0_range << std::endl;
-    std::cout << " N_points_A_range   : " << N_points_A_range << std::endl;
-
-    std::cout << " Gamma_L0: " << host_Gamma_L0 << std::endl;
-    std::cout << " Gamma_R0: " << host_Gamma_R0 << std::endl;
-    //std::cout << " muL: " << host_muL << std::endl;
-    //std::cout << " muR: " << host_muR << std::endl;
-    //std::cout << " T_K: " << T_K << std::endl;
-
-    std::cout << " Gamma_eg0: "  << host_Gamma_eg0  << std::endl;
-    std::cout << " Gamma_phi0: " << host_Gamma_phi0 << std::endl;
 
 
 
@@ -123,60 +91,8 @@ __host__ inline void run_grid_mode(
     gpuCheck(cudaMemcpy(d_eps0, eps0_list.data(), host_N_points * sizeof(float), cudaMemcpyHostToDevice), "cudaMemcpy eps0");
     gpuCheck(cudaMemcpy(d_A, A_list.data(), host_N_points * sizeof(float), cudaMemcpyHostToDevice), "cudaMemcpy A");
 
-    
-    // when delta_L, delta_R are zero. exact solution
-    const float radical = std::sqrt(1 + m * m * (B * B - 1) * host_delta_C * host_delta_C);
-    const float host_epsilon_L = (B + radical) / (m * (B * B - 1));
-    const float host_epsilon_R = (B - radical) / (m * (B * B - 1));
-
-
-    //const float host_one_div_m = 1.f / host_m;
-
-    const float host_pi_alpha_delta_C = host_pi_alpha * host_delta_C;
-    const float host_pi_alpha_delta_L = host_pi_alpha * host_delta_L;
-    const float host_pi_alpha_delta_R = host_pi_alpha * host_delta_R;
-
-    const float host_beta = host_delta_C * host_delta_C / (omega_c_norm * omega_c_norm);
-    const float host_Gamma_eg0_norm = host_Gamma_eg0 * expf(host_beta);
-
-
-
-
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
-    gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
-    gpuCheck(cudaMemcpyToSymbol(epsilon_R, &host_epsilon_R, sizeof(float)), "cudaMemcpyToSymbol epsilon_R");
-    gpuCheck(cudaMemcpyToSymbol(epsilon_L, &host_epsilon_L, sizeof(float)), "cudaMemcpyToSymbol epsilon_L");
-
-    gpuCheck(cudaMemcpyToSymbol(delta_C, &host_delta_C, sizeof(float)), "cudaMemcpyToSymbol delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_C, &host_pi_alpha_delta_C, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_L, &host_pi_alpha_delta_L, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_L");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_R, &host_pi_alpha_delta_R, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_R");
-
-    //cudaMemcpyToSymbol(delta_C, &host_delta_C, sizeof(float));
-    //cudaMemcpyToSymbol(delta_L, &host_delta_L, sizeof(float));
-    //cudaMemcpyToSymbol(delta_R, &host_delta_R, sizeof(float));
-
-    gpuCheck(cudaMemcpyToSymbol(rho00_init, &host_rho00_init, sizeof(float)), "cudaMemcpyToSymbol rho00_init");
-    gpuCheck(cudaMemcpyToSymbol(rho11_init, &host_rho11_init, sizeof(float)), "cudaMemcpyToSymbol rho11_init");
-    gpuCheck(cudaMemcpyToSymbol(rho22_init, &host_rho22_init, sizeof(float)), "cudaMemcpyToSymbol rho22_init");
-    gpuCheck(cudaMemcpyToSymbol(rho33_init, &host_rho33_init, sizeof(float)), "cudaMemcpyToSymbol rho33_init");
 
     gpuCheck(cudaMemcpyToSymbol(Npoints, &host_N_points, sizeof(int)), "cudaMemcpyToSymbol Npoints");
-    gpuCheck(cudaMemcpyToSymbol(N_steps_per_period, &host_N_steps_per_period, sizeof(int)), "cudaMemcpyToSymbol N_steps_per_period");
-    gpuCheck(cudaMemcpyToSymbol(N_periods, &host_N_periods, sizeof(int)), "cudaMemcpyToSymbol N_periods");
-    gpuCheck(cudaMemcpyToSymbol(dt, &host_dt, sizeof(float)), "cudaMemcpyToSymbol dt");
-
-    gpuCheck(cudaMemcpyToSymbol(Gamma_LR0, &host_GammaLR0, sizeof(float)), "cudaMemcpyToSymbol Gamma_LR0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_L0,  &host_Gamma_L0, sizeof(float)), "cudaMemcpyToSymbol Gamma_L0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_R0,  &host_Gamma_R0, sizeof(float)), "cudaMemcpyToSymbol Gamma_R0");
-    //gpuCheck(cudaMemcpyToSymbol(muL, &host_muL, sizeof(float)), "cudaMemcpyToSymbol muL");
-    //gpuCheck(cudaMemcpyToSymbol(muR, &host_muR, sizeof(float)), "cudaMemcpyToSymbol muR");
-    //gpuCheck(cudaMemcpyToSymbol(kT, &host_kT, sizeof(float)), "cudaMemcpyToSymbol kT");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_eg0,  &host_Gamma_eg0,  sizeof(float)), "cudaMemcpyToSymbol Gamma_eg0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_phi0, &host_Gamma_phi0, sizeof(float)), "cudaMemcpyToSymbol Gamma_phi0");
-
-    gpuCheck(cudaMemcpyToSymbol(beta,           &host_beta,           sizeof(float)), "cudaMemcpyToSymbol beta");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_eg0_norm, &host_Gamma_eg0_norm, sizeof(float)), "cudaMemcpyToSymbol Gamma_eg0_norm");
 
 
 
@@ -189,12 +105,6 @@ __host__ inline void run_grid_mode(
 
     // number of blocks to cover all Npoints
     int blocks;
-    
-
-    // Calculate shared memory size: pairs per block = threads_per_block / 2, 52 floats per pair
-    //size_t pairs_per_block = threads_per_block / 2;
-    //size_t shared_bytes = pairs_per_block * 52 * sizeof(float);  // e.g., 64 * 52 * 4 = 13312 bytes
-    //printf("Launching kernel: blocks=%d threads_per_block=%d shared_bytes=%zu\n", blocks, threads_per_block, shared_bytes);
 
 
 
@@ -362,29 +272,6 @@ __host__ inline void run_grid_mode(
 
     if (ouput_option == "bin_file") {
 
-        /*
-        // Open binary file for writing
-        std::ofstream ofs(path_output_bin_file_gridmode, std::ios::binary);
-        if (!ofs) {
-            std::cerr << "Failed to open file!" << std::endl;
-            return;
-        }
-
-        // Write data to the binary file
-        for (int t_idx = 0; t_idx < host_N_points; t_idx++) {
-            // Write eps0 and A
-            ofs.write(reinterpret_cast<char*>(&eps0_list[t_idx]), sizeof(float));
-            ofs.write(reinterpret_cast<char*>(&A_list[t_idx]), sizeof(float));
-
-            // Write 4 columns from rho_avg
-            size_t base = t_idx * rho_avg_dim;
-            for (int k = 0; k < rho_avg_dim; k++) {
-                ofs.write(reinterpret_cast<char*>(&rho_avg[base + k]), sizeof(float));
-            }
-        }
-        ofs.close();
-        */
-
         //// Variables for timing
         //cudaEvent_t start, stop;
         //// Create events to track the start and stop times
@@ -449,7 +336,7 @@ __host__ inline void run_grid_mode(
             eps0_min, eps0_max, A_min, A_max,
             host_N_points, N_points_eps0_range, N_points_A_range,
             host_N_steps_per_period, host_N_periods, N_periods_avg,
-            host_dt, nu, alpha, B, m,
+            nu, alpha, B, m,
             path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
             host_delta_C, host_delta_L, host_delta_R,
@@ -467,7 +354,7 @@ __host__ inline void run_grid_mode(
             eps0_min, eps0_max, A_min, A_max,
             host_N_points, N_points_eps0_range, N_points_A_range,
             host_N_steps_per_period, host_N_periods, N_periods_avg,
-            host_dt, nu, alpha, B, m,
+            nu, alpha, B, m,
             path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
             host_delta_C, host_delta_L, host_delta_R

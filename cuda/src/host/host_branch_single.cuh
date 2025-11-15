@@ -51,15 +51,6 @@ __host__ inline void run_single_mode(
     const bool quasi_static_ensemble_dephasing_flag,
     float* eps_offsets,
 
-    const float host_dt,
-    const float nu,
-    const float alpha,
-
-    const float host_rho00_init, const float host_rho11_init,
-    const float host_rho22_init, const float host_rho33_init,
-
-    const float host_delta_C, const float host_delta_L, const float host_delta_R,
-
     const std::string& path_dynamics_single_mode_output_csv,
     const std::string& path_output_bin_file_singlemode,
     const std::string& output_option,
@@ -67,39 +58,13 @@ __host__ inline void run_single_mode(
     const bool single_mode_log_option,
     const std::string& path_dynamics_single_mode_output_log_csv,
     const std::string& path_dynamics_single_mode_output_log_hdf5,
-    const std::string& threads_per_traj_opt,
-
-    const float host_Gamma_L0,
-    const float host_Gamma_R0,
-    const float host_Gamma_eg0,
-    const float omega_c_norm,
-    const float host_Gamma_phi0
+    const std::string& threads_per_traj_opt
 )
 {
 
     std::cout << "Launching run_single_mode branch" << std::endl;
 
-
-    const float host_GammaLR0 = host_Gamma_L0 + host_Gamma_R0;
-    const float host_omega = 2.0f * M_PIf * nu;
-    const float host_pi_alpha = M_PIf * alpha;
     const int N_steps_total = host_N_steps_per_period * host_N_periods;
-
-    std::cout << " eps0_target: " << eps0_target << std::endl;
-    std::cout << " A_target   : " << A_target << std::endl;
-
-    std::cout << " unrolled_option: " << unrolled_option << std::endl;
-
-    std::cout << " Gamma_L0: " << host_Gamma_L0 << std::endl;
-    std::cout << " Gamma_R0: " << host_Gamma_R0 << std::endl;
-    //std::cout << " muL: " << host_muL << std::endl;
-    //std::cout << " muR: " << host_muR << std::endl;
-    //std::cout << " T_K: " << T_K << std::endl;
-
-    std::cout << " Gamma_eg0: "  << host_Gamma_eg0  << std::endl;
-    std::cout << " Gamma_phi0: " << host_Gamma_phi0 << std::endl;
-
-
 
     std::vector<float> rho_avg(16);
 
@@ -115,72 +80,10 @@ __host__ inline void run_single_mode(
     gpuCheck(cudaMalloc(&d_time_dynamics, N_steps_total * sizeof(float)), "cudaMalloc d_time_dynamics");
     gpuCheck(cudaMalloc(&d_eps_dynamics, N_steps_total * sizeof(float)), "cudaMalloc d_eps_dynamics");
 
-
-
     // allocate host vectors
     std::vector<float> h_rho_dynamics(N_steps_total * 4);
     std::vector<float> h_time_dynamics(N_steps_total);
     std::vector<float> h_eps_dynamics(N_steps_total);
-
-    const float radical = std::sqrt(1 + m * m * (B * B - 1) * host_delta_C * host_delta_C);
-    const float host_epsilon_L = (B + radical) / (m * (B * B - 1));
-    const float host_epsilon_R = (B - radical) / (m * (B * B - 1));
-
-    //const float host_one_div_m = 1.f / host_m;
-
-    const float host_pi_alpha_delta_C = host_pi_alpha * host_delta_C;
-    const float host_pi_alpha_delta_L = host_pi_alpha * host_delta_L;
-    const float host_pi_alpha_delta_R = host_pi_alpha * host_delta_R;
-
-    const float host_beta = host_delta_C * host_delta_C / (omega_c_norm * omega_c_norm);
-    const float host_Gamma_eg0_norm = host_Gamma_eg0 * expf(host_beta);
-
-
-    std::cout << "debugging: host_delta_C   : " << host_delta_C << std::endl;
-    std::cout << "debugging: omega_c_norm   : " << omega_c_norm << std::endl;
-    std::cout << "debugging: host_beta   : " << host_beta << std::endl;
-    std::cout << "debugging: host_Gamma_eg0   : " << host_Gamma_eg0 << std::endl;
-    std::cout << "debugging: host_Gamma_eg0_norm   : " << host_Gamma_eg0_norm << std::endl;
-
-
-
-
-
-
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
-    gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
-    gpuCheck(cudaMemcpyToSymbol(epsilon_R, &host_epsilon_R, sizeof(float)), "cudaMemcpyToSymbol epsilon_R");
-    gpuCheck(cudaMemcpyToSymbol(epsilon_L, &host_epsilon_L, sizeof(float)), "cudaMemcpyToSymbol epsilon_L");
-
-    gpuCheck(cudaMemcpyToSymbol(delta_C, &host_delta_C, sizeof(float)), "cudaMemcpyToSymbol delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_C, &host_pi_alpha_delta_C, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_L, &host_pi_alpha_delta_L, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_L");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_R, &host_pi_alpha_delta_R, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_R");
-
-    //cudaMemcpyToSymbol(delta_C, &host_delta_C, sizeof(float));
-    //cudaMemcpyToSymbol(delta_L, &host_delta_L, sizeof(float));
-    //cudaMemcpyToSymbol(delta_R, &host_delta_R, sizeof(float));
-
-    gpuCheck(cudaMemcpyToSymbol(rho00_init, &host_rho00_init, sizeof(float)), "cudaMemcpyToSymbol rho00_init");
-    gpuCheck(cudaMemcpyToSymbol(rho11_init, &host_rho11_init, sizeof(float)), "cudaMemcpyToSymbol rho11_init");
-    gpuCheck(cudaMemcpyToSymbol(rho22_init, &host_rho22_init, sizeof(float)), "cudaMemcpyToSymbol rho22_init");
-    gpuCheck(cudaMemcpyToSymbol(rho33_init, &host_rho33_init, sizeof(float)), "cudaMemcpyToSymbol rho33_init");
-
-    gpuCheck(cudaMemcpyToSymbol(N_steps_per_period, &host_N_steps_per_period, sizeof(int)), "cudaMemcpyToSymbol N_steps_per_period");
-    gpuCheck(cudaMemcpyToSymbol(N_periods, &host_N_periods, sizeof(int)), "cudaMemcpyToSymbol N_periods");
-    gpuCheck(cudaMemcpyToSymbol(dt, &host_dt, sizeof(float)), "cudaMemcpyToSymbol dt");
-
-    gpuCheck(cudaMemcpyToSymbol(Gamma_LR0, &host_GammaLR0, sizeof(float)), "cudaMemcpyToSymbol Gamma_LR0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_L0,  &host_Gamma_L0, sizeof(float)), "cudaMemcpyToSymbol Gamma_L0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_R0,  &host_Gamma_R0, sizeof(float)), "cudaMemcpyToSymbol Gamma_R0");
-    //gpuCheck(cudaMemcpyToSymbol(muL, &host_muL, sizeof(float)), "cudaMemcpyToSymbol muL");
-    //gpuCheck(cudaMemcpyToSymbol(muR, &host_muR, sizeof(float)), "cudaMemcpyToSymbol muR");
-    //gpuCheck(cudaMemcpyToSymbol(kT, &host_kT, sizeof(float)), "cudaMemcpyToSymbol kT");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_eg0,  &host_Gamma_eg0,  sizeof(float)), "cudaMemcpyToSymbol Gamma_eg0");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_phi0, &host_Gamma_phi0, sizeof(float)), "cudaMemcpyToSymbol Gamma_phi0");
-
-    gpuCheck(cudaMemcpyToSymbol(beta,           &host_beta,           sizeof(float)), "cudaMemcpyToSymbol beta");
-    gpuCheck(cudaMemcpyToSymbol(Gamma_eg0_norm, &host_Gamma_eg0_norm, sizeof(float)), "cudaMemcpyToSymbol Gamma_eg0_norm");
 
 
 
