@@ -105,7 +105,6 @@ int main(int argc, char** argv)
 
     // Extract parameters
     const std::string grid_single_mode = config["grid_single_mode"];
-    const std::string avg_periods_ouput_option = config["avg_periods_ouput_option"];
     const std::string ouput_option = config["ouput_option"];
     const std::string unrolled_option = config["unrolled_option"];
     const std::string ram_shared_mmap_name = config["ram_shared_mmap_name"];
@@ -175,7 +174,6 @@ int main(int argc, char** argv)
     std::cout << "\n--- Listing received arguments ---\n";
 
     std::cout << "1.  grid_single_mode: " << grid_single_mode << "\n";
-    std::cout << "2.  avg_periods_ouput_option: " << avg_periods_ouput_option << "\n";
     std::cout << "3.  ouput_option: " << ouput_option << "\n";
     std::cout << "4.  unrolled_option: " << unrolled_option << "\n";
     std::cout << "5.  ram_shared_mmap_name: " << ram_shared_mmap_name << "\n";
@@ -246,13 +244,6 @@ int main(int argc, char** argv)
           grid_single_mode == "single" ||
           grid_single_mode == "grid_single")) {
         std::cerr << "ERROR: grid_single_mode must be 'grid' or 'single' or 'grid_single'. Got '" << grid_single_mode << "'\n";
-        std::exit(EXIT_FAILURE);
-    }
-
-    if (!(avg_periods_ouput_option == "last" /*||
-          avg_periods_ouput_option == "last_2last" ||
-          avg_periods_ouput_option == "whole_last_2last_3last"*/)) {
-        std::cerr << "ERROR: avg_periods_ouput_option must be 'last' or 'last_2last' or 'whole_last_2last_3last'. Got '" << avg_periods_ouput_option << "'\n";
         std::exit(EXIT_FAILURE);
     }
 
@@ -386,33 +377,6 @@ int main(int argc, char** argv)
 
 
 
-
-
-    // Runtime parameters
-    std::cout << "Runtime params:\n";
-    std::cout << " steps/period: " << N_steps_period
-        << "  N_periods: " << N_periods
-        << "  N_periods_avg: " << N_periods_avg
-        << "  dt: " << dt << std::endl;
-    std::cout << " N_samples_noise: " << N_samples_noise << std::endl;
-    std::cout << " quasi_static_ensemble_dephasing_flag: " << quasi_static_ensemble_dephasing_flag << std::endl;
-    std::cout << " total steps: " << N_steps_period * N_periods << std::endl;
-    std::cout << " delta_C: " << delta_C << std::endl;
-    std::cout << " delta_L: " << delta_L << std::endl;
-    std::cout << " delta_R: " << delta_R << std::endl;
-    std::cout << " g_en: " << g_en << std::endl;
-    std::cout << " g_phi: " << g_phi << std::endl;
-    std::cout << " gL_en: " << gL_en << std::endl;
-    std::cout << " gL_phi: " << gL_phi << std::endl;
-    std::cout << " gR_en: " << gR_en << std::endl;
-    std::cout << " gR_phi: " << gR_phi << std::endl;
-
-    std::cout << " alpha: " << alpha << "  nu: " << nu << std::endl;
-
-    std::cout << " rho00_init: " << rho00_init << "  rho11_init: " << rho11_init << std::endl;
-    std::cout << " rho22_init: " << rho22_init << "  rho33_init: " << rho33_init << std::endl;
-
-
     float* eps_offsets;
 
     if (quasi_static_ensemble_dephasing_flag){
@@ -446,7 +410,7 @@ int main(int argc, char** argv)
             N_steps_period, N_periods, N_periods_avg,
             N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
             dt, nu, alpha,
-            path_output_csv, path_output_bin_file_gridmode, avg_periods_ouput_option, ouput_option, unrolled_option,
+            path_output_csv, path_output_bin_file_gridmode, ouput_option, unrolled_option,
             ram_shared_mmap_name, threads_per_traj_opt,
             rho00_init, rho11_init, rho22_init, rho33_init,
             delta_C, delta_L, delta_R, g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,

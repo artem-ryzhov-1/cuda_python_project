@@ -11,7 +11,6 @@ from numpy import nan, isnan
 @dataclass
 class SimulationConfig:
     grid_single_mode: str
-    avg_periods_ouput_option: str
     ouput_option: str
     unrolled_option: str
     ram_shared_mmap_name: str

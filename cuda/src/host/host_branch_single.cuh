@@ -125,12 +125,6 @@ __host__ inline void run_single_mode(
     std::vector<float> h_time_dynamics(N_steps_total);
     std::vector<float> h_eps_dynamics(N_steps_total);
 
-
-    // when delta_L, delta_R are non-zero. probably approximate solution
-    //const float host_epsilon_R = 1 / (m * (B + 1)) + (m * (B + 1) * host_delta_L * host_delta_L) / (2 * B) - (m * host_delta_C * host_delta_C) / 2;
-    //const float host_epsilon_L = 1 / (m * (B - 1)) - (m * (B - 1) * host_delta_R * host_delta_R) / (2 * B) + (m * host_delta_C * host_delta_C) / 2;
-
-    // when delta_L, delta_R are zero. exact solution
     const float radical = std::sqrt(1 + m * m * (B * B - 1) * host_delta_C * host_delta_C);
     const float host_epsilon_L = (B + radical) / (m * (B * B - 1));
     const float host_epsilon_R = (B - radical) / (m * (B * B - 1));
@@ -157,9 +151,6 @@ __host__ inline void run_single_mode(
 
 
     gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
-    //gpuCheck(cudaMemcpyToSymbol(B, &host_B, sizeof(float)), "cudaMemcpyToSymbol B");
-    //cudaMemcpyToSymbol(m, &host_m, sizeof(float));
-    //gpuCheck(cudaMemcpyToSymbol(one_div_m, &host_one_div_m, sizeof(float)), "cudaMemcpyToSymbol one_div_m");
     gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
     gpuCheck(cudaMemcpyToSymbol(epsilon_R, &host_epsilon_R, sizeof(float)), "cudaMemcpyToSymbol epsilon_R");
     gpuCheck(cudaMemcpyToSymbol(epsilon_L, &host_epsilon_L, sizeof(float)), "cudaMemcpyToSymbol epsilon_L");
@@ -178,7 +169,6 @@ __host__ inline void run_single_mode(
     gpuCheck(cudaMemcpyToSymbol(rho22_init, &host_rho22_init, sizeof(float)), "cudaMemcpyToSymbol rho22_init");
     gpuCheck(cudaMemcpyToSymbol(rho33_init, &host_rho33_init, sizeof(float)), "cudaMemcpyToSymbol rho33_init");
 
-    //gpuCheck(cudaMemcpyToSymbol(Npoints, &host_N_points, sizeof(int)), "cudaMemcpyToSymbol Npoints");
     gpuCheck(cudaMemcpyToSymbol(N_steps_per_period, &host_N_steps_per_period, sizeof(int)), "cudaMemcpyToSymbol N_steps_per_period");
     gpuCheck(cudaMemcpyToSymbol(N_periods, &host_N_periods, sizeof(int)), "cudaMemcpyToSymbol N_periods");
     gpuCheck(cudaMemcpyToSymbol(dt, &host_dt, sizeof(float)), "cudaMemcpyToSymbol dt");

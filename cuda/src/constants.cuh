@@ -13,20 +13,6 @@ constexpr float M_PIf = 3.1415926535897932384626433832f;
 #endif
 
 
-
-////////////////////////////
-
-// Trajectory-per-warp settings
-
-
-constexpr int K_TRAJ_PER_WARP = 8;
-
-constexpr int WARP_SIZE = 32;           // should only be 32. macro var intriduces only for convinience
-constexpr int LANE_GROUP_SIZE = WARP_SIZE / K_TRAJ_PER_WARP;
-
-
-
-
 ////////////////////////////
 
 
@@ -91,14 +77,6 @@ __device__ __constant__ float Gamma_eg0_norm;
 __device__ __constant__ float Gamma_phi0;
 
 
-
-//struct WarpLaneInfo {
-//    int lane_id;
-//    int group_id;
-//    int lane_in_group;
-//    int group_base_lane;
-//    unsigned int group_mask;
-//};
 
 
 

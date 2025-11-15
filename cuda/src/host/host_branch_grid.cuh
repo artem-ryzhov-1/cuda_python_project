@@ -54,7 +54,6 @@ __host__ inline void run_grid_mode(
     const float alpha,
     const std::string& path_output_csv,
     const std::string& path_output_bin_file_gridmode,
-    const std::string& avg_periods_ouput_option,
     const std::string& ouput_option,
     const std::string& unrolled_option,
     const std::string& ram_shared_mmap_name,
@@ -78,20 +77,7 @@ __host__ inline void run_grid_mode(
 
     std::cout << "Launching run_grid_mode branch" << std::endl;
 
-    int rho_avg_dim, rho_avg_dim_u;
-
-    if (avg_periods_ouput_option == "last") {
-        rho_avg_dim = 4;
-        rho_avg_dim_u = 4u;
-    }
-    else if (avg_periods_ouput_option == "last_2last") {
-        rho_avg_dim = 8;
-        rho_avg_dim_u = 8u;
-    }
-    else if (avg_periods_ouput_option == "whole_last_2last_3last") {
-        rho_avg_dim = 16;
-        rho_avg_dim_u = 16u;
-    }
+    const int rho_avg_dim = 4;
 
 
     const float host_GammaLR0 = host_Gamma_L0 + host_Gamma_R0;
@@ -146,11 +132,6 @@ __host__ inline void run_grid_mode(
     gpuCheck(cudaMemcpy(d_A, A_list.data(), host_N_points * sizeof(float), cudaMemcpyHostToDevice), "cudaMemcpy A");
 
     
-    
-    // when delta_L, delta_R are non-zero. probably approximate solution
-    //const float host_epsilon_R = 1 / (m * (B + 1)) + (m * (B + 1) * host_delta_L * host_delta_L) / (2 * B) - (m * host_delta_C * host_delta_C) / 2;
-    //const float host_epsilon_L = 1 / (m * (B - 1)) - (m * (B - 1) * host_delta_R * host_delta_R) / (2 * B) + (m * host_delta_C * host_delta_C) / 2;
-
     // when delta_L, delta_R are zero. exact solution
     const float radical = std::sqrt(1 + m * m * (B * B - 1) * host_delta_C * host_delta_C);
     const float host_epsilon_L = (B + radical) / (m * (B * B - 1));
@@ -170,9 +151,6 @@ __host__ inline void run_grid_mode(
 
 
     gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
-    //gpuCheck(cudaMemcpyToSymbol(B, &host_B, sizeof(float)), "cudaMemcpyToSymbol B");
-    //cudaMemcpyToSymbol(m, &host_m, sizeof(float));
-    //gpuCheck(cudaMemcpyToSymbol(one_div_m, &host_one_div_m, sizeof(float)), "cudaMemcpyToSymbol one_div_m");
     gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
     gpuCheck(cudaMemcpyToSymbol(epsilon_R, &host_epsilon_R, sizeof(float)), "cudaMemcpyToSymbol epsilon_R");
     gpuCheck(cudaMemcpyToSymbol(epsilon_L, &host_epsilon_L, sizeof(float)), "cudaMemcpyToSymbol epsilon_L");
@@ -480,12 +458,12 @@ __host__ inline void run_grid_mode(
             host_N_points, N_points_eps0_range, N_points_A_range,
             host_N_steps_per_period, host_N_periods, N_periods_avg,
             host_dt, nu, alpha, B, m,
-            path_output_csv, avg_periods_ouput_option, ouput_option, unrolled_option,
+            path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
             host_delta_C, host_delta_L, host_delta_R,
             g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi,
 
-            rho_avg_dim, rho_avg_dim_u
+            rho_avg_dim
         );
     }
     else if (ouput_option == "ram")
@@ -499,7 +477,7 @@ __host__ inline void run_grid_mode(
             host_N_points, N_points_eps0_range, N_points_A_range,
             host_N_steps_per_period, host_N_periods, N_periods_avg,
             host_dt, nu, alpha, B, m,
-            path_output_csv, avg_periods_ouput_option, ouput_option, unrolled_option,
+            path_output_csv, ouput_option, unrolled_option,
             host_rho00_init, host_rho11_init, host_rho22_init, host_rho33_init,
             host_delta_C, host_delta_L, host_delta_R,
             g_en, g_phi, gL_en, gL_phi, gR_en, gR_phi

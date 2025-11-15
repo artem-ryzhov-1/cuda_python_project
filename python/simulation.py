@@ -93,7 +93,6 @@ def run_simulation(simr):
     ram_shared_mmap_name = "MySimSharedMemory"  # can also generate dynamically if needed
     run_cuda_program_option = True
     
-    avg_periods_ouput_option = "last" # "last" or "last_2last"
     unrolled_option = "unrolled" # "as_arrays" or "unrolled"
     
     ouput_option = "bin_file" # "ssd_csv" or "ram" or "bin_file"
@@ -269,7 +268,6 @@ def run_simulation(simr):
     
     cfg = SimulationConfig(
         grid_single_mode=grid_single_mode,
-        avg_periods_ouput_option=avg_periods_ouput_option,
         ouput_option=ouput_option,
         unrolled_option=unrolled_option,
         single_mode_log_option=single_mode_log_option,
