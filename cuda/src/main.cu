@@ -481,9 +481,11 @@ int main(int argc, char** argv)
             threads_per_traj_opt
         );
     }
-
-
-
+    
+    
+    if (quasi_static_ensemble_dephasing_flag) {
+        cudaFree(eps_offsets);
+    }
 
     cudaDeviceReset();
 

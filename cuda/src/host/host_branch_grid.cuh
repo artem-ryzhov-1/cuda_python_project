@@ -370,9 +370,6 @@ __host__ inline void run_grid_mode(
     cudaFree(d_A);
     cudaFree(d_rho_avg);
 
-    if (quasi_static_ensemble_dephasing_flag) {
-        cudaFree(eps_offsets);
-    }
 }
 
 
