@@ -2,6 +2,10 @@
 # scripts/setup_colab.sh
 ########################################
 
+#!/bin/bash
+cd "$(dirname "$0")/.."   # go to repo root
+echo "Now working in: $(pwd)"
+
 %%bash
 
 # Install necessary packages for Colab

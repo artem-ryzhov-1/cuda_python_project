@@ -329,15 +329,11 @@ class InterferogramPlot:
         # Version widgets - styled invisible for panel serve compatibility
         self.data_version_widget = pn.widgets.IntInput(
             value=0,
-            width=1,
-            height=1,
-            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+            visible=False  # Better than CSS tricks
         )
         self.marker_version_widget = pn.widgets.IntInput(
             value=0,
-            width=1,
-            height=1,
-            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+            visible=False
         )
         
         # Watch level changes
@@ -792,9 +788,7 @@ class DynamicsPlot:
         # Version widget - styled invisible for panel serve compatibility
         self.dynamics_version_widget = pn.widgets.IntInput(
             value=0,
-            width=1,
-            height=1,
-            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+            visible=False
         )
         
         self.show_toggle.param.watch(self._on_show_toggle, 'value')
@@ -803,15 +797,11 @@ class DynamicsPlot:
         # Epsilon bound widgets - invisible
         self.epsilon_L_widget = pn.widgets.FloatInput(
             value=0.0,
-            width=1,
-            height=1,
-            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+            visible=False
         )
         self.epsilon_R_widget = pn.widgets.FloatInput(
             value=0.0,
-            width=1,
-            height=1,
-            styles={'opacity': '0', 'position': 'absolute', 'pointer-events': 'none', 'z-index': '-1'}
+            visible=False
         )
     
     def _on_show_toggle(self, event):
@@ -1608,7 +1598,7 @@ class InteractiveInterferogramDynamics:
         self._generate_dynamics(eps0, A, update_params=True)
     
     def create_dashboard(self):
-        """Create the complete Panel dashboard."""
+        """Create the complete Panel dashboard with direct Bokeh integration."""
         
         # Button callbacks
         self.update_button.on_click(self._update_and_regenerate_interferogram)
@@ -1616,40 +1606,55 @@ class InteractiveInterferogramDynamics:
         self.regenerate_both_button.on_click(self._regenerate_both)
         self.dynamics.generate_button.on_click(self._on_manual_dynamics_generate)
         
+        # Create a custom Panel component that wraps the interferogram with callbacks
+        class InterferogramPane(pn.pane.HoloViews):
+            """Custom pane that attaches Bokeh events."""
+            
+            def __init__(self, parent_app, **params):
+                self.parent_app = parent_app
+                super().__init__(**params)
+                
+            def _get_model(self, doc, root=None, parent=None, comm=None):
+                """Override to attach events after model creation."""
+                model = super()._get_model(doc, root, parent, comm)
+                
+                # Attach Bokeh events
+                if model is not None:
+                    from bokeh.events import Tap, MouseMove
+                    
+                    def on_tap_event(event):
+                        if hasattr(event, 'x') and hasattr(event, 'y'):
+                            if event.x is not None and event.y is not None:
+                                self.parent_app._on_interferogram_click(event.x, event.y)
+                                print(f"✅ Tap at: ({event.x:.6f}, {event.y:.6f})")
+                    
+                    def on_hover_event(event):
+                        if hasattr(event, 'x') and hasattr(event, 'y'):
+                            if event.x is not None and event.y is not None:
+                                self.parent_app._on_interferogram_hover(event.x, event.y)
+                    
+                    try:
+                        model.on_event(Tap, on_tap_event)
+                        model.on_event(MouseMove, on_hover_event)
+                        print("✅ Events attached to Bokeh model")
+                    except Exception as e:
+                        print(f"⚠️ Event attachment failed: {e}")
+                
+                return model
+        
+        # Create interferogram with custom pane
         interferogram_dmap = self.interferogram.create_plot()
-    
-        # CRITICAL: Create a STATIC invisible overlay for capturing interactions
-        interaction_overlay = hv.Rectangles([
-            (self.interferogram.eps0_min, self.interferogram.A_min, 
-             self.interferogram.eps0_max, self.interferogram.A_max)
-        ]).opts(
-            alpha=0, 
-            line_alpha=0,
-            tools=['tap', 'hover'],
-            default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
+        
+        interferogram_pane = InterferogramPane(
+            self,
+            object=interferogram_dmap,
+            sizing_mode='fixed',
+            width=800,
+            height=600,
+            backend='bokeh'
         )
         
-        # Create streams attached to the STATIC overlay
-        self.tap_stream = hv.streams.Tap(source=interaction_overlay, x=None, y=None)
-        self.hover_stream = hv.streams.PointerXY(source=interaction_overlay, x=None, y=None)
-        
-        # Callback handlers
-        def on_tap(x, y):
-            if x is not None and y is not None:
-                self._on_interferogram_click(x, y)
-        
-        def on_hover(x, y):
-            if x is not None and y is not None:
-                self._on_interferogram_hover(x, y)
-        
-        # Subscribe to streams
-        self.tap_stream.add_subscriber(on_tap)
-        self.hover_stream.add_subscriber(on_hover)
-        
-        # Combine interferogram with the static interaction overlay
-        interferogram_plot = interferogram_dmap * interaction_overlay
-        
-        # FIXED: New sidebar layout with all 6 buttons properly displayed
+        # Sidebar
         sidebar = pn.Column(
             "## 🎛️ Simulation Parameters",
             pn.layout.Divider(),
@@ -1674,24 +1679,35 @@ class InteractiveInterferogramDynamics:
             self.status_text,
             self.timing_text,
             width=500,
-            sizing_mode='fixed'
+            sizing_mode='fixed',
+            scroll=True
         )
         
+        # Interferogram section
         interferogram_section = pn.Column(
             self.interferogram.get_control_panel(),
-            interferogram_plot,
-            # Include version widgets (invisible but needed for panel serve)
+            interferogram_pane,
             self.interferogram.data_version_widget,
             self.interferogram.marker_version_widget,
             sizing_mode='fixed'
         )
         
+        # Dynamics plot
         dynamics_dmap = self.dynamics.create_plot()
         
-        dynamics_plot_panel = pn.Column(
+        dynamics_pane = pn.pane.HoloViews(
             dynamics_dmap,
-            # Include version widget (invisible but needed for panel serve)
+            sizing_mode='fixed',
+            width=800,
+            height=600,
+            backend='bokeh'
+        )
+        
+        dynamics_plot_panel = pn.Column(
+            dynamics_pane,
             self.dynamics.dynamics_version_widget,
+            self.dynamics.epsilon_L_widget,
+            self.dynamics.epsilon_R_widget,
             sizing_mode='fixed',
             visible=False
         )
@@ -1716,7 +1732,8 @@ class InteractiveInterferogramDynamics:
             pn.layout.Divider(),
             "### Computation Log",
             self.log_display,
-            sizing_mode='fixed'
+            sizing_mode='fixed',
+            scroll=True
         )
         
         dashboard = pn.Row(
@@ -1726,7 +1743,6 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
 
 
 

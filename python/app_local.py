@@ -1,5 +1,5 @@
 ########################################
-# python/app.py
+# python/app_local.py
 ########################################
 
 from pathlib import Path
@@ -37,12 +37,9 @@ print(f"Platform: {platform_type}")
 print(f"Repo directory: {repo_path}")
 
 
-
-
 import panel as pn
 import holoviews as hv
 from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
-
 
 
 # GPU detection and configuration
@@ -86,19 +83,7 @@ if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not CUPY_AVAIL
     render_mode = render_mode.replace('_gpu', '')
 
 
-# Convert to GPU arrays if GPU enabled
-#if self.gpu_enabled and CUPY_AVAILABLE:
-#    eps0_array = cp.asarray(self.eps0_grid)
-#    A_array = cp.asarray(self.A_grid)
-#    data_array = cp.asarray(data)
-#else:
-#    eps0_array = self.eps0_grid
-#    A_array = self.A_grid
-#    data_array = data
-
-
-
-# Enable Panel extension
+# Enable Panel extension - CRITICAL: Must be called before creating any Panel objects
 pn.extension()
 hv.extension('bokeh')
 
@@ -133,6 +118,8 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     dC_default_thresholds=(-3000, 1000),
     
     nu=21,
+    m=10,
+    B=25,
     
     platform_type=platform_type,
     repo_path=repo_path,
@@ -141,13 +128,16 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
 )
 
 
-
-
 # Create the dashboard
 dashboard = app_interferogram_dynamics.create_dashboard()
 
-# Make the dashboard a Panel app (you can wrap it in pn.panel if needed)
-panel_app = pn.Column(dashboard)
+# For panel serve: wrap in a template for better layout
+template = pn.template.FastListTemplate(
+    title="Interactive Interferogram Dynamics",
+    sidebar=[],
+    main=[dashboard],
+    header_background="#2E86AB",
+)
 
-# Serve the app using Panel's server
-panel_app.servable()  # This makes it ready to serve
+# Make it servable
+template.servable()
