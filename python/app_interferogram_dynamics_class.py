@@ -1096,6 +1096,10 @@ class InteractiveInterferogramDynamics:
         self._is_generating = False
         self._is_generating_both = False
         
+        # ADD: Hover state tracking for throttling
+        self._last_hover_coords = (None, None)
+        self._hover_pending = False
+        
         self._create_control_widgets()
         self._generate_interferogram_data()
     
@@ -1240,18 +1244,23 @@ class InteractiveInterferogramDynamics:
         # Update epsilon bounds when delta_C changes
         self._update_epsilon_bounds()
         
-        if self.auto_update_enabled and not self._is_generating:
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            return
+        
+        if self.auto_update_enabled:
             self._update_and_regenerate_interferogram()
-        elif self.auto_update_dynamics_enabled and not self.dynamics.computing:
+        elif self.auto_update_dynamics_enabled:
             # Only regenerate dynamics if it has been computed before
             if self.dynamics.current_eps0 is not None and self.dynamics.current_A is not None:
                 self._regenerate_dynamics_only()
-        elif self.auto_update_both_enabled and not self._is_generating_both:
+        elif self.auto_update_both_enabled:
             self._regenerate_both()
     
     def _update_and_regenerate_interferogram(self, event=None):
         """Update parameters and regenerate interferogram only."""
-        if self._is_generating:
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
             return
         self.sim_params.update_from_sliders()
         self._generate_interferogram_data()
@@ -1262,7 +1271,8 @@ class InteractiveInterferogramDynamics:
             self.dynamics.status_text.object = "**Dynamics:** ⚠️ No position set. Click on interferogram first."
             return
         
-        if self.dynamics.computing:
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
             return
         
         # FIXED: Pass update_params=True so it uses current slider values
@@ -1274,12 +1284,13 @@ class InteractiveInterferogramDynamics:
     
     def _regenerate_both(self, event=None):
         """Regenerate both interferogram and dynamics simultaneously using SimRunGridSingleMode."""
-        if self._is_generating_both:
-            return
-        
         # Check if dynamics position is set
         if self.dynamics.current_eps0 is None or self.dynamics.current_A is None:
             self.status_text.object = "**Status:** ⚠️ Set dynamics position first (click on interferogram)"
+            return
+        
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
             return
         
         self._is_generating_both = True
@@ -1380,8 +1391,9 @@ class InteractiveInterferogramDynamics:
     
     def _generate_interferogram_data(self):
         """Generate interferogram data."""
-        
-        if self._is_generating:
+    
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
             return
         
         self._is_generating = True
@@ -1494,6 +1506,10 @@ class InteractiveInterferogramDynamics:
         if not self.dynamics.enabled or x is None or y is None:
             return
         
+        # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            return
+        
         eps0, A = x, y
         
         # Check if "Auto-Update Both" is active
@@ -1548,20 +1564,35 @@ class InteractiveInterferogramDynamics:
         self.interferogram.marker_version += 1
         if hasattr(self.interferogram, 'marker_version_widget'):
             self.interferogram.marker_version_widget.value = self.interferogram.marker_version
-    
+            
     def _on_interferogram_hover(self, x, y):
-        """Handle hover on interferogram."""
+        """Handle hover on interferogram with throttling to prevent queueing."""
         
         if not self.dynamics.enabled or x is None or y is None:
             return
         
-        # Check for both auto-update modes
-        if self.auto_update_both_enabled:
-            if self.dynamics.hover_active:
-                self._generate_dynamics(x, y, update_params=False)
-        elif self.dynamics.auto_update:
-            if self.dynamics.hover_active:
-                self._generate_dynamics(x, y, update_params=False)
+        # Check if hover mode is active
+        if not (self.auto_update_both_enabled and self.dynamics.hover_active) and \
+           not (self.dynamics.auto_update and self.dynamics.hover_active):
+            return
+        
+        # CRITICAL: If computation is in progress, just store the coordinates
+        # and set a flag - don't queue anything
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            self._last_hover_coords = (x, y)
+            self._hover_pending = True
+            return
+        
+        # If we get here, no computation is in progress
+        # Check if there's a pending hover from during the last computation
+        if self._hover_pending:
+            # Use the stored coordinates (most recent hover position)
+            x, y = self._last_hover_coords
+            self._hover_pending = False
+            self._last_hover_coords = (None, None)
+        
+        # Generate dynamics for current position
+        self._generate_dynamics(x, y, update_params=False)
     
     def _generate_dynamics(self, eps0, A, update_params=False):
         """Generate dynamics for given coordinates.
@@ -1569,6 +1600,14 @@ class InteractiveInterferogramDynamics:
         Args:
             update_params: If True, update parameters from sliders before computing
         """
+        
+        # CRITICAL: Final safety check - skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            return
+        
+        # Clear any pending hover since we're starting a new computation
+        self._hover_pending = False
+        self._last_hover_coords = (None, None)
         
         def log_callback(text):
             self.log_display.object = text
