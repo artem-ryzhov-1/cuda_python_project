@@ -41,47 +41,15 @@ import panel as pn
 import holoviews as hv
 from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
 
-
-# GPU detection and configuration
-CUPY_AVAILABLE = False
-CUDF_AVAILABLE = False
-
-try:
-    import cupy as cp
-    CUPY_AVAILABLE = cp.cuda.is_available()
-    if CUPY_AVAILABLE:
-        print(f"[GPU] CuPy detected - {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
-    else:
-        print("[GPU] CUDA not available")
-except ImportError:
-    print("[GPU] CuPy not available - install cupy for GPU acceleration")
-except Exception as e:
-    print(f"[GPU] CuPy error: {e}")
-
-# Check for cuDF (required for Datashader GPU acceleration)
-try:
-    import cudf
-    CUDF_AVAILABLE = True
-    print("[GPU] cuDF detected - Datashader GPU acceleration available")
-    os.environ['DATASHADER_USE_CUPY'] = '1'
-except ImportError:
-    print("[GPU] cuDF not available - Datashader will use CPU")
-    print("[GPU] Install with: conda install -c rapidsai -c conda-forge cudf")
-except Exception as e:
-    print(f"[GPU] cuDF error: {e}")
-
-CUPY_CUDF_AVAILABLE = CUPY_AVAILABLE and CUDF_AVAILABLE
-
-        
-
-render_mode = 'raster_dynamic' # ['vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu']
+import helpers
 
 
-# Auto-fallback if GPU requested but not available
-if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not CUPY_AVAILABLE:
-    print("[GPU] GPU mode requested but CuPy not available - falling back to CPU version")
-    render_mode = render_mode.replace('_gpu', '')
+CUPY_CUDF_AVAILABLE = helpers.detect_cupy_cudf()
 
+
+# render_mode options: 'raster_dynamic', 'vector', 'raster_static', 'raster_static_gpu', 'raster_dynamic', 'raster_dynamic_gpu'
+
+render_mode = helpers.modify_render_mode('raster_dynamic', CUPY_CUDF_AVAILABLE)
 
 # Enable Panel extension - CRITICAL: Must be called before creating any Panel objects
 pn.extension()
@@ -100,7 +68,7 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     GammaR0_range=(0, 150),
     Gamma_eg0_range=(0, 50),
     Gamma_phi0_range=(0, 100),
-    sigma_eps_range=(1, 10),
+    sigma_eps_range=(0.00001, 0.001),
     N_steps_period_array=(100, 2000),
     N_periods_array=(1, 20),
     N_periods_avg_array=(1, 10),
@@ -110,11 +78,11 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     GammaR0_default=68,
     Gamma_eg0_default=10,
     Gamma_phi0_default=3.6,
-    sigma_eps_default=2.0,
+    sigma_eps_default=0.00015,
     N_steps_period_default=1000,
     N_periods_default=10,
     N_periods_avg_default=1,
-    N_samples_noise_default=100,
+    N_samples_noise_default=5,
     dC_default_thresholds=(-3000, 1000),
     
     nu=21,

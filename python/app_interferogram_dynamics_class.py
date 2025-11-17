@@ -781,8 +781,8 @@ class DynamicsPlot:
         
         self.status_text = pn.pane.Markdown(
             "**Dynamics:** Not computed",
-            width=500,
-            sizing_mode='fixed'
+            width=500#,
+            #sizing_mode='fixed'
         )
         
         # Version widget - styled invisible for panel serve compatibility
@@ -1026,8 +1026,8 @@ class DynamicsPlot:
             pn.Spacer(width=20),
             self.eps0_input,
             self.A_input,
-            self.generate_button,
-            sizing_mode='fixed'
+            self.generate_button#,
+            #sizing_mode='fixed'
         )
 
 
@@ -1146,14 +1146,14 @@ class InteractiveInterferogramDynamics:
         
         self.status_text = pn.pane.Markdown(
             "**Status:** Ready",
-            width=300,
-            sizing_mode='fixed'
+            width=300#,
+            #sizing_mode='fixed'
         )
         
         self.timing_text = pn.pane.Markdown(
             "**Last computation:** N/A",
-            width=300,
-            sizing_mode='fixed'
+            width=300#,
+            #sizing_mode='fixed'
         )
         
         self.log_display = pn.pane.Markdown(
@@ -1626,7 +1626,7 @@ class InteractiveInterferogramDynamics:
                         if hasattr(event, 'x') and hasattr(event, 'y'):
                             if event.x is not None and event.y is not None:
                                 self.parent_app._on_interferogram_click(event.x, event.y)
-                                print(f"✅ Tap at: ({event.x:.6f}, {event.y:.6f})")
+                                #print(f"✅ Tap at: ({event.x:.6f}, {event.y:.6f})")
                     
                     def on_hover_event(event):
                         if hasattr(event, 'x') and hasattr(event, 'y'):
@@ -1636,7 +1636,7 @@ class InteractiveInterferogramDynamics:
                     try:
                         model.on_event(Tap, on_tap_event)
                         model.on_event(MouseMove, on_hover_event)
-                        print("✅ Events attached to Bokeh model")
+                        #print("✅ Events attached to Bokeh model")
                     except Exception as e:
                         print(f"⚠️ Event attachment failed: {e}")
                 
@@ -1679,7 +1679,7 @@ class InteractiveInterferogramDynamics:
             self.status_text,
             self.timing_text,
             width=500,
-            sizing_mode='fixed',
+            #sizing_mode='fixed',
             scroll=True
         )
         
@@ -1688,8 +1688,8 @@ class InteractiveInterferogramDynamics:
             self.interferogram.get_control_panel(),
             interferogram_pane,
             self.interferogram.data_version_widget,
-            self.interferogram.marker_version_widget,
-            sizing_mode='fixed'
+            self.interferogram.marker_version_widget#,
+            #sizing_mode='fixed'
         )
         
         # Dynamics plot
@@ -1708,7 +1708,7 @@ class InteractiveInterferogramDynamics:
             self.dynamics.dynamics_version_widget,
             self.dynamics.epsilon_L_widget,
             self.dynamics.epsilon_R_widget,
-            sizing_mode='fixed',
+            #sizing_mode='fixed',
             visible=False
         )
         
@@ -1717,8 +1717,8 @@ class InteractiveInterferogramDynamics:
             "### Dynamics Plot",
             self.dynamics.get_control_panel(),
             self.dynamics.status_text,
-            dynamics_plot_panel,
-            sizing_mode='fixed'
+            dynamics_plot_panel#,
+            #sizing_mode='fixed'
         )
         
         def update_dynamics_visibility(event):
@@ -1732,14 +1732,14 @@ class InteractiveInterferogramDynamics:
             pn.layout.Divider(),
             "### Computation Log",
             self.log_display,
-            sizing_mode='fixed',
+            #sizing_mode='fixed',
             scroll=True
         )
         
         dashboard = pn.Row(
             sidebar,
-            plot_area,
-            sizing_mode='fixed'
+            plot_area#,
+            #sizing_mode='fixed'
         )
         
         return dashboard

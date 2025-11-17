@@ -1,136 +1,73 @@
 ########################################
-# python/app_colab.py
+# python/helpers.py
 ########################################
 
-"""
-app_colab.py - Colab-compatible launcher for your interferogram app
 
-Add this to your repository and run it in Colab instead of app.py
-"""
+def detect_cupy_cudf():
+    import os
 
-from pathlib import Path
-import sys
-import os
-import panel as pn
-import holoviews as hv
+    # GPU detection and configuration
+    CUPY_AVAILABLE = False
+    CUDF_AVAILABLE = False
 
-# Detect Colab
-try:
-    import google.colab
-    IN_COLAB = True
-    from google.colab.output import eval_js
-    from IPython.display import HTML, IFrame, display
-except ImportError:
-    IN_COLAB = False
-
-# Platform detection
-if 'COLAB_GPU' in os.environ or IN_COLAB:
-    platform_type = 'colab_linux'
-else:
-    if sys.platform.startswith('linux'):
-        if Path('/mnt/c/').exists():
-            platform_type = 'local_wsl2'
+    try:
+        import cupy as cp
+        CUPY_AVAILABLE = cp.cuda.is_available()
+        if CUPY_AVAILABLE:
+            print(f"[GPU] CuPy detected - {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
         else:
-            platform_type = 'local_linux'
-    elif sys.platform.startswith('win'):
-        platform_type = 'local_windows'
+            print("[GPU] CuPy not available - Datashader will use CPU")
+    except ImportError:
+        print("[GPU] CuPy not available - Datashader will use CPU")
+        #print("[GPU] CuPy not available - install cupy for GPU acceleration")
+    except Exception as e:
+        print(f"[GPU] CuPy error: {e}")
+
+    # Check for cuDF (required for Datashader GPU acceleration)
+    try:
+        import cudf
+        CUDF_AVAILABLE = True
+        print("[GPU] cuDF detected - Datashader GPU acceleration available")
+        os.environ['DATASHADER_USE_CUPY'] = '1'
+    except ImportError:
+        print("[GPU] cuDF not available - Datashader will use CPU")
+        #print("[GPU] Install with: conda install -c rapidsai -c conda-forge cudf")
+    except Exception as e:
+        print(f"[GPU] cuDF error: {e}")
+
+    CUPY_CUDF_AVAILABLE = CUPY_AVAILABLE and CUDF_AVAILABLE
+    
+    return CUPY_CUDF_AVAILABLE
+
+# Convert to GPU arrays if GPU enabled
+#if self.gpu_enabled and CUPY_AVAILABLE:
+#    eps0_array = cp.asarray(self.eps0_grid)
+#    A_array = cp.asarray(self.A_grid)
+#    data_array = cp.asarray(data)
+#else:
+#    eps0_array = self.eps0_grid
+#    A_array = self.A_grid
+#    data_array = data
+
+def modify_render_mode(render_mode, CUPY_CUDF_AVAILABLE):
+    # Auto-fallback if GPU requested but not available
+    if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not cupy_available:
+        print("[GPU] GPU mode requested but CuPy not available - falling back to CPU version")
+        render_mode_modified = render_mode.replace('_gpu', '')
+        print(f"Render mode: {render_mode_modified}")
     else:
-        raise RuntimeError("Unsupported platform")
+        render_mode_modified = render_mode
+    return render_mode_modified
 
-# Set repo path
-if platform_type == 'colab_linux':
-    repo_path = Path('/content/cuda_python_project')
-else:
-    repo_path = Path('~/cuda_python_project').expanduser() if platform_type in ['local_linux', 'local_wsl2'] else Path(os.path.expandvars(r'%USERPROFILE%\cuda_python_project'))
 
-print(f"Platform: {platform_type}")
-print(f"Repo directory: {repo_path}")
 
-# GPU detection
-CUPY_AVAILABLE = False
-CUDF_AVAILABLE = False
 
-try:
-    import cupy as cp
-    CUPY_AVAILABLE = cp.cuda.is_available()
-    if CUPY_AVAILABLE:
-        print(f"[GPU] CuPy detected - {cp.cuda.runtime.getDeviceCount()} CUDA device(s) found")
-    else:
-        print("[GPU] CUDA not available")
-except ImportError:
-    print("[GPU] CuPy not available")
-except Exception as e:
-    print(f"[GPU] CuPy error: {e}")
 
-try:
-    import cudf
-    CUDF_AVAILABLE = True
-    print("[GPU] cuDF detected - Datashader GPU acceleration available")
-    os.environ['DATASHADER_USE_CUPY'] = '1'
-except ImportError:
-    print("[GPU] cuDF not available - Datashader will use CPU")
-except Exception as e:
-    print(f"[GPU] cuDF error: {e}")
+def launch_app_colab(dashboard):
+    import panel as pn
+    from IPython.display import display, HTML, IFrame
+    from google.colab.output import eval_js
 
-CUPY_CUDF_AVAILABLE = CUPY_AVAILABLE and CUDF_AVAILABLE
-
-# Render mode
-render_mode = 'raster_dynamic'
-
-# Auto-fallback
-if render_mode in ['raster_static_gpu', 'raster_dynamic_gpu'] and not CUPY_AVAILABLE:
-    print("[GPU] GPU mode requested but CuPy not available - falling back to CPU")
-    render_mode = render_mode.replace('_gpu', '')
-
-# Enable Panel
-pn.extension()
-hv.extension('bokeh')
-
-# Import your app
-from app_interferogram_dynamics_class import InteractiveInterferogramDynamics
-
-# Create app instance
-app_interferogram_dynamics = InteractiveInterferogramDynamics(
-    eps0_min=-0.006,
-    eps0_max=0.006,
-    A_min=0.0,
-    A_max=0.01,
-    N_points_target=500_000,
-    delta_C_range=(0, 0.001),
-    GammaL0_range=(0, 1000),
-    GammaR0_range=(0, 150),
-    Gamma_eg0_range=(0, 50),
-    Gamma_phi0_range=(0, 100),
-    sigma_eps_range=(1, 10),
-    N_steps_period_array=(100, 2000),
-    N_periods_array=(1, 20),
-    N_periods_avg_array=(1, 10),
-    N_samples_noise_array=(0, 1000),
-    delta_C_default=0.0003,
-    GammaL0_default=420,
-    GammaR0_default=68,
-    Gamma_eg0_default=10,
-    Gamma_phi0_default=3.6,
-    sigma_eps_default=2.0,
-    N_steps_period_default=1000,
-    N_periods_default=10,
-    N_periods_avg_default=1,
-    N_samples_noise_default=100,
-    dC_default_thresholds=(-3000, 1000),
-    nu=21,
-    m=10,
-    B=25,
-    platform_type=platform_type,
-    repo_path=repo_path,
-    cmap_name='fire',
-    render_mode=render_mode
-)
-
-# Create dashboard
-dashboard = app_interferogram_dynamics.create_dashboard()
-
-# CRITICAL: Different handling for Colab vs local
-if IN_COLAB:
     print("\n" + "="*70)
     print("🚀 LAUNCHING IN COLAB MODE")
     print("="*70)
@@ -235,15 +172,7 @@ if IN_COLAB:
         print(f"\n❌ Failed to get Colab URL: {e}")
         print(f"💡 Try accessing manually: http://localhost:{PORT}")
 
-else:
-    # Local mode - use template
-    print("\n🖥️ LOCAL MODE - Use 'panel serve app_colab.py --show' instead")
-    
-    template = pn.template.FastListTemplate(
-        title="Interactive Interferogram Dynamics",
-        sidebar=[],
-        main=[dashboard],
-        header_background="#2E86AB",
-    )
-    
-    template.servable()
+
+
+
+

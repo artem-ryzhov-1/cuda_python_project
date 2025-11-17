@@ -1,6 +1,6 @@
-REM ########################################
-REM # scripts/build_local_windows.bat
-REM ########################################
+@REM ########################################
+@REM # scripts/build_local_windows.bat
+@REM ########################################
 
 @echo off
 setlocal enabledelayedexpansion
