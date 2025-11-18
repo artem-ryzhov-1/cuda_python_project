@@ -834,14 +834,14 @@ class DynamicsPlot:
             update_params: If True, update sim_params from sliders before computing
         """
         
-        print(f"      🔷 DynamicsPlot.compute CALLED: computing={self.computing}")
+        print(f"      🔷 DynamicsPlot.compute CALLED: computing={self.computing}", flush=True)
         
         if self.computing:
-            print("      ❌ DynamicsPlot.compute BLOCKED: Already computing")
+            print("      ❌ DynamicsPlot.compute BLOCKED: Already computing", flush=True)
             return
         
         self.computing = True
-        print("      🔷 DynamicsPlot.compute STARTED: Flag set to True")
+        print("      🔷 DynamicsPlot.compute STARTED: Flag set to True", flush=True)
         
         self.current_eps0 = eps0
         self.current_A = A
@@ -904,9 +904,9 @@ class DynamicsPlot:
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
         
-        print("      🔷 DynamicsPlot.compute FINISHING: About to clear flag")
+        print("      🔷 DynamicsPlot.compute FINISHING: About to clear flag", flush=True)
         self.computing = False
-        print("      🔷 DynamicsPlot.compute FINISHED: Flag cleared")
+        print("      🔷 DynamicsPlot.compute FINISHED: Flag cleared", flush=True)
     
     def create_plot(self):
         """Create the dynamics plot with linked X axes and independent Y axes."""
@@ -1105,9 +1105,7 @@ class InteractiveInterferogramDynamics:
         self._is_processing_hover = False
         self._pending_hover_eps0 = None
         self._pending_hover_A = None
-        self._hover_timer = None
-        self._hover_delay_ms = 50
-        self._debug_hover = False  # set to True to enable debug prints
+        self._debug_hover = True
 
 
         self._create_control_widgets()
@@ -1576,16 +1574,16 @@ class InteractiveInterferogramDynamics:
             self.interferogram.marker_version_widget.value = self.interferogram.marker_version
             
     def _on_interferogram_hover(self, x, y):
-        """Handle hover on interferogram - debounced to prevent queueing."""
+        """Handle hover on interferogram - processes only the latest position."""
         
         if self._debug_hover:
             x_display = f"{x:.4f}" if x else "None"
             y_display = f"{y:.4f}" if y else "None"
-            print(f"🔵 HOVER EVENT: x={x_display}, y={y_display}")
+            print(f"🔵 HOVER EVENT: x={x_display}, y={y_display}", flush=True)
         
         if not self.dynamics.enabled or x is None or y is None:
             if self._debug_hover:
-                print(f"  ↳ SKIP: enabled={self.dynamics.enabled}, x={x}, y={y}")
+                print(f"  ↳ SKIP: enabled={self.dynamics.enabled}", flush=True)
             return
         
         # Check if hover mode is active
@@ -1593,109 +1591,78 @@ class InteractiveInterferogramDynamics:
                             (self.dynamics.auto_update and self.dynamics.hover_active)
         
         if self._debug_hover:
-            print(f"  ↳ Hover mode active: {hover_mode_active}")
+            print(f"  ↳ Hover mode active: {hover_mode_active}", flush=True)
         
         if not hover_mode_active:
             if self._debug_hover:
-                print("  ↳ SKIP: Hover mode not active")
+                print("  ↳ SKIP: Hover mode not active", flush=True)
             return
         
-        # If already processing, ignore this hover
-        if self._is_processing_hover:
-            if self._debug_hover:
-                print("  ↳ 🚫 BLOCKED: Already processing")
-            return
-        
-        # Store coordinates
+        # CRITICAL FIX: Always update pending coordinates
         self._pending_hover_eps0 = x
         self._pending_hover_A = y
         
-        # Cancel any existing timer
-        if self._hover_timer is not None:
-            if self._debug_hover:
-                print("  ↳ ⏱️ Canceling previous timer")
-            try:
-                pn.state.curdoc.remove_timeout_callback(self._hover_timer)
-            except:
-                pass
-        
         if self._debug_hover:
-            print(f"  ↳ ⏱️ Scheduling timer ({self._hover_delay_ms}ms)")
+            print(f"  ↳ Pending coordinates updated: ({x:.6f}, {y:.6f})", flush=True)
         
-        # Schedule new timer
-        self._hover_timer = pn.state.curdoc.add_timeout_callback(
-            self._process_debounced_hover,
-            self._hover_delay_ms
-        )
-    
-    def _process_debounced_hover(self):
-        """Process hover after debounce delay."""
-        if self._debug_hover:
-            print("    ⏰ Timer fired: Processing hover")
-        
-        self._hover_timer = None
-        
-        if self._pending_hover_eps0 is None or self._pending_hover_A is None:
+        # If already processing, just return - the processing loop will pick up the new coords
+        if self._is_processing_hover:
             if self._debug_hover:
-                print("    ⚠️ No pending coordinates")
+                print("  ↳ Already processing - new coordinates will be picked up", flush=True)
             return
         
-        self._is_processing_hover = True
+        # Start processing
+        if self._debug_hover:
+            print("  ↳ ✅ Starting processing loop", flush=True)
         
+        self._is_processing_hover = True
+        self._process_pending_hover()
+    
+    def _process_pending_hover(self):
+        """Process only the LATEST pending hover computation, skipping intermediates."""
         try:
+            # Only process if we still have pending coordinates
+            if self._pending_hover_eps0 is None:
+                return
+                
+            # Capture current coordinates
             eps0 = self._pending_hover_eps0
             A = self._pending_hover_A
             
-            if self._debug_hover:
-                print(f"    🟢 Generating dynamics for ({eps0:.6f}, {A:.6f})")
+            # CRITICAL: Clear BEFORE computing so new hovers during computation
+            # will overwrite these values, and we'll know to skip this computation
+            self._pending_hover_eps0 = None
+            self._pending_hover_A = None
             
+            if self._debug_hover:
+                print(f"    🟢 Computing for ({eps0:.6f}, {A:.6f})", flush=True)
+            
+            # Generate dynamics - this is the slow part
             self._generate_dynamics(eps0, A, update_params=False)
             
             if self._debug_hover:
-                print("    ✅ Dynamics generation complete")
-        finally:
-            self._is_processing_hover = False
-            if self._debug_hover:
-                print("    🔓 Flag cleared")
-    
-    def _process_pending_hover(self):
-        """Process the pending hover computation with retry loop."""
-        try:
-            while True:
+                print("    🟢 Computation finished", flush=True)
+            
+            # Check if NEW coordinates arrived during computation
+            if self._pending_hover_eps0 is not None:
+                # New hover arrived - process ONLY the latest one
                 if self._debug_hover:
-                    print("    🟢 _process_pending_hover: Starting computation")
+                    new_eps0 = self._pending_hover_eps0
+                    new_A = self._pending_hover_A
+                    print(f"    🔄 New hover detected ({new_eps0:.6f}, {new_A:.6f}), processing latest only", flush=True)
                 
-                # Capture current coordinates
-                eps0 = self._pending_hover_eps0
-                A = self._pending_hover_A
-                
-                # Mark as captured by setting to None
-                self._pending_hover_eps0 = None
-                self._pending_hover_A = None
-                
-                # Generate dynamics - this is the slow part
-                self._generate_dynamics(eps0, A, update_params=False)
-                
+                # Recursively call to process the LATEST coordinates
+                # (any intermediate ones that arrived are already overwritten and lost)
+                self._process_pending_hover()
+            else:
                 if self._debug_hover:
-                    print("    🟢 _process_pending_hover: Computation finished")
-                
-                # Check if new hover coordinates arrived during computation
-                if self._pending_hover_eps0 is None:
-                    # No new hover - we're done
-                    if self._debug_hover:
-                        print("    ✅ _process_pending_hover: No new hovers, exiting")
-                    break
-                else:
-                    # New hover arrived - process it
-                    if self._debug_hover:
-                        new_eps0 = self._pending_hover_eps0
-                        new_A = self._pending_hover_A
-                        print(f"    🔄 _process_pending_hover: New hover detected ({new_eps0:.6f}, {new_A:.6f}), processing...")
+                    print("    ✅ No new hovers, exiting", flush=True)
+                    
         finally:
             # Always clear flag
             self._is_processing_hover = False
             if self._debug_hover:
-                print("    🔓 _process_pending_hover: Flag cleared")
+                print("    🔓 Processing finished, flag cleared", flush=True)
     
     def _generate_dynamics(self, eps0, A, update_params=False):
         """Generate dynamics for given coordinates.
@@ -1705,16 +1672,16 @@ class InteractiveInterferogramDynamics:
         """
         
         if self._debug_hover:
-            print(f"    🟢 _generate_dynamics CALLED: eps0={eps0:.6f}, A={A:.6f}, update_params={update_params}")
+            print(f"    🟢 _generate_dynamics CALLED: eps0={eps0:.6f}, A={A:.6f}, update_params={update_params}", flush=True)
         
         # CRITICAL: Final safety check - skip if ANY computation is in progress
         if self._is_generating or self._is_generating_both or self.dynamics.computing:
             if self._debug_hover:
-                print("    ❌ _generate_dynamics BLOCKED: Another computation in progress")
+                print("    ❌ _generate_dynamics BLOCKED: Another computation in progress", flush=True)
             return
         
         if self._debug_hover:
-            print("    🟢 _generate_dynamics PROCEEDING: Calling dynamics.compute()")
+            print("    🟢 _generate_dynamics PROCEEDING: Calling dynamics.compute()", flush=True)
         
         def log_callback(text):
             self.log_display.object = text
@@ -1731,7 +1698,7 @@ class InteractiveInterferogramDynamics:
                             update_params=update_params)
         
         if self._debug_hover:
-            print("    🟢 _generate_dynamics FINISHED: dynamics.compute() returned")
+            print("    🟢 _generate_dynamics FINISHED: dynamics.compute() returned", flush=True)
     
     def _on_manual_dynamics_generate(self, event=None):
         """Handle manual coordinate entry for dynamics."""
@@ -1775,7 +1742,7 @@ class InteractiveInterferogramDynamics:
                         if hasattr(event, 'x') and hasattr(event, 'y'):
                             if event.x is not None and event.y is not None:
                                 self.parent_app._on_interferogram_click(event.x, event.y)
-                                #print(f"✅ Tap at: ({event.x:.6f}, {event.y:.6f})")
+                                #print(f"✅ Tap at: ({event.x:.6f}, {event.y:.6f})", flush=True)
                     
                     def on_hover_event(event):
                         if hasattr(event, 'x') and hasattr(event, 'y'):
@@ -1785,9 +1752,9 @@ class InteractiveInterferogramDynamics:
                     try:
                         model.on_event(Tap, on_tap_event)
                         model.on_event(MouseMove, on_hover_event)
-                        #print("✅ Events attached to Bokeh model")
+                        #print("✅ Events attached to Bokeh model", flush=True)
                     except Exception as e:
-                        print(f"⚠️ Event attachment failed: {e}")
+                        print(f"⚠️ Event attachment failed: {e}", flush=True)
                 
                 return model
         
@@ -1892,6 +1859,3 @@ class InteractiveInterferogramDynamics:
         )
         
         return dashboard
-
-
-
