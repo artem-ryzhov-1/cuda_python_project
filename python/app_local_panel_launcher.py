@@ -39,6 +39,7 @@ print(f"Repo directory: {repo_path}")
 
 import panel as pn
 import holoviews as hv
+import app_class_interactive_interferogram_dynamics
 from app_class_interactive_interferogram_dynamics import InteractiveInterferogramDynamics
 
 import helpers

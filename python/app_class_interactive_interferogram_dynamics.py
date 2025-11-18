@@ -3,11 +3,19 @@
 ########################################
 
 import numpy as np
+import pandas as pd
 import panel as pn
 import holoviews as hv
+from holoviews import opts
+from holoviews.operation.datashader import rasterize, datashade
+import datashader as ds
+from datashader.colors import viridis, inferno
+import colorcet as cc
 import time
+import sys
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
+import copy
 
 import matplotlib.pyplot as plt
 # Get default color cycle
@@ -25,7 +33,6 @@ from config import SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
 from app_class_simulation_parameters import SimulationParameters
 from app_class_interferogram_plot import InterferogramPlot
 from app_class_dynamics_plot import DynamicsPlot
-
 
 
 
@@ -94,6 +101,8 @@ class InteractiveInterferogramDynamics:
         self._is_processing_hover = False
         self._pending_hover_eps0 = None
         self._pending_hover_A = None
+        self._hover_timer_cb = None
+        self._hover_debounce_ms = 150  # Adjust this value: lower = more responsive but more computations
         self._debug_hover = True
 
 
@@ -563,7 +572,7 @@ class InteractiveInterferogramDynamics:
             self.interferogram.marker_version_widget.value = self.interferogram.marker_version
             
     def _on_interferogram_hover(self, x, y):
-        """Handle hover on interferogram - processes only the latest position."""
+        """Handle hover on interferogram - debounced to only process after mouse stops."""
         
         if self._debug_hover:
             x_display = f"{x:.4f}" if x else "None"
@@ -587,71 +596,106 @@ class InteractiveInterferogramDynamics:
                 print("  ↳ SKIP: Hover mode not active", flush=True)
             return
         
-        # CRITICAL FIX: Always update pending coordinates
+        # Always update pending coordinates
         self._pending_hover_eps0 = x
         self._pending_hover_A = y
         
         if self._debug_hover:
             print(f"  ↳ Pending coordinates updated: ({x:.6f}, {y:.6f})", flush=True)
         
-        # If already processing, just return - the processing loop will pick up the new coords
-        if self._is_processing_hover:
+        # Cancel any existing timer
+        if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
+            try:
+                pn.state.remove_periodic_callback(self._hover_timer_cb)
+                if self._debug_hover:
+                    print("  ↳ ⏸️  Cancelled previous timer", flush=True)
+            except:
+                pass
+            self._hover_timer_cb = None
+        
+        # Skip if currently computing
+        if self._is_processing_hover or self._is_generating or self._is_generating_both or self.dynamics.computing:
             if self._debug_hover:
-                print("  ↳ Already processing - new coordinates will be picked up", flush=True)
+                print("  ↳ ⏸️  Computation in progress, coordinates saved for later", flush=True)
             return
         
-        # Start processing
-        if self._debug_hover:
-            print("  ↳ ✅ Starting processing loop", flush=True)
+        # Set new timer to process after debounce delay using add_periodic_callback
+        # This will run once and then we'll remove it
+        def timer_callback():
+            # Remove this callback immediately (one-shot timer)
+            if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
+                try:
+                    pn.state.remove_periodic_callback(self._hover_timer_cb)
+                except:
+                    pass
+                self._hover_timer_cb = None
+            
+            # Process the pending hover
+            self._process_pending_hover()
         
-        self._is_processing_hover = True
-        self._process_pending_hover()
+        self._hover_timer_cb = pn.state.add_periodic_callback(
+            timer_callback,
+            period=self._hover_debounce_ms,
+            count=1  # Run only once
+        )
+        
+        if self._debug_hover:
+            print(f"  ↳ ⏲️  Timer set for {self._hover_debounce_ms}ms", flush=True)
     
     def _process_pending_hover(self):
-        """Process only the LATEST pending hover computation, skipping intermediates."""
+        """Process only the LATEST pending hover computation."""
+        if self._pending_hover_eps0 is None:
+            return
+        
+        # Capture coordinates
+        eps0 = self._pending_hover_eps0
+        A = self._pending_hover_A
+        
+        # Clear immediately so new hovers during computation will be saved
+        self._pending_hover_eps0 = None
+        self._pending_hover_A = None
+        
+        # Skip if any computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            if self._debug_hover:
+                print("    ❌ Computation already in progress, skipping", flush=True)
+            return
+        
+        self._is_processing_hover = True
+        
         try:
-            # Only process if we still have pending coordinates
-            if self._pending_hover_eps0 is None:
-                return
-                
-            # Capture current coordinates
-            eps0 = self._pending_hover_eps0
-            A = self._pending_hover_A
-            
-            # CRITICAL: Clear BEFORE computing so new hovers during computation
-            # will overwrite these values, and we'll know to skip this computation
-            self._pending_hover_eps0 = None
-            self._pending_hover_A = None
-            
             if self._debug_hover:
                 print(f"    🟢 Computing for ({eps0:.6f}, {A:.6f})", flush=True)
             
-            # Generate dynamics - this is the slow part
             self._generate_dynamics(eps0, A, update_params=False)
             
             if self._debug_hover:
                 print("    🟢 Computation finished", flush=True)
             
-            # Check if NEW coordinates arrived during computation
+            # If new coordinates arrived during computation, schedule another computation
             if self._pending_hover_eps0 is not None:
-                # New hover arrived - process ONLY the latest one
                 if self._debug_hover:
-                    new_eps0 = self._pending_hover_eps0
-                    new_A = self._pending_hover_A
-                    print(f"    🔄 New hover detected ({new_eps0:.6f}, {new_A:.6f}), processing latest only", flush=True)
+                    print(f"    🔄 New hover detected during computation, scheduling next", flush=True)
                 
-                # Recursively call to process the LATEST coordinates
-                # (any intermediate ones that arrived are already overwritten and lost)
-                self._process_pending_hover()
-            else:
-                if self._debug_hover:
-                    print("    ✅ No new hovers, exiting", flush=True)
-                    
+                # Schedule with short delay using add_periodic_callback
+                def follow_up_callback():
+                    if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
+                        try:
+                            pn.state.remove_periodic_callback(self._hover_timer_cb)
+                        except:
+                            pass
+                        self._hover_timer_cb = None
+                    self._process_pending_hover()
+                
+                self._hover_timer_cb = pn.state.add_periodic_callback(
+                    follow_up_callback,
+                    period=50,  # 50ms delay before next computation
+                    count=1
+                )
         finally:
-            # Always clear flag
             self._is_processing_hover = False
             if self._debug_hover:
-                print("    🔓 Processing finished, flag cleared", flush=True)
+                print("    🔓 Processing finished", flush=True)
     
     def _generate_dynamics(self, eps0, A, update_params=False):
         """Generate dynamics for given coordinates.
