@@ -98,17 +98,26 @@ class InteractiveInterferogramDynamics:
         self.auto_update_both_enabled = False
         self._is_generating = False
         self._is_generating_both = False
+        
         self._is_processing_hover = False
         self._pending_hover_eps0 = None
         self._pending_hover_A = None
-        self._hover_timer_cb = None
-        self._hover_debounce_ms = 150  # Adjust this value: lower = more responsive but more computations
+        self._last_computed_eps0 = None
+        self._last_computed_A = None
         self._debug_hover = True
 
+        # Hover processing callback reference
+        self._hover_timer_cb = None
+        self._hover_timer_active = False
+        self._hover_debounce_ms = 100
+
+        # Parameter update tracking
+        self._pending_param_update = False
+        self._param_timer_cb = None
 
         self._create_control_widgets()
         self._generate_interferogram_data()
-    
+
     def _create_control_widgets(self):
         """Create main control widgets."""
         
@@ -246,18 +255,59 @@ class InteractiveInterferogramDynamics:
             self.regenerate_both_button.button_type = 'primary'
     
     def _on_parameter_change(self, event):
-        """Handle parameter slider changes."""
+        """Handle parameter slider changes - no queuing."""
         # Update epsilon bounds when delta_C changes
         self._update_epsilon_bounds()
         
+        # Mark that parameters changed
+        self._pending_param_update = True
+        
         # CRITICAL: Skip if ANY computation is in progress
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            # Parameters are marked as changed, will be picked up later
+            return
+        
+        # Cancel any pending parameter update timer
+        if hasattr(self, '_param_timer_cb') and self._param_timer_cb is not None:
+            try:
+                pn.state.remove_periodic_callback(self._param_timer_cb)
+            except:
+                pass
+            self._param_timer_cb = None
+        
+        # Set timer for debounced parameter update
+        def param_timer_callback():
+            if hasattr(self, '_param_timer_cb') and self._param_timer_cb is not None:
+                try:
+                    pn.state.remove_periodic_callback(self._param_timer_cb)
+                except:
+                    pass
+                self._param_timer_cb = None
+            
+            self._process_pending_param_update()
+        
+        self._param_timer_cb = pn.state.add_periodic_callback(
+            param_timer_callback,
+            period=200,  # 200ms debounce for slider changes
+            count=1
+        )
+    
+    def _process_pending_param_update(self):
+        """Process pending parameter update - only if marked."""
+        if not hasattr(self, '_pending_param_update') or not self._pending_param_update:
+            return
+        
+        # Skip if any computation in progress
         if self._is_generating or self._is_generating_both or self.dynamics.computing:
             return
         
+        # Clear the flag
+        self._pending_param_update = False
+        
+        # Trigger appropriate update based on auto-update mode
         if self.auto_update_enabled:
             self._update_and_regenerate_interferogram()
         elif self.auto_update_dynamics_enabled:
-            # Only regenerate dynamics if it has been computed before
             if self.dynamics.current_eps0 is not None and self.dynamics.current_A is not None:
                 self._regenerate_dynamics_only()
         elif self.auto_update_both_enabled:
@@ -572,131 +622,121 @@ class InteractiveInterferogramDynamics:
             self.interferogram.marker_version_widget.value = self.interferogram.marker_version
             
     def _on_interferogram_hover(self, x, y):
-        """Handle hover on interferogram - debounced to only process after mouse stops."""
+        """Handle hover on interferogram - process only latest coordinates (non-blocking)."""
         
-        if self._debug_hover:
-            x_display = f"{x:.4f}" if x else "None"
-            y_display = f"{y:.4f}" if y else "None"
-            print(f"🔵 HOVER EVENT: x={x_display}, y={y_display}", flush=True)
+        # Ignore None events
+        if x is None or y is None:
+            return
         
-        if not self.dynamics.enabled or x is None or y is None:
-            if self._debug_hover:
-                print(f"  ↳ SKIP: enabled={self.dynamics.enabled}", flush=True)
+        # Basic validation
+        if not self.dynamics.enabled:
             return
         
         # Check if hover mode is active
-        hover_mode_active = (self.auto_update_both_enabled and self.dynamics.hover_active) or \
-                            (self.dynamics.auto_update and self.dynamics.hover_active)
-        
-        if self._debug_hover:
-            print(f"  ↳ Hover mode active: {hover_mode_active}", flush=True)
+        hover_mode_active = (
+            (self.auto_update_both_enabled and self.dynamics.hover_active) or 
+            (self.dynamics.auto_update and self.dynamics.hover_active)
+        )
         
         if not hover_mode_active:
-            if self._debug_hover:
-                print("  ↳ SKIP: Hover mode not active", flush=True)
             return
         
-        # Always update pending coordinates
+        # ALWAYS update pending coordinates
         self._pending_hover_eps0 = x
         self._pending_hover_A = y
         
         if self._debug_hover:
-            print(f"  ↳ Pending coordinates updated: ({x:.6f}, {y:.6f})", flush=True)
+            print(f"🔵 HOVER EVENT: x={x:.6f}, y={y:.6f} → Pending updated", flush=True)
         
-        # Cancel any existing timer
-        if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
-            try:
-                pn.state.remove_periodic_callback(self._hover_timer_cb)
-                if self._debug_hover:
-                    print("  ↳ ⏸️  Cancelled previous timer", flush=True)
-            except:
-                pass
-            self._hover_timer_cb = None
-        
-        # Skip if currently computing
-        if self._is_processing_hover or self._is_generating or self._is_generating_both or self.dynamics.computing:
+        # CRITICAL FIX: Check if timer is already active BEFORE doing anything else
+        if self._hover_timer_active:
+            # Timer already scheduled, just update coordinates and return
             if self._debug_hover:
-                print("  ↳ ⏸️  Computation in progress, coordinates saved for later", flush=True)
+                print(f"    ⏱️  Timer already active, coordinates updated", flush=True)
             return
         
-        # Set new timer to process after debounce delay using add_periodic_callback
-        # This will run once and then we'll remove it
-        def timer_callback():
-            # Remove this callback immediately (one-shot timer)
-            if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
-                try:
-                    pn.state.remove_periodic_callback(self._hover_timer_cb)
-                except:
-                    pass
-                self._hover_timer_cb = None
+        # Only trigger if not already scheduled AND not computing
+        if (not self._is_processing_hover and 
+            not self._is_generating and 
+            not self._is_generating_both and 
+            not self.dynamics.computing):
             
-            # Process the pending hover
-            self._process_pending_hover()
+            # SET FLAG IMMEDIATELY (synchronously)
+            self._hover_timer_active = True
+            
+            if self._debug_hover:
+                print(f"    ⏱️  Scheduling timer", flush=True)
+            
+            self._trigger_hover_processing()
+    
+    def _start_hover_computation(self):
+        """Start hover computation with current pending coordinates.
         
-        self._hover_timer_cb = pn.state.add_periodic_callback(
-            timer_callback,
-            period=self._hover_debounce_ms,
-            count=1  # Run only once
-        )
+        Uses try-finally to ensure flag management is robust.
+        """
+        
+        # Capture coordinates AND store as last_computed immediately
+        self._last_computed_eps0 = self._pending_hover_eps0
+        self._last_computed_A = self._pending_hover_A
         
         if self._debug_hover:
-            print(f"  ↳ ⏲️  Timer set for {self._hover_debounce_ms}ms", flush=True)
-    
-    def _process_pending_hover(self):
-        """Process only the LATEST pending hover computation."""
-        if self._pending_hover_eps0 is None:
-            return
-        
-        # Capture coordinates
-        eps0 = self._pending_hover_eps0
-        A = self._pending_hover_A
-        
-        # Clear immediately so new hovers during computation will be saved
-        self._pending_hover_eps0 = None
-        self._pending_hover_A = None
-        
-        # Skip if any computation is in progress
-        if self._is_generating or self._is_generating_both or self.dynamics.computing:
-            if self._debug_hover:
-                print("    ❌ Computation already in progress, skipping", flush=True)
-            return
-        
-        self._is_processing_hover = True
+            print(f"    🟢 Computing for ({self._last_computed_eps0:.6f}, {self._last_computed_A:.6f})", flush=True)
         
         try:
+            # Generate dynamics - this is the blocking call
+            self._generate_dynamics(
+                self._last_computed_eps0, 
+                self._last_computed_A, 
+                update_params=False
+            )
+            
             if self._debug_hover:
-                print(f"    🟢 Computing for ({eps0:.6f}, {A:.6f})", flush=True)
-            
-            self._generate_dynamics(eps0, A, update_params=False)
-            
+                print(f"    🟢 Computation finished for ({self._last_computed_eps0:.6f}, {self._last_computed_A:.6f})", flush=True)
+        
+        except Exception as e:
+            # Log error but don't crash
             if self._debug_hover:
-                print("    🟢 Computation finished", flush=True)
-            
-            # If new coordinates arrived during computation, schedule another computation
-            if self._pending_hover_eps0 is not None:
-                if self._debug_hover:
-                    print(f"    🔄 New hover detected during computation, scheduling next", flush=True)
-                
-                # Schedule with short delay using add_periodic_callback
-                def follow_up_callback():
-                    if hasattr(self, '_hover_timer_cb') and self._hover_timer_cb is not None:
-                        try:
-                            pn.state.remove_periodic_callback(self._hover_timer_cb)
-                        except:
-                            pass
-                        self._hover_timer_cb = None
-                    self._process_pending_hover()
-                
-                self._hover_timer_cb = pn.state.add_periodic_callback(
-                    follow_up_callback,
-                    period=50,  # 50ms delay before next computation
-                    count=1
-                )
+                print(f"    ❌ ERROR during computation: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
+        
         finally:
-            self._is_processing_hover = False
+            # ALWAYS check if we need to continue, even if exception occurred
+            self._check_and_continue_hover()
+
+    def _check_and_continue_hover(self):
+        """Check if new coordinates arrived and continue if needed.
+        
+        This method manages the _is_processing_hover flag.
+        """
+        
+        # Check if pending is None (shouldn't happen, but be safe)
+        if self._pending_hover_eps0 is None or self._pending_hover_A is None:
             if self._debug_hover:
-                print("    🔓 Processing finished", flush=True)
-    
+                print(f"    ✅ No pending coordinates, flag cleared", flush=True)
+            self._is_processing_hover = False
+            return
+        
+        # Compare with tolerance for float precision
+        eps0_diff = abs(self._last_computed_eps0 - self._pending_hover_eps0)
+        A_diff = abs(self._last_computed_A - self._pending_hover_A)
+        tolerance = 1e-9
+        
+        if eps0_diff < tolerance and A_diff < tolerance:
+            # Same point - we're done!
+            if self._debug_hover:
+                print(f"    ✅ Coordinates match (tolerance={tolerance}), flag cleared", flush=True)
+            self._is_processing_hover = False
+            return
+        
+        # Different point - continue computing (flag stays True)
+        if self._debug_hover:
+            print(f"    🔄 New coords detected: ({self._pending_hover_eps0:.6f}, {self._pending_hover_A:.6f})", flush=True)
+            print(f"    🔄 Continuing computation (flag stays True)", flush=True)
+        
+        # Recursively call start again (flag still True)
+        self._start_hover_computation()
+
     def _generate_dynamics(self, eps0, A, update_params=False):
         """Generate dynamics for given coordinates.
         
@@ -707,6 +747,13 @@ class InteractiveInterferogramDynamics:
         if self._debug_hover:
             print(f"    🟢 _generate_dynamics CALLED: eps0={eps0:.6f}, A={A:.6f}, update_params={update_params}", flush=True)
         
+        # Safety check - this should never trigger if hover logic is correct
+        # But if it does, we just return (the caller's try-finally will handle cleanup)
+        if self._is_generating or self._is_generating_both or self.dynamics.computing:
+            if self._debug_hover:
+                print("    ⚠️  _generate_dynamics BLOCKED by other computation", flush=True)
+            return
+
         # CRITICAL: Final safety check - skip if ANY computation is in progress
         if self._is_generating or self._is_generating_both or self.dynamics.computing:
             if self._debug_hover:
@@ -746,6 +793,85 @@ class InteractiveInterferogramDynamics:
         # Update parameters before generating
         self._generate_dynamics(eps0, A, update_params=True)
     
+    def _trigger_hover_processing(self):
+        """Schedule deferred processing of hover coordinates (debounced)."""
+        
+        def hover_timer_callback():
+            # Clear timer active flag
+            self._hover_timer_active = False
+            
+            if self._debug_hover:
+                print(f"    ⏱️  Timer fired, checking...", flush=True)
+            
+            # Process if ready
+            self._process_pending_hover()
+            
+            # Check if new coordinates arrived while we were computing
+            # If so, schedule another timer
+            if (self._pending_hover_eps0 is not None and 
+                self._pending_hover_A is not None and
+                not self._is_processing_hover and
+                not self._is_generating and 
+                not self._is_generating_both and 
+                not self.dynamics.computing):
+                
+                # Check if different from last computed
+                if (self._last_computed_eps0 is None or self._last_computed_A is None or
+                    abs(self._last_computed_eps0 - self._pending_hover_eps0) > 1e-9 or
+                    abs(self._last_computed_A - self._pending_hover_A) > 1e-9):
+                    
+                    if self._debug_hover:
+                        print(f"    ⏱️  New coords pending, rescheduling", flush=True)
+                    self._hover_timer_active = True
+                    self._trigger_hover_processing()
+        
+        pn.state.add_periodic_callback(
+            hover_timer_callback,
+            period=self._hover_debounce_ms,
+            count=1
+        )
+
+    def _process_pending_hover(self):
+        """Process pending hover coordinates - only if marked."""
+        if self._pending_hover_eps0 is None or self._pending_hover_A is None:
+            return
+        
+        # Skip if any computation in progress
+        if self._is_processing_hover or self._is_generating or self._is_generating_both or self.dynamics.computing:
+            if self._debug_hover:
+                print(f"⏱️  Process: Skipping (busy)", flush=True)
+            # Don't reschedule - next hover event will do it
+            return
+        
+        # Check if hover mode is still active
+        hover_mode_active = (
+            (self.auto_update_both_enabled and self.dynamics.hover_active) or 
+            (self.dynamics.auto_update and self.dynamics.hover_active)
+        )
+        
+        if not hover_mode_active:
+            # Clear pending if mode was disabled
+            self._pending_hover_eps0 = None
+            self._pending_hover_A = None
+            return
+        
+        # Check if these coordinates were already computed
+        if (self._last_computed_eps0 is not None and self._last_computed_A is not None):
+            eps0_diff = abs(self._last_computed_eps0 - self._pending_hover_eps0)
+            A_diff = abs(self._last_computed_A - self._pending_hover_A)
+            tolerance = 1e-9
+            
+            if eps0_diff < tolerance and A_diff < tolerance:
+                # Already computed, nothing to do
+                return
+        
+        # Start computation for pending coordinates
+        if self._debug_hover:
+            print(f"⏱️  Process: Starting computation for ({self._pending_hover_eps0:.6f}, {self._pending_hover_A:.6f})", flush=True)
+        
+        self._is_processing_hover = True
+        self._start_hover_computation()
+        
     def create_dashboard(self):
         """Create the complete Panel dashboard with direct Bokeh integration."""
         
