@@ -66,7 +66,7 @@ class SimulationConfig:
     Gamma_eg0:  float
     omega_c:    float
     Gamma_phi0: float
-    quasi_static_ensemble_dephasing_flag: bool
+    quasi_static_ensemble_dephasing_opt: str
     sigma_eps: float
     
 

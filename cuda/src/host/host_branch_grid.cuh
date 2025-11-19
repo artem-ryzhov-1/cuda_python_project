@@ -43,7 +43,7 @@ __host__ inline void run_grid_mode(
     const int host_N_periods,
     const int N_periods_avg,
     const int N_samples_noise,
-    const bool quasi_static_ensemble_dephasing_flag,
+    const std::string& quasi_static_ensemble_dephasing_opt,
     float* eps_offsets,
     const std::string& path_output_csv,
     const std::string& path_output_bin_file_gridmode,
@@ -130,9 +130,11 @@ __host__ inline void run_grid_mode(
     && unrolled_option == "unrolled") {
 
     threads_per_block = 128; // (common choice)
-    blocks = (host_N_points + threads_per_block - 1) / threads_per_block;   // standard
+    
 
-    if (!quasi_static_ensemble_dephasing_flag) {
+    if (quasi_static_ensemble_dephasing_opt == "false") {
+
+        blocks = (host_N_points + threads_per_block - 1) / threads_per_block;   // standard
 
         printf("Launching kernel gridmode unrolled one_thread_one_traj no_ensemble fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
@@ -145,9 +147,11 @@ __host__ inline void run_grid_mode(
             );
 
     }
-    else if (quasi_static_ensemble_dephasing_flag) {
+    else if (quasi_static_ensemble_dephasing_opt == "sequential") {
 
-        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        blocks = (host_N_points + threads_per_block - 1) / threads_per_block;   // standard
+
+        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble sequential fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
         //lindblad_rk4_kernel_unrolled_ensemble_opt1 <<<blocks, threads_per_block >>> (
@@ -186,13 +190,39 @@ __host__ inline void run_grid_mode(
         //     );
 
         const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
-        lindblad_rk4_kernel_unrolled_ensemble_opt10_fsal <<<blocks, threads_per_block >>> (
+        lindblad_rk4_kernel_unrolled_ensemble_opt10_sequential_fsal <<<blocks, threads_per_block >>> (
             d_eps0, d_A,
             d_rho_avg,
             N_periods_avg,
             N_samples_noise,
             scale_total,
             eps_offsets
+            );
+
+    }
+    else if (quasi_static_ensemble_dephasing_opt == "parallel") {
+
+
+        // Total number of parallel trajectories
+        const int total_trajectories = host_N_points * N_samples_noise;
+
+        blocks = (total_trajectories + threads_per_block - 1) / threads_per_block;
+
+        // Zero-initialize output before atomic operations
+        gpuCheck(cudaMemset(d_rho_avg, 0, host_N_points * rho_avg_dim * sizeof(float)), "cudaMemset d_rho_avg");
+
+        printf("Launching kernel gridmode unrolled one_thread_one_traj ensemble parallel fsal: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
+        fflush(stdout);  // forces the buffer to flush immediately
+
+        const float scale_total = 1.0f / (host_N_steps_per_period * N_periods_avg * N_samples_noise);
+        lindblad_rk4_kernel_unrolled_ensemble_opt10_parallel_fsal <<<blocks, threads_per_block >>> (
+            d_eps0, d_A,
+            d_rho_avg,
+            N_periods_avg,
+            N_samples_noise,
+            scale_total,
+            eps_offsets,
+            total_trajectories
             );
 
     }
@@ -246,11 +276,12 @@ __host__ inline void run_grid_mode(
         << (timer_milliseconds / 1000.0f) << " s" << std::endl;
 
     double speed;
-    if (!quasi_static_ensemble_dephasing_flag) {
+    if (quasi_static_ensemble_dephasing_opt == "false") {
         speed = static_cast<double>(static_cast<long long>(host_N_points) * host_N_steps_per_period * host_N_periods) * 1e3 / (static_cast<double>(timer_milliseconds));
         std::cout << "Npoints*N_steps_period*N_periods/run_time = " << std::endl;
     }
-    else if (quasi_static_ensemble_dephasing_flag) {
+    else if (quasi_static_ensemble_dephasing_opt == "sequential" ||
+             quasi_static_ensemble_dephasing_opt == "parallel") {
         speed = static_cast<double>(static_cast<long long>(host_N_points) * host_N_steps_per_period * host_N_periods * N_samples_noise) * 1e3 / (static_cast<double>(timer_milliseconds));
         std::cout << "Npoints*N_steps_period*N_periods*N_samples_noise/run_time = " << std::endl;
     }

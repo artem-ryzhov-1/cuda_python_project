@@ -157,6 +157,13 @@ def run_simulation(simr):
     
     a = 0.1
     m = 10.0
+
+
+    if simr.quasi_static_ensemble_dephasing_flag:
+        quasi_static_ensemble_dephasing_opt = "sequential"
+        #quasi_static_ensemble_dephasing_opt = "parallel"
+    else:
+        quasi_static_ensemble_dephasing_opt = "false"
     
     # paths
     
@@ -308,7 +315,7 @@ def run_simulation(simr):
         
         Gamma_phi0=Gamma_phi0,
         
-        quasi_static_ensemble_dephasing_flag=simr.quasi_static_ensemble_dephasing_flag,
+        quasi_static_ensemble_dephasing_opt=quasi_static_ensemble_dephasing_opt,
         sigma_eps=sigma_eps,
         N_samples_noise=simr.N_samples_noise
     )

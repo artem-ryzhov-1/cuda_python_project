@@ -2456,6 +2456,33 @@ void rk4_step_unrolled_v3_safe_log(
 
 }
 
+/**
+* Encoding of the rho[16] density matrix:
+*
+* [ rho_00_real, rho_11_real, rho_22_real, rho_33_real,
+*  rho_01_real, rho_01_imag, rho_02_real, rho_02_imag,
+*  rho_03_real, rho_03_imag, rho_12_real, rho_12_imag,
+*  rho_13_real, rho_13_imag, rho_23_real, rho_23_imag ]
+*
+* Where rho_ij_real and rho_ij_imag are the real and imaginary parts of the density matrix element rho_ij.
+* So that
+* rho_00 = rho_vec_0;
+* rho_11 = rho_vec_1;
+* rho_22 = rho_vec_2;
+* rho_33 = rho_vec_3;
+* rho_01 = rho_vec_4 + i * rho_vec_5;
+* rho_02 = rho_vec_6 + i * rho_vec_7;
+* rho_03 = rho_vec_8 + i * rho_vec_9;
+* rho_12 = rho_vec_10 + i * rho_vec_11;
+* rho_13 = rho_vec_12 + i * rho_vec_13;
+* rho_23 = rho_vec_14 + i * rho_vec_15;
+*
+* The density matrix is Hermitian, so rho_ji = conjugate(rho_ij).
+* The diagonal elements (rho_00, rho_11, rho_22, rho_33) are real and represent the populations of the respective states.
+* The off-diagonal elements (rho_ij for i != j) are complex and represent the coherences between states.
+*
+*/
+
 
 /*
 __device__ __forceinline__

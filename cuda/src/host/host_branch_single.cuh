@@ -48,7 +48,7 @@ __host__ inline void run_single_mode(
     const int host_N_steps_per_period,
     const int host_N_periods,
     const int N_samples_noise,
-    const bool quasi_static_ensemble_dephasing_flag,
+    const std::string& quasi_static_ensemble_dephasing_opt,
     float* eps_offsets,
 
     const std::string& path_dynamics_single_mode_output_csv,
@@ -121,11 +121,12 @@ __host__ inline void run_single_mode(
 
     if (threads_per_traj_opt == "one_thread_per_traj") {
         
-        if (!quasi_static_ensemble_dephasing_flag){
+        if (quasi_static_ensemble_dephasing_opt == "false"){
             threads_per_block = 1;    // launch only 1 thread
             blocks = 1;               
         }
-        else {
+        else if (quasi_static_ensemble_dephasing_opt == "sequential" ||
+                 quasi_static_ensemble_dephasing_opt == "parallel") {
             threads_per_block = std::min(128, N_samples_noise);  // launch min(128, N_samples_noise) threads for ensemble
             blocks = (N_samples_noise + threads_per_block - 1) / threads_per_block;   // standard
         }
@@ -175,7 +176,7 @@ __host__ inline void run_single_mode(
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == false
         && threads_per_traj_opt == "one_thread_per_traj"
-        && !quasi_static_ensemble_dephasing_flag)
+        && quasi_static_ensemble_dephasing_opt == "false")
     {
 
         printf("Launching kernel singlemode unrolled no_ensemble without log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
@@ -194,7 +195,7 @@ __host__ inline void run_single_mode(
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == true
         && threads_per_traj_opt == "one_thread_per_traj"
-        && !quasi_static_ensemble_dephasing_flag)
+        && quasi_static_ensemble_dephasing_opt == "false")
     {
 
         printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
@@ -215,7 +216,7 @@ __host__ inline void run_single_mode(
     else if (unrolled_option == "unrolled"
         && single_mode_log_option == false
         && threads_per_traj_opt == "one_thread_per_traj"
-        && quasi_static_ensemble_dephasing_flag)
+        && quasi_static_ensemble_dephasing_opt != "false")
     {
 
         printf("Launching kernel singlemode unrolled ensemble without log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);

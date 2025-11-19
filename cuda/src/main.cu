@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     const std::string path_dynamics_single_mode_output_log_hdf5 = config["path_dynamics_single_mode_output_log_hdf5"];
     
     const std::string threads_per_traj_opt = config["threads_per_traj_opt"];
-    const bool quasi_static_ensemble_dephasing_flag = config["quasi_static_ensemble_dephasing_flag"];
+    const std::string quasi_static_ensemble_dephasing_opt = config["quasi_static_ensemble_dephasing_opt"];
 
     std::cout << "Parameters extracted successfully.\n\n";
     std::cout << "==============================================\n";
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
     std::cout << "47. path_dynamics_single_mode_output_log_csv: " << path_dynamics_single_mode_output_log_csv << "\n";
     std::cout << "48. path_dynamics_single_mode_output_log_hdf5: " << path_dynamics_single_mode_output_log_hdf5 << "\n";
     std::cout << "49. threads_per_traj_opt: " << threads_per_traj_opt << "\n";
-    std::cout << "50. quasi_static_ensemble_dephasing_flag: " << quasi_static_ensemble_dephasing_flag << "\n";
+    std::cout << "50. quasi_static_ensemble_dephasing_otp: " << quasi_static_ensemble_dephasing_opt << "\n";
 
     std::cout << "==============================================\n\n";
 
@@ -288,26 +288,27 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    if (quasi_static_ensemble_dephasing_flag) {
+    if (quasi_static_ensemble_dephasing_opt == "sequential" ||
+        quasi_static_ensemble_dephasing_opt == "parallel") {
 
         if (std::isnan(sigma_eps) || N_samples_noise == INT_MIN){
-            std::cerr << "ERROR: sigma_eps or N_samples_noise is NAN with quasi_static_ensemble_dephasing_flag == 'True'."
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is NAN with quasi_static_ensemble_dephasing_opt == 'sequential' or 'parallel'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
 
     }
-    else if (!quasi_static_ensemble_dephasing_flag) {
+    else if (quasi_static_ensemble_dephasing_opt == "false") {
 
         if (!std::isnan(sigma_eps) || N_samples_noise != INT_MIN) {
-            std::cerr << "ERROR: sigma_eps or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_flag == 'False'."
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_opt == 'false'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
 
     }
     else {
-        std::cerr << "ERROR: Invalid argument. Expected 'True' or 'False'. Got: " << quasi_static_ensemble_dephasing_flag << std::endl;
+        std::cerr << "ERROR: Invalid argument. Expected 'false' or 'sequential' or 'parallel'. Got: " << quasi_static_ensemble_dephasing_opt << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
@@ -437,7 +438,8 @@ int main(int argc, char** argv)
 
     float* eps_offsets;
 
-    if (quasi_static_ensemble_dephasing_flag){
+    if (quasi_static_ensemble_dephasing_opt == "sequential" ||
+        quasi_static_ensemble_dephasing_opt == "parallel") {
 
         if (N_samples_noise > MAX_NOISE_SAMPLES) {
             fprintf(stderr, "Error: N_samples_noise (%d) > MAX_NOISE_SAMPLES (%d)\n",
@@ -466,7 +468,7 @@ int main(int argc, char** argv)
             eps0_min, eps0_max, A_min, A_max,
             N_points_eps0_range, N_points_A_range,
             host_N_steps_per_period, host_N_periods, N_periods_avg,
-            N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
+            N_samples_noise, quasi_static_ensemble_dephasing_opt, eps_offsets,
             path_output_csv, path_output_bin_file_gridmode, ouput_option, unrolled_option,
             ram_shared_mmap_name, threads_per_traj_opt
         );
@@ -474,7 +476,7 @@ int main(int argc, char** argv)
     if (grid_single_mode == "single" || grid_single_mode == "grid_single") {
         run_single_mode(
             eps0_target, A_target, host_N_steps_per_period, host_N_periods,
-            N_samples_noise, quasi_static_ensemble_dephasing_flag, eps_offsets,
+            N_samples_noise, quasi_static_ensemble_dephasing_opt, eps_offsets,
             path_dynamics_single_mode_output_csv, path_output_bin_file_singlemode, ouput_option, unrolled_option,
             single_mode_log_option, path_dynamics_single_mode_output_log_csv,
             path_dynamics_single_mode_output_log_hdf5,
@@ -483,7 +485,8 @@ int main(int argc, char** argv)
     }
     
     
-    if (quasi_static_ensemble_dephasing_flag) {
+    if (quasi_static_ensemble_dephasing_opt == "sequential" ||
+        quasi_static_ensemble_dephasing_opt == "parallel") {
         cudaFree(eps_offsets);
     }
 
