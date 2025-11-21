@@ -32,19 +32,13 @@ class SimulationConfig:
     N_samples_noise: int
 
     delta_C: float
-    delta_L: float
-    delta_R: float
 
-    alpha: float
     nu: float
 
     rho00_init: float
     rho11_init: float
     rho22_init: float
     rho33_init: float
-
-    a: float
-    m: float
     
     cuda_cwd: str
     cuda_program_path: str
@@ -60,9 +54,9 @@ class SimulationConfig:
     
     GammaL0:  float
     GammaR0:  float
-    muL:      float
-    muR:      float
-    T_K:      float
+    #muL:      float
+    #muR:      float
+    #T_K:      float
     Gamma_eg0:  float
     omega_c:    float
     Gamma_phi0: float

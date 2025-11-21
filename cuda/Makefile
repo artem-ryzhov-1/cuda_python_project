@@ -38,7 +38,7 @@ TARGET = bin/lindblad_gpu
 .PHONY: all clean
 
 all:
-	$(NVCC) $(NVCCFLAGS) $(SRC) -o $(TARGET)
+	$(NVCC) $(NVCCFLAGS) $(SRC) -o $(TARGET) -lz
 
 clean:
 	rm -f $(TARGET)

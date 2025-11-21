@@ -87,8 +87,6 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     dC_default_thresholds=(-3000, 1000),
     
     nu=21,
-    m=10,
-    B=25,
     
     platform_type=platform_type,
     repo_path=repo_path,

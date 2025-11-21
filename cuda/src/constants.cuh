@@ -23,9 +23,9 @@ constexpr float B = (a + 2.0f) * (m + 1.0f) / (a * (m - 1.0f));
 
 constexpr float one_div_m = 1.f / m;
 
-constexpr float muL = 0.0f;
-constexpr float muR = 0.0f;
-constexpr float kT  = 0.0f;
+// constexpr float muL = 0.0f;
+// constexpr float muR = 0.0f;
+// constexpr float kT  = 0.0f;
 
 
 // max number of noise samples allowed (limited by constant memory size)
@@ -36,7 +36,6 @@ constexpr int MAX_NOISE_SAMPLES = 8192;
 // store Gaussian noise offsets in constant memory
 __device__ __constant__ float c_eps_offsets[MAX_NOISE_SAMPLES];
 
-__device__ __constant__ float pi_alpha;
 //__device__ __constant__ float B;
 //__constant__ float m;
 //__device__ __constant__ float one_div_m;
@@ -44,14 +43,7 @@ __device__ __constant__ float omega;
 __device__ __constant__ float epsilon_L;
 __device__ __constant__ float epsilon_R;
 
-//__constant__ float delta_C;
-//__constant__ float delta_L;
-//__constant__ float delta_R;
-
 __device__ __constant__ float delta_C;
-__device__ __constant__ float pi_alpha_delta_C;
-__device__ __constant__ float pi_alpha_delta_L;
-__device__ __constant__ float pi_alpha_delta_R;
 
 __device__ __constant__ float rho00_init;
 __device__ __constant__ float rho11_init;

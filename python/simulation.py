@@ -121,10 +121,7 @@ def run_simulation(simr):
     
     #delta = 0.00011608757555650906
     delta_C = simr.delta_C
-    delta_L = 0
-    delta_R = 0
     
-    alpha = 70_819 # or 1?
     nu    = simr.nu
     
     
@@ -144,19 +141,15 @@ def run_simulation(simr):
     
     GammaL0  = simr.GammaL0
     GammaR0  = simr.GammaR0
-    muL  = 0
-    muR  = 0
-    T_K  = 0
+    #muL  = 0
+    #muR  = 0
+    #T_K  = 0
     
     Gamma_eg0 = simr.Gamma_eg0
     omega_c = 0.0015731484686413405
     
     Gamma_phi0 = simr.Gamma_phi0
     sigma_eps  = simr.sigma_eps    
-    
-    
-    a = 0.1
-    m = 10.0
 
 
     if simr.quasi_static_ensemble_dephasing_flag:
@@ -283,16 +276,11 @@ def run_simulation(simr):
         N_periods=N_periods,
         N_periods_avg=N_periods_avg,
         delta_C=delta_C,
-        delta_L=delta_L,
-        delta_R=delta_R,
-        alpha=alpha,
         nu=nu,
         rho00_init=rho00_init,
         rho11_init=rho11_init,
         rho22_init=rho22_init,
         rho33_init=rho33_init,
-        a=a,
-        m=m,
         cuda_cwd=cuda_cwd,
         cuda_program_path=cuda_program_path,
         path_output_csv=path_output_csv,
@@ -306,9 +294,9 @@ def run_simulation(simr):
         
         GammaL0=GammaL0,
         GammaR0=GammaR0,
-        muL=muL,
-        muR=muR,
-        T_K=T_K,
+        #muL=muL,
+        #muR=muR,
+        #T_K=T_K,
         
         Gamma_eg0=Gamma_eg0,
         omega_c = omega_c,

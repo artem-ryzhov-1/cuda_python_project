@@ -469,7 +469,6 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_log(
 
     const int total_steps = N_steps_per_period * N_periods;
 
-
     for (int t_idx_rk4_step = 0; t_idx_rk4_step < total_steps; ++t_idx_rk4_step) {
         const float t_step = t_idx_rk4_step * dt;
         const float eps_t_step = eps0_single_target + A_single_target * cosf(omega * t_step);

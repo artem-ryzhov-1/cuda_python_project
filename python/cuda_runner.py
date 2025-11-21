@@ -44,9 +44,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         "cuda_cwd",
         "cuda_program_path", 
         "platform_type",
-        "path_dynamics_grid_mode_output_hdf5_after_ram",  # Not used in CUDA
-        "a",      # If not used in CUDA
-        "m"       # If not used in CUDA
+        "path_dynamics_grid_mode_output_hdf5_after_ram"  # Not used in CUDA
     ]
     
     for field in fields_to_remove:

@@ -122,7 +122,6 @@ int main(int argc, char** argv)
     const int N_periods_avg = config["N_periods_avg"];
     const int N_samples_noise = safe_get<int>(config, "N_samples_noise", INT_MIN);
 
-    const float alpha = config["alpha"];
     const float nu = config["nu"];
 
     const float eps0_target = safe_get<float>(config, "eps0_target_singlepoint", std::nanf(""));
@@ -139,19 +138,17 @@ int main(int argc, char** argv)
     const std::string path_dynamics_single_mode_output_csv = config["path_dynamics_single_mode_output_csv"];
 
     const float host_delta_C = config["delta_C"];
-    const float host_delta_L = config["delta_L"];
-    const float host_delta_R = config["delta_R"];
 
-    const float host_Gamma_L0 = config["GammaL0"];     // prefactor (GHz etc.)
-    const float host_Gamma_R0 = config["GammaR0"];     // prefactor (GHz etc.)
-    const float host_muL = config["muL"];    // µeV
-    const float host_muR = config["muR"];    // µeV
-    const float T_K = config["T_K"];    // Kelvin
+    const float host_Gamma_L0 = config["GammaL0"];     // prefactor (GHz)
+    const float host_Gamma_R0 = config["GammaR0"];     // prefactor (GHz)
+    // const float host_muL = config["muL"];    // E_C
+    // const float host_muR = config["muR"];    // E_C
+    // const float T_K = config["T_K"];    // Kelvin
 
-    const float host_Gamma_eg0 = config["Gamma_eg0"];    // prefactor (GHz etc.)
-    const float omega_c_norm = config["omega_c"];    // high-frequency cutoff
+    const float host_Gamma_eg0 = config["Gamma_eg0"];    // prefactor (GHz)
+    const float omega_c_norm = config["omega_c"];    // high-frequency cutoff, 10^9 rad/s
 
-    const float host_Gamma_phi0 = safe_get<float>(config, "Gamma_phi0", std::nanf(""));    // prefactor (GHz etc.)
+    const float host_Gamma_phi0 = safe_get<float>(config, "Gamma_phi0", std::nanf(""));    // prefactor (GHz)
     const float sigma_eps = safe_get<float>(config, "sigma_eps", std::nanf(""));
 
     const bool single_mode_log_option = config["single_mode_log_option"];
@@ -171,10 +168,10 @@ int main(int argc, char** argv)
     std::cout << "4.  unrolled_option: " << unrolled_option << "\n";
     std::cout << "5.  ram_shared_mmap_name: " << ram_shared_mmap_name << "\n";
 
-    std::cout << "6.  eps0_min: " << eps0_min << "\n";
-    std::cout << "7.  eps0_max: " << eps0_max << "\n";
-    std::cout << "8.  A_min: " << A_min << "\n";
-    std::cout << "9.  A_max: " << A_max << "\n";
+    std::cout << "6.  eps0_min: " << eps0_min << " (E_C)\n";
+    std::cout << "7.  eps0_max: " << eps0_max << " (E_C)\n";
+    std::cout << "8.  A_min: " << A_min << " (E_C)\n";
+    std::cout << "9.  A_max: " << A_max << " (E_C)\n";
 
     std::cout << "10. N_points_eps0_range: " << N_points_eps0_range << "\n";
     std::cout << "11. N_points_A_range: " << N_points_A_range << "\n";
@@ -183,10 +180,9 @@ int main(int argc, char** argv)
     std::cout << "14. N_periods_avg: " << N_periods_avg << "\n";
     std::cout << "15. N_samples_noise: " << N_samples_noise << "\n";
 
-    std::cout << "16. alpha: " << alpha << "\n";
-    std::cout << "17. nu: " << nu << "\n";
-    std::cout << "18. eps0_target: " << eps0_target << "\n";
-    std::cout << "19. A_target: " << A_target << "\n";
+    std::cout << "17. nu: " << nu << " (GHz)\n";
+    std::cout << "18. eps0_target: " << eps0_target << " (E_C)\n";
+    std::cout << "19. A_target: " << A_target << " (E_C)\n";
 
     std::cout << "20. rho00_init: " << host_rho00_init << "\n";
     std::cout << "21. rho11_init: " << host_rho11_init << "\n";
@@ -198,21 +194,19 @@ int main(int argc, char** argv)
     std::cout << "26. path_output_bin_file_singlemode: " << path_output_bin_file_singlemode << "\n";
     std::cout << "27. path_dynamics_single_mode_output_csv: " << path_dynamics_single_mode_output_csv << "\n";
 
-    std::cout << "28. delta_C: " << host_delta_C << "\n";
-    std::cout << "29. delta_L: " << host_delta_L << "\n";
-    std::cout << "30. delta_R: " << host_delta_R << "\n";
+    std::cout << "28. delta_C: " << host_delta_C << " (E_C)\n";
 
-    std::cout << "37. Gamma_L0: " << host_Gamma_L0 << "\n";
-    std::cout << "38. Gamma_R0: " << host_Gamma_R0 << "\n";
-    std::cout << "39. muL: " << host_muL << "\n";
-    std::cout << "40. muR: " << host_muR << "\n";
-    std::cout << "41. T_K: " << T_K << "\n";
+    std::cout << "37. Gamma_L0: " << host_Gamma_L0 << " (GHz)\n";
+    std::cout << "38. Gamma_R0: " << host_Gamma_R0 << " (GHz)\n";
+    // std::cout << "39. muL: " << host_muL << " (E_C)\n";
+    // std::cout << "40. muR: " << host_muR << " (E_C)\n";
+    // std::cout << "41. T_K: " << T_K << " (K)\n";
 
-    std::cout << "42. Gamma_eg0: " << host_Gamma_eg0 << "\n";
-    std::cout << "43. omega_c_norm: " << omega_c_norm << "\n";
+    std::cout << "42. Gamma_eg0: " << host_Gamma_eg0 << " (GHz)\n";
+    std::cout << "43. omega_c_norm: " << omega_c_norm << " (10^9 rad/s)\n";
 
-    std::cout << "44. Gamma_phi0: " << host_Gamma_phi0 << "\n";
-    std::cout << "45. sigma_eps: " << sigma_eps << "\n";
+    std::cout << "44. Gamma_phi0: " << host_Gamma_phi0 << " (GHz)\n";
+    std::cout << "45. sigma_eps: " << sigma_eps << " (E_C)\n";
 
     std::cout << "46. single_mode_log_option: " << single_mode_log_option << "\n";
     std::cout << "47. path_dynamics_single_mode_output_log_csv: " << path_dynamics_single_mode_output_log_csv << "\n";
@@ -274,11 +268,6 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    if (host_delta_L != 0.0f || host_delta_R != 0.0f) {
-        std::cerr << "ERROR: delta_L and delta_R are expected to be zero. Got: " << host_delta_L << " " << host_delta_R << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
     if (!(threads_per_traj_opt == "one_thread_per_traj" ||
         threads_per_traj_opt == "thread_group_in_warp_per_traj_shuffle" ||
         threads_per_traj_opt == "thread_group_in_warp_per_traj_shmem")) {
@@ -312,6 +301,35 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
+    // -------------------------
+    // Scaling and renormalization
+    // -------------------------
+
+    const float hbar_div_E_C = 6.582119569e-16f / 0.281467f; // hbar (eV*s) / E_C (eV) = s
+
+    
+    const float host_omega_tmp = 2.0f * M_PIf * nu * 1e9f;
+    const float host_omega_prime = hbar_div_E_C * host_omega_tmp;
+
+    // const float host_omega = 2.0f * M_PIf * nu; //old
+    const float host_omega = host_omega_prime;
+
+    const float host_Gamma_L0_prime = hbar_div_E_C * host_Gamma_L0 * 1e9f;
+    const float host_Gamma_R0_prime = hbar_div_E_C * host_Gamma_R0 * 1e9f;
+    const float host_Gamma_eg0_prime = hbar_div_E_C * host_Gamma_eg0 * 1e9f;
+    const float omega_c_norm_prime = hbar_div_E_C * omega_c_norm * 1e9f;
+    const float host_Gamma_phi0_prime = std::isnan(host_Gamma_phi0) ? std::nanf("") : hbar_div_E_C * host_Gamma_phi0 * 1e9f;
+
+    std::cout << "--- Scaled parameters ---\n";
+
+    std::cout << "omega_prime: " << host_omega_prime << " ([1])\n";
+    std::cout << "Gamma_L0_prime: " << host_Gamma_L0_prime << " ([1])\n";
+    std::cout << "Gamma_R0_prime: " << host_Gamma_R0_prime << " ([1])\n";
+    std::cout << "Gamma_eg0_prime: " << host_Gamma_eg0_prime << " ([1])\n";
+    std::cout << "omega_c_norm_prime: " << omega_c_norm_prime << " ([1])\n";
+    std::cout << "Gamma_phi0_prime: " << host_Gamma_phi0_prime << " ([1])\n";
+
+    std::cout << "==============================================\n\n";
 
     // renormalization for safety
 
@@ -325,7 +343,7 @@ int main(int argc, char** argv)
     }
     else {
         std::cerr << "ERROR: all initial rho_ii are zero. Aborting.\n";
-        return 1;
+        std::exit(EXIT_FAILURE);
     }
 
 
@@ -336,53 +354,45 @@ int main(int argc, char** argv)
     //const float B = (a + 2.0f) * (m + 1.0f) / (a * (m - 1.0f));
 
     // compute dt so period length T has integer number of steps
-    const float T = 1 / nu;
-    const float host_dt = T / float(host_N_steps_per_period);
 
+    // physical period
+    const float T_physical = 1.0f / (nu * 1e9f);  // seconds
+
+    // convert to dimensionless time units
+    const float T_dimless = T_physical / hbar_div_E_C;
+
+    // per-step timestep in dimensionless units
+    const float host_dt = T_dimless / float(host_N_steps_per_period);
+
+    std::cout << "debugging: host_dt   : " << host_dt << std::endl;
 
 
     // Thermal scale
-    const float kB_mu_eV = 86.173324f; // µeV/K
-    float host_kT = kB_mu_eV * T_K;
-    if (host_kT < 1e-9f) host_kT = 1e-9f;
+    // const float kB_mu_eV = 86.173324f; // µeV/K
+    // float host_kT = kB_mu_eV * T_K;
+    // if (host_kT < 1e-9f) host_kT = 1e-9f;
 
-    if (fabs(host_kT - kT) > 1e-6f) {
-        fprintf(stderr, "Error: kT mismatch! Expected %.6f, got %.6f\n", kT, host_kT);
-        exit(1);
-    }
-
-    if (fabs(host_muL - muL) > 1e-6f) {
-        fprintf(stderr, "Error: muL mismatch! Expected %.6f, got %.6f\n", muL, host_muL);
-        exit(1);
-    }
-
-    if (fabs(host_muR - muR) > 1e-6f) {
-        fprintf(stderr, "Error: muL mismatch! Expected %.6f, got %.6f\n", muR, host_muR);
-        exit(1);
-    }
 
 
     /////////////////////////////////////////////////////////////////
 
-
+    // #TBD remove later
     const float host_GammaLR0 = host_Gamma_L0 + host_Gamma_R0;
-    const float host_omega = 2.0f * M_PIf * nu;
-    const float host_pi_alpha = M_PIf * alpha;
+    const float host_GammaLR0_prime = host_Gamma_L0_prime + host_Gamma_R0_prime;
 
-
-
-    const float host_pi_alpha_delta_C = host_pi_alpha * host_delta_C;
-    const float host_pi_alpha_delta_L = host_pi_alpha * host_delta_L;
-    const float host_pi_alpha_delta_R = host_pi_alpha * host_delta_R;
-
+    std::cout << "debugging: host_GammaLR0   : " << host_GammaLR0 << std::endl;
+    std::cout << "debugging: host_GammaLR0_prime   : " << host_GammaLR0_prime << std::endl;
 
     const float radical = std::sqrt(1 + m * m * (B * B - 1) * host_delta_C * host_delta_C);
     const float host_epsilon_L = (B + radical) / (m * (B * B - 1));
     const float host_epsilon_R = (B - radical) / (m * (B * B - 1));
 
+    std::cout << "debugging: host_epsilon_L   : " << host_epsilon_L << std::endl;
+    std::cout << "debugging: host_epsilon_R   : " << host_epsilon_R << std::endl;
+
     //const float host_one_div_m = 1.f / host_m;
 
-
+    // #TBD remove later
     const float host_beta = host_delta_C * host_delta_C / (omega_c_norm * omega_c_norm);
     const float host_Gamma_eg0_norm = host_Gamma_eg0 * expf(host_beta);
 
@@ -392,7 +402,7 @@ int main(int argc, char** argv)
     std::cout << "debugging: host_Gamma_eg0   : " << host_Gamma_eg0 << std::endl;
     std::cout << "debugging: host_Gamma_eg0_norm   : " << host_Gamma_eg0_norm << std::endl;
 
-
+    std::cout << "==============================================\n\n";
 
 
 
@@ -404,17 +414,9 @@ int main(int argc, char** argv)
     //gpuCheck(cudaMemcpyToSymbol(kT, &host_kT, sizeof(float)), "cudaMemcpyToSymbol kT");
 
 
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
     gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
-
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha, &host_pi_alpha, sizeof(float)), "cudaMemcpyToSymbol pi_alpha");
-    gpuCheck(cudaMemcpyToSymbol(omega, &host_omega, sizeof(float)), "cudaMemcpyToSymbol omega");
-
 
     gpuCheck(cudaMemcpyToSymbol(delta_C, &host_delta_C, sizeof(float)), "cudaMemcpyToSymbol delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_C, &host_pi_alpha_delta_C, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_C");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_L, &host_pi_alpha_delta_L, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_L");
-    gpuCheck(cudaMemcpyToSymbol(pi_alpha_delta_R, &host_pi_alpha_delta_R, sizeof(float)), "cudaMemcpyToSymbol pi_alpha_delta_R");
 
     gpuCheck(cudaMemcpyToSymbol(epsilon_R, &host_epsilon_R, sizeof(float)), "cudaMemcpyToSymbol epsilon_R");
     gpuCheck(cudaMemcpyToSymbol(epsilon_L, &host_epsilon_L, sizeof(float)), "cudaMemcpyToSymbol epsilon_L");
@@ -445,7 +447,6 @@ int main(int argc, char** argv)
             fprintf(stderr, "Error: N_samples_noise (%d) > MAX_NOISE_SAMPLES (%d)\n",
                 N_samples_noise, MAX_NOISE_SAMPLES);
             std::exit(EXIT_FAILURE); 
-            exit(1);
         }
 
         

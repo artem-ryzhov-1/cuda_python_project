@@ -10,7 +10,7 @@ echo "Now working in: $(pwd)"
 
 # Install necessary packages for Colab
 sudo apt-get update
-sudo apt-get install -y build-essential
+sudo apt-get install -y build-essential zlib1g-dev
 
 # Confirm nvcc is available (should be preinstalled in Colab's CUDA environment)
 nvcc --version
@@ -36,7 +36,7 @@ fi
 echo "Using CUDA architecture: $ARCH"
 
 # Compile your CUDA program (adjust paths as needed)
-nvcc -O3 -std=c++17 -arch=$ARCH -I cuda/src -I cuda/external cuda/src/main.cu -o cuda/bin/lindblad_gpu
+nvcc -O3 -std=c++17 -arch=$ARCH -I cuda/src -I cuda/external cuda/src/main.cu -o cuda/bin/lindblad_gpu -lz
 
 
 echo "Build complete."

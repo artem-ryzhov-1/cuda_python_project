@@ -16,6 +16,13 @@ from pathlib import Path
 
 repo_path = Path(__file__).resolve().parent.parent
 
+output_dir = repo_path / "cuda" / "output"
+
+# remove rho_avg_out.bin if it exists
+(output_dir / "rho_avg_out.bin").unlink(missing_ok=True)
+# remove rho_dynamics_single_mode_out.bin if it exists
+(output_dir / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
+
 #from main_v4_1_win_function import run_simulation
 
 
@@ -68,6 +75,35 @@ print(f"Platform type: {platform_type}")
 time2 = time.time()
 
 
+
+
+simr = SimRunSingleMode(
+    delta_C=0.001,
+    GammaL0=50.0,
+    GammaR0=12.0,
+    Gamma_eg0=0.8,
+    Gamma_phi0=3.6,
+    nu=21,
+    
+    eps0_target_singlepoint=0.001,
+    A_target_singlepoint=0.003,
+    N_steps_period=1000,
+    N_periods=10,
+    N_periods_avg=1,
+    
+    quasi_static_ensemble_dephasing_flag=False,
+    sigma_eps=None,
+    N_samples_noise=None,
+    
+    platform_type = platform_type,
+    repo_path=repo_path
+)
+
+
+
+
+
+'''
 simr = SimRunSingleMode(
     delta_C=0.001,
     GammaL0=50.0,
@@ -89,6 +125,7 @@ simr = SimRunSingleMode(
     platform_type = platform_type,
     repo_path=repo_path
 )
+'''
 
 
 

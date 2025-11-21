@@ -127,10 +127,7 @@ def run_test_cuda_program(repo_path):
         "N_periods_avg": 1,
         "N_samples_noise": None,
 
-        "delta_C": 0.000503,
-        "delta_L": 0,
-        "delta_R": 0,
-        "alpha": 70819,
+        "delta_C": 0.0001208,
         "nu": 21.0,
 
         "rho00_init": 0.25,
@@ -148,17 +145,17 @@ def run_test_cuda_program(repo_path):
 
         "GammaL0": 420.0,
         "GammaR0": 68.0,
-        "muL": 0,
-        "muR": 0,
-        "T_K": 0,
+        #"muL": 0,
+        #"muR": 0,
+        #"T_K": 0,
         "Gamma_eg0": 10.0,
         "omega_c": 0.0015731484686413405,
         "Gamma_phi0": 36.6,
 
-        "quasi_static_ensemble_dephasing_flag": False,
+        "quasi_static_ensemble_dephasing_opt": "false",
         "sigma_eps": None,
 
-        "version": "1.0"
+        "version": "2.0"
     }
 
     # Save JSON

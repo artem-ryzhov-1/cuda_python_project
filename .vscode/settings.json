@@ -56,7 +56,8 @@
         "map": "cpp",
         "ratio": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "cinttypes": "cpp"
     },
     "remote.autoForwardPorts": false,
     "remote.autoForwardPortsFallback": 3
