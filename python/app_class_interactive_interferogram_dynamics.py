@@ -62,9 +62,11 @@ class InteractiveInterferogramDynamics:
         self.A_max = A_max
         self.N_points_target = N_points_target
 
+        self.E_C = 0.281467*0.5 # (eV) #TBD
+        
         a = 0.1
-        self.m = 10.0
-        self.B = (a + 2) * (self.m + 1) / (a * (self.m - 1));
+        self.m = 10
+        self.B = (a + 2) * (self.m + 1) / (a * (self.m - 1))
         
         N_steps_period_range = N_steps_period_array if isinstance(N_steps_period_array, tuple) else (int(N_steps_period_array[0]), int(N_steps_period_array[-1]))
         N_periods_range = N_periods_array if isinstance(N_periods_array, tuple) else (int(N_periods_array[0]), int(N_periods_array[-1]))
@@ -86,7 +88,8 @@ class InteractiveInterferogramDynamics:
             dC_default_thresholds, cmap_name, render_mode
         )
         
-        t_max_default = N_periods_default/nu
+        hbar_div_E_C = 6.582119569e-16 / self.E_C #/ hbar (eV*s) / E_C (eV) = s
+        t_max_default = N_periods_default/(hbar_div_E_C*nu*1e9)
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
@@ -549,8 +552,8 @@ class InteractiveInterferogramDynamics:
         
         sqrt_term = np.sqrt(1 + m**2 * B2_minus_1 * delta_C**2)
         
-        self.epsilon_R = (B + sqrt_term) / (m * B2_minus_1)
-        self.epsilon_L = (B - sqrt_term) / (m * B2_minus_1)
+        self.epsilon_L = (B + sqrt_term) / (m * B2_minus_1)
+        self.epsilon_R = (B - sqrt_term) / (m * B2_minus_1)
         
         # Update widgets to trigger plot refresh
         if hasattr(self.dynamics, 'epsilon_L_widget'):

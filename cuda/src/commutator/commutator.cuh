@@ -500,7 +500,7 @@ void commutator_v3_unrolled(
     tmp += eps_t_substep;
     tmp *= rho_in_5;
 
-    tmp += rho_in_7;
+    tmp += delta_C * rho_in_7;
     drho_out_4 = tmp;
 
     //tmp = 0.0f;
@@ -509,7 +509,7 @@ void commutator_v3_unrolled(
     tmp += -eps_t_substep;
     tmp *= rho_in_4;
 
-    tmp += -rho_in_6;
+    tmp += -delta_C * rho_in_6;
     drho_out_5 = tmp;
 
     // (0,2)
@@ -519,7 +519,7 @@ void commutator_v3_unrolled(
     tmp += -eps_t_substep;
     tmp *= rho_in_7;
 
-    tmp += rho_in_5;
+    tmp += delta_C * rho_in_5;
     drho_out_6 = tmp;
 
     //tmp = 0.0f;
@@ -528,7 +528,7 @@ void commutator_v3_unrolled(
     tmp += eps_t_substep;
     tmp *= rho_in_6;
 
-    tmp += -rho_in_4;
+    tmp += -delta_C * rho_in_4;
     drho_out_7 = tmp;
 
     // (0,3)

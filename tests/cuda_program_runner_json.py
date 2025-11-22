@@ -38,57 +38,94 @@ os.makedirs(output_dir, exist_ok=True)
 # 2. CREATE JSON CONFIG
 # -------------------------------
 
+
+config = {
+  "grid_single_mode": "grid_single",
+  "ouput_option": "bin_file",
+  "unrolled_option": "unrolled",
+  "ram_shared_mmap_name": "MySimSharedMemory",
+  "single_mode_log_option": True,
+  "threads_per_traj_opt": "one_thread_per_traj",
+  "eps0_target_singlepoint": 0.001,
+  "A_target_singlepoint": 0.003,
+  "eps0_min": -0.006,
+  "eps0_max": 0.006,
+  "A_min": 0.0,
+  "A_max": 0.01,
+  "N_points_eps0_range": 245,
+  "N_points_A_range": 204,
+  "N_steps_period": 1000,
+  "N_periods": 10,
+  "N_periods_avg": 1,
+  "N_samples_noise": None,
+  "delta_C": 0.00011608757555650906,
+  "nu": 21.0,
+  "rho00_init": 0.0,
+  "rho11_init": 1.0,
+  "rho22_init": 0.0,
+  "rho33_init": 0.0,
+  "path_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_avg_out.csv",
+  "path_output_bin_file_gridmode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_avg_out.bin",
+  "path_output_bin_file_singlemode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.bin",
+  "path_dynamics_single_mode_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.csv",
+  "path_dynamics_single_mode_output_log_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.csv",
+  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
+  "GammaL0": 50.0,
+  "GammaR0": 12.0,
+  "Gamma_eg0": 0.8,
+  "omega_c": 0.0015731484686413405,
+  "Gamma_phi0": 3.6,
+  "quasi_static_ensemble_dephasing_opt": "false",
+  "sigma_eps": None,
+  "version": "1.0"
+}
+
 '''
 config = {
-    "grid_single_mode": "grid_single",
-    "ouput_option": "bin_file",
-    "unrolled_option": "unrolled",
-    "ram_shared_mmap_name": "MySimSharedMemory",
-    "single_mode_log_option": False,
-    "threads_per_traj_opt": "one_thread_per_traj",
-
-    "eps0_target_singlepoint": -0.00018929930075147695,
-    "A_target_singlepoint": 0.005371448934150004,
-    "eps0_min": -0.006,
-    "eps0_max": 0.006,
-    "A_min": 0.0,
-    "A_max": 0.01,
-    "N_points_eps0_range": 774,
-    "N_points_A_range": 645,
-    "N_steps_period": 1000,
-    "N_periods": 10,
-    "N_periods_avg": 1,
-    "N_samples_noise": None,
-
-    "delta_C": 0.0001208,
-    "nu": 21.0,
-
-    "rho00_init": 0.25,
-    "rho11_init": 0.25,
-    "rho22_init": 0.25,
-    "rho33_init": 0.25,
-
-    # Paths relative to repo
-    "path_output_csv": str(output_dir / "rho_avg_out.csv"),
-    "path_output_bin_file_gridmode": str(output_dir / "rho_avg_out.bin"),
-    "path_output_bin_file_singlemode": str(output_dir / "rho_dynamics_single_mode_out.bin"),
-    "path_dynamics_single_mode_output_csv": str(output_dir / "rho_dynamics_single_mode_out.csv"),
-    "path_dynamics_single_mode_output_log_csv": str(output_dir / "rho_dynamics_single_mode_log_out.csv"),
-    "path_dynamics_single_mode_output_log_hdf5": str(output_dir / "rho_dynamics_single_mode_log_out.h5"),
-
-    "GammaL0": 420.0,
-    "GammaR0": 68.0,
-    "Gamma_eg0": 10.0,
-    "omega_c": 0.0015731484686413405,
-    "Gamma_phi0": 36.6,
-
-    "quasi_static_ensemble_dephasing_opt": "false",
-    "sigma_eps": None,
-
-    "version": "2.0"
+  "grid_single_mode": "grid_single",
+  "ouput_option": "bin_file",
+  "unrolled_option": "unrolled",
+  "ram_shared_mmap_name": "MySimSharedMemory",
+  "single_mode_log_option": True,
+  "threads_per_traj_opt": "one_thread_per_traj",
+  "eps0_target_singlepoint": 0.001,
+  "A_target_singlepoint": 0.003,
+  "eps0_min": -0.006,
+  "eps0_max": 0.006,
+  "A_min": 0.0,
+  "A_max": 0.01,
+  "N_points_eps0_range": 245,
+  "N_points_A_range": 204,
+  "N_steps_period": 1000,
+  "N_periods": 10,
+  "N_periods_avg": 1,
+  "N_samples_noise": 10,
+  "delta_C": 0.00011608757555650906,
+  "nu": 21.0,
+  "rho00_init": 0.25,
+  "rho11_init": 0.25,
+  "rho22_init": 0.25,
+  "rho33_init": 0.25,
+  "path_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_avg_out.csv",
+  "path_output_bin_file_gridmode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_avg_out.bin",
+  "path_output_bin_file_singlemode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.bin",
+  "path_dynamics_single_mode_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.csv",
+  "path_dynamics_single_mode_output_log_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.csv",
+  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
+  "GammaL0": 50.0,
+  "GammaR0": 12.0,
+  "Gamma_eg0": 0.8,
+  "omega_c": 0.0015731484686413405,
+  "Gamma_phi0": None,
+  "quasi_static_ensemble_dephasing_opt": "sequential",
+  "sigma_eps": 0.0001,
+  "version": "1.0"
 }
 '''
 
+
+
+'''
 config = {
   "grid_single_mode": "single",
   "ouput_option": "bin_file",
@@ -108,7 +145,7 @@ config = {
   "N_periods": 10,
   "N_periods_avg": 1,
   "N_samples_noise": None,
-  "delta_C": 0.001,
+  "delta_C": 0.00011608757555650906,
   "nu": 21.0,
   "rho00_init": 0.25,
   "rho11_init": 0.25,
@@ -119,17 +156,17 @@ config = {
   "path_output_bin_file_singlemode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.bin",
   "path_dynamics_single_mode_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.csv",
   "path_dynamics_single_mode_output_log_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.csv",
-  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin", #TBD
-  "GammaL0": 50.0,
-  "GammaR0": 12.0,
-  "Gamma_eg0": 0.8,
+  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
+  "GammaL0": 420.0,
+  "GammaR0": 68.0,
+  "Gamma_eg0": 10.0,
   "omega_c": 0.0015731484686413405,
   "Gamma_phi0": 3.6,
   "quasi_static_ensemble_dephasing_opt": "false",
   "sigma_eps": None,
-  "version": "1.0"
+  "version": "2.0"
 }
-
+'''
 
 # Save JSON
 config_path = input_dir / "run_config.json"

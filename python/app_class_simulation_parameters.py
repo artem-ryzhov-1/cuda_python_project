@@ -68,38 +68,40 @@ class SimulationParameters:
         # Continuous parameters
         self.delta_C_slider = pn.widgets.FloatSlider(
             name='delta_C', start=self.delta_C_range[0], end=self.delta_C_range[1],
-            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000,
-            format='0.5e'
+            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000
         )
-        self.delta_C_input = pn.widgets.FloatInput(value=self.delta_C, format='0.5e', width=100)
+        self.delta_C_input = pn.widgets.FloatInput(
+            value=self.delta_C, width=100,
+            step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000
+        )
         
         self.GammaL0_slider = pn.widgets.FloatSlider(
             name='GammaL0', start=self.GammaL0_range[0], end=self.GammaL0_range[1],
-            value=self.GammaL0, step=0.5
+            value=self.GammaL0, step=(self.GammaL0_range[1] - self.GammaL0_range[0]) / 1000
         )
         self.GammaL0_input = pn.widgets.FloatInput(value=self.GammaL0, width=100)
         
         self.GammaR0_slider = pn.widgets.FloatSlider(
             name='GammaR0', start=self.GammaR0_range[0], end=self.GammaR0_range[1],
-            value=self.GammaR0, step=0.1
+            value=self.GammaR0, step=(self.GammaR0_range[1] - self.GammaR0_range[0]) / 1000
         )
         self.GammaR0_input = pn.widgets.FloatInput(value=self.GammaR0, width=100)
         
         self.Gamma_eg0_slider = pn.widgets.FloatSlider(
             name='Gamma_eg0', start=self.Gamma_eg0_range[0], end=self.Gamma_eg0_range[1],
-            value=self.Gamma_eg0, step=0.1
+            value=self.Gamma_eg0, step=(self.Gamma_eg0_range[1] - self.Gamma_eg0_range[0]) / 1000
         )
         self.Gamma_eg0_input = pn.widgets.FloatInput(value=self.Gamma_eg0, width=100)
         
         self.Gamma_phi0_slider = pn.widgets.FloatSlider(
             name='Gamma_phi0', start=self.Gamma_phi0_range[0], end=self.Gamma_phi0_range[1],
-            value=self.Gamma_phi0, step=0.1
+            value=self.Gamma_phi0, step=(self.Gamma_phi0_range[1] - self.Gamma_phi0_range[0]) / 1000
         )
         self.Gamma_phi0_input = pn.widgets.FloatInput(value=self.Gamma_phi0, width=100)
         
         self.sigma_eps_slider = pn.widgets.FloatSlider(
             name='sigma_eps', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
-            value=self.sigma_eps, step=0.00001, disabled=True
+            value=self.sigma_eps, step=(self.sigma_eps_range[1] - self.sigma_eps_range[0]) / 1000, disabled=True
         )
         self.sigma_eps_input = pn.widgets.FloatInput(value=self.sigma_eps, width=100, disabled=True)
         

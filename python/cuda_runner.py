@@ -56,7 +56,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
             config[key] = str(value)
     
     # Write config to JSON file
-    config_path = Path(c.cuda_cwd) / "run_config.json"
+    config_path = Path(c.cuda_cwd).parent/ "input" / "run_config.json" #TBD to improve
     print(f"Writing configuration to: {config_path}")
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
