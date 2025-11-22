@@ -118,6 +118,12 @@ class DynamicsPlot:
             value=0.0,
             visible=False
         )
+
+        # t_max_plot widget - styled invisible for panel serve compatibility
+        self.t_max_plot_widget = pn.widgets.FloatInput(
+            value=self.t_max_plot,
+            visible=False
+        )
     
     def _on_show_toggle(self, event):
         """Handle show toggle."""
@@ -191,6 +197,7 @@ class DynamicsPlot:
                 # Update plot time limit after successful computation
                 if self.time_dynamics is not None and len(self.time_dynamics) > 0:
                     self.t_max_plot = self.time_dynamics[-1]
+                    self.t_max_plot_widget.value = self.t_max_plot
                 
                 self.status_text.object = f"**Dynamics:** ✅ Ready ({self.computation_time:.2f}s) | eps0={eps0:.6f}, A={A:.6f}"
             except Exception as e:
@@ -219,52 +226,62 @@ class DynamicsPlot:
         if hasattr(self, 'dynamics_version_widget'):
             self.dynamics_version_widget.value = self.dynamics_version
         
+        # ======================================================
+        # FULL REBUILD OF THE DYNAMICS PLOT (CRITICAL FIX)
+        # ======================================================
+        if hasattr(self.parent_app, "dynamics_plot_pane"):
+            new_plot = self.create_plot()
+            self.parent_app.dynamics_plot_pane.object = new_plot
+        # ======================================================
+
         print("      🔷 DynamicsPlot.compute FINISHING: About to clear flag", flush=True)
         self.computing = False
         print("      🔷 DynamicsPlot.compute FINISHED: Flag cleared", flush=True)
     
     def create_plot(self):
         """Create the dynamics plot with linked X axes and independent Y axes."""
-    
-        def make_plot(version, epsilon_L, epsilon_R):
-            # Always use the same key dimension for automatic x-axis linking
+
+        def make_plot(version, epsilon_L, epsilon_R, t_max_plot):
+
+            print(f"🎨 make_plot CALLED: version={version}, t_max_plot={t_max_plot}", flush=True)
+            
             time = self.time_dynamics if self.time_dynamics is not None else np.array([0, 1])
             
-            # FIXED: Use self.current_eps0 and self.current_A instead of widget values
             if self.time_dynamics is not None and self.current_eps0 is not None and self.current_A is not None:
-                # Use actual simulation parameters
                 eps_min = self.current_eps0 - self.current_A * 1.1
                 eps_max = self.current_eps0 + self.current_A * 1.1
             else:
-                # No simulation → small default range
                 eps_min = -0.01
                 eps_max = 0.01
             
+            print(f"   🔍 time_dynamics is None: {self.time_dynamics is None}", flush=True)
+            print(f"   🔍 rho_dynamics is None: {self.rho_dynamics is None}", flush=True)
+            
             if self.time_dynamics is None or self.rho_dynamics is None:
+                print(f"   📊 Creating EMPTY plot with xlim=(0, {t_max_plot})", flush=True)
                 # Empty population plot
                 pop_data = np.zeros(len(time))
                 curve_p00 = hv.Curve((time, pop_data), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
                 curve_p01 = hv.Curve((time, pop_data), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
                 curve_p10 = hv.Curve((time, pop_data), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
                 curve_p11 = hv.Curve((time, pop_data), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
-    
+
                 pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
+                    xlim=(0, t_max_plot),
                     ylim=(0, 1),
-                    xlim=(0, self.t_max_plot),
                     legend_position='right',
-                    framewise=True
+                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset', 'save']
                 )
-    
+
                 # Empty epsilon plot
                 eps_curve = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon').opts(
                     color=colors[4], line_width=1.5
                 )
                 
-                # Add horizontal lines for epsilon bounds
                 hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
                 hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
                 hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
@@ -276,21 +293,25 @@ class DynamicsPlot:
                     title='Epsilon Dynamics',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
+                    xlim=(0, t_max_plot),
                     ylim=(eps_min, eps_max),
-                    xlim=(0, self.t_max_plot),
-                    framewise=True
+                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset', 'save']
                 )
             else:
+                print(f"   📊 Creating REAL plot with xlim=(0, {t_max_plot})", flush=True)
+                print(f"   📊 time_dynamics length: {len(self.time_dynamics)}", flush=True)
+                print(f"   📊 time_dynamics[-1]: {self.time_dynamics[-1]}", flush=True)
+                
                 # Real population plot
                 time = self.time_dynamics
                 p00 = self.rho_dynamics[:, 0]
                 p01 = self.rho_dynamics[:, 1]
                 p10 = self.rho_dynamics[:, 2]
                 p11 = self.rho_dynamics[:, 3]
-    
+
                 pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
                 pop_ylim = (0, pop_max * 1.1)
-    
+
                 curve_p00 = hv.Curve((time, p00), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
                 curve_p01 = hv.Curve((time, p01), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
                 curve_p10 = hv.Curve((time, p10), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
@@ -299,46 +320,48 @@ class DynamicsPlot:
                 pop_overlay = (curve_p00 * curve_p01 * curve_p10 * curve_p11)
                 pop_plot = pop_overlay.opts(
                     width=800, height=350,
-                    title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
+                    title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f}), t_max={t_max_plot:.1f}',
                     xlabel='Time', ylabel='Population',
                     show_grid=True,
-                    legend_position='right',
+                    xlim=(0, t_max_plot),
                     ylim=pop_ylim,
-                    xlim=(0, self.t_max_plot),
-                    framewise=True
+                    legend_position='right',
+                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset', 'save'],
+                    framewise=True  # Force independent frame calculation
                 )
-    
+
                 # Real epsilon plot
                 eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon').opts(
                     color=colors[4], line_width=1.5
                 )
                 
-                # Add horizontal lines for epsilon bounds
                 hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
                 hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
                 hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
                 hline_eps_L_neg = hv.HLine(-epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
-    
+
                 eps_overlay = eps_curve * hline_eps_R_pos * hline_eps_R_neg * hline_eps_L_pos * hline_eps_L_neg
                 eps_plot = eps_overlay.opts(
                     width=800, height=200,
-                    title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}])',
+                    title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}]), t_max={t_max_plot:.1f}',
                     xlabel='Time', ylabel='ε(t)',
                     show_grid=True,
+                    xlim=(0, t_max_plot),
                     ylim=(eps_min, eps_max),
-                    xlim=(0, self.t_max_plot),
-                    framewise=True
+                    default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset', 'save']
                 )
             
-            # Stack vertically - X axes link automatically because they share 'time' dimension
-            layout = (pop_plot + eps_plot).cols(1)
+            # CRITICAL: Use .opts(axiswise=True) on the layout to force axis recalculation
+            layout = (pop_plot + eps_plot).cols(1).opts(axiswise=True)
             return layout
-    
-        # Create DynamicMap - removed eps0_input and A_input from pn.bind
+
+        # Create DynamicMap
         return hv.DynamicMap(pn.bind(make_plot, 
-                              self.dynamics_version_widget,
-                              self.epsilon_L_widget,
-                              self.epsilon_R_widget))
+                            self.dynamics_version_widget,
+                            self.epsilon_L_widget,
+                            self.epsilon_R_widget,
+                            self.t_max_plot_widget))
+
     
     def get_control_panel(self):
         """Return control panel for dynamics."""

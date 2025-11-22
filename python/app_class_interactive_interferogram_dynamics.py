@@ -94,6 +94,8 @@ class InteractiveInterferogramDynamics:
         t_max_default = N_periods_default/(hbar_div_E_C*self.nu*1e9)
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
+        self.dynamics.parent_app = self
+        self.dynamics_plot_pane = None
         
         # Store current epsilon_L and epsilon_R values
         self.epsilon_L = None
@@ -111,7 +113,7 @@ class InteractiveInterferogramDynamics:
         self._pending_hover_A = None
         self._last_computed_eps0 = None
         self._last_computed_A = None
-        self._debug_hover = True
+        self._debug_hover = False
 
         # Hover processing callback reference
         self._hover_timer_cb = None
@@ -201,6 +203,7 @@ class InteractiveInterferogramDynamics:
                      'nu', 'E_C',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
+            print(f"🔥 REGISTERING WATCH for {param}_slider", flush=True)
             slider.param.watch(self._on_parameter_change, 'value')
         
         self.sim_params.quasi_static_toggle.param.watch(self._on_parameter_change, 'value')
@@ -264,6 +267,7 @@ class InteractiveInterferogramDynamics:
     
     def _on_parameter_change(self, event):
         """Handle parameter slider changes - no queuing."""
+        
         # Update epsilon bounds when delta_C changes
         self._update_epsilon_bounds()
         
@@ -272,7 +276,6 @@ class InteractiveInterferogramDynamics:
         
         # CRITICAL: Skip if ANY computation is in progress
         if self._is_generating or self._is_generating_both or self.dynamics.computing:
-            # Parameters are marked as changed, will be picked up later
             return
         
         # Cancel any pending parameter update timer
@@ -296,10 +299,10 @@ class InteractiveInterferogramDynamics:
         
         self._param_timer_cb = pn.state.add_periodic_callback(
             param_timer_callback,
-            period=200,  # 200ms debounce for slider changes
+            period=200,
             count=1
         )
-    
+            
     def _process_pending_param_update(self):
         """Process pending parameter update - only if marked."""
         if not hasattr(self, '_pending_param_update') or not self._pending_param_update:
@@ -400,7 +403,8 @@ class InteractiveInterferogramDynamics:
             # Update t_max_plot for dynamics
             if time_dynamics is not None and len(time_dynamics) > 0:
                 self.dynamics.t_max_plot = time_dynamics[-1]
-            
+                self.dynamics.t_max_plot_widget.value = self.dynamics.t_max_plot
+                
             # Update dynamics version to trigger plot refresh
             self.dynamics.dynamics_version += 1
             if hasattr(self.dynamics, 'dynamics_version_widget'):
@@ -745,6 +749,12 @@ class InteractiveInterferogramDynamics:
         # Recursively call start again (flag still True)
         self._start_hover_computation()
 
+    def _calculate_expected_t_max(self):
+        """Calculate expected t_max based on current parameters."""
+        hbar_div_E_C = 6.582119569e-16 / self.sim_params.E_C  # hbar (eV*s) / E_C (eV) = s
+        t_max = self.sim_params.N_periods / (hbar_div_E_C * self.sim_params.nu * 1e9)
+        return t_max
+
     def _generate_dynamics(self, eps0, A, update_params=False):
         """Generate dynamics for given coordinates.
         
@@ -978,13 +988,15 @@ class InteractiveInterferogramDynamics:
         # Dynamics plot
         dynamics_dmap = self.dynamics.create_plot()
         
-        dynamics_pane = pn.pane.HoloViews(
+        self.dynamics_plot_pane = pn.pane.HoloViews(
             dynamics_dmap,
-            sizing_mode='fixed',
             width=800,
             height=600,
+            sizing_mode='fixed',
             backend='bokeh'
         )
+
+        dynamics_pane = self.dynamics_plot_pane
         
         dynamics_plot_panel = pn.Column(
             dynamics_pane,
