@@ -60,6 +60,7 @@ config = {
   "N_samples_noise": None,
   "delta_C": 0.00011608757555650906,
   "nu": 21.0,
+  "E_C": 0.14,
   "rho00_init": 0.0,
   "rho11_init": 1.0,
   "rho22_init": 0.0,
@@ -77,7 +78,7 @@ config = {
   "Gamma_phi0": 3.6,
   "quasi_static_ensemble_dephasing_opt": "false",
   "sigma_eps": None,
-  "version": "1.0"
+  "version": "3.0"
 }
 
 '''

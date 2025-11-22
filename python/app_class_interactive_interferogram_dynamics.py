@@ -43,12 +43,13 @@ class InteractiveInterferogramDynamics:
     
     def __init__(self, eps0_min, eps0_max, A_min, A_max, N_points_target,
                  delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range, sigma_eps_range,
+                 nu_range, E_C_range,
                  N_steps_period_array, N_periods_array, N_periods_avg_array, N_samples_noise_array,
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, sigma_eps_default, N_steps_period_default, N_periods_default, 
-                 N_periods_avg_default, N_samples_noise_default,
+                 Gamma_phi0_default, sigma_eps_default,
+                 nu_default, E_C_default, 
+                 N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default,
                  dC_default_thresholds,
-                 nu,
                  platform_type,
                  repo_path,
                  cmap_name,
@@ -61,8 +62,8 @@ class InteractiveInterferogramDynamics:
         self.A_min = A_min
         self.A_max = A_max
         self.N_points_target = N_points_target
-
-        self.E_C = 0.281467*0.5 # (eV) #TBD
+        self.nu = nu_default
+        self.E_C = E_C_default
         
         a = 0.1
         self.m = 10
@@ -75,10 +76,11 @@ class InteractiveInterferogramDynamics:
 
         self.sim_params = SimulationParameters(
             delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, Gamma_phi0_range, sigma_eps_range,
+            nu_range, E_C_range,
             N_steps_period_range, N_periods_range, N_periods_avg_range, N_samples_noise_range,
             delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
             Gamma_phi0_default, sigma_eps_default,
-            nu,
+            nu_default, E_C_default,
             N_steps_period_default, N_periods_default, 
             N_periods_avg_default, N_samples_noise_default
         )
@@ -89,7 +91,7 @@ class InteractiveInterferogramDynamics:
         )
         
         hbar_div_E_C = 6.582119569e-16 / self.E_C #/ hbar (eV*s) / E_C (eV) = s
-        t_max_default = N_periods_default/(hbar_div_E_C*nu*1e9)
+        t_max_default = N_periods_default/(hbar_div_E_C*self.nu*1e9)
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
@@ -196,6 +198,7 @@ class InteractiveInterferogramDynamics:
         
         # Watch parameter changes for auto-update
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
+                     'nu', 'E_C',
                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             slider = getattr(self.sim_params, f'{param}_slider')
             slider.param.watch(self._on_parameter_change, 'value')

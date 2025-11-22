@@ -122,7 +122,8 @@ int main(int argc, char** argv)
     const int N_periods_avg = config["N_periods_avg"];
     const int N_samples_noise = safe_get<int>(config, "N_samples_noise", INT_MIN);
 
-    const float nu = config["nu"];
+    const float nu_phys = config["nu"];
+    const float E_C = config["E_C"];
 
     const float eps0_target = safe_get<float>(config, "eps0_target_singlepoint", std::nanf(""));
     const float A_target = safe_get<float>(config, "A_target_singlepoint", std::nanf(""));
@@ -139,17 +140,17 @@ int main(int argc, char** argv)
 
     const float host_delta_C = config["delta_C"];
 
-    const float host_Gamma_L0_phys = config["GammaL0"];     // prefactor (GHz)
-    const float host_Gamma_R0_phys = config["GammaR0"];     // prefactor (GHz)
+    const float Gamma_L0_phys = config["GammaL0"];     // prefactor (GHz)
+    const float Gamma_R0_phys = config["GammaR0"];     // prefactor (GHz)
     // const float host_muL = config["muL"];    // E_C
     // const float host_muR = config["muR"];    // E_C
     // const float T_K = config["T_K"];    // Kelvin
 
-    const float host_Gamma_eg0_phys = config["Gamma_eg0"];    // prefactor (GHz)
+    const float Gamma_eg0_phys = config["Gamma_eg0"];    // prefactor (GHz)
     const float omega_c_norm_phys = config["omega_c"];    // high-frequency cutoff
 
-    const float host_Gamma_phi0_phys = safe_get<float>(config, "Gamma_phi0", std::nanf(""));    // prefactor (GHz)
-    const float sigma_eps = safe_get<float>(config, "sigma_eps", std::nanf(""));
+    const float Gamma_phi0_phys = safe_get<float>(config, "Gamma_phi0", std::nanf(""));    // prefactor (GHz)
+    const float sigma_eps_phys = safe_get<float>(config, "sigma_eps", std::nanf(""));
 
     const bool single_mode_log_option = config["single_mode_log_option"];
     const std::string path_dynamics_single_mode_output_log_csv = config["path_dynamics_single_mode_output_log_csv"];
@@ -180,7 +181,8 @@ int main(int argc, char** argv)
     std::cout << "14. N_periods_avg: " << N_periods_avg << "\n";
     std::cout << "15. N_samples_noise: " << N_samples_noise << "\n";
 
-    std::cout << "17. nu: " << nu << " (GHz)\n";
+    std::cout << "17. nu_phys: " << nu_phys << " (GHz)\n";
+    std::cout << "17. E_C: " << E_C << " (eV)\n";
     std::cout << "18. eps0_target: " << eps0_target << " (E_C)\n";
     std::cout << "19. A_target: " << A_target << " (E_C)\n";
 
@@ -196,17 +198,17 @@ int main(int argc, char** argv)
 
     std::cout << "28. delta_C: " << host_delta_C << "\n";
 
-    std::cout << "37. Gamma_L0: " << host_Gamma_L0_phys << " (GHz)\n";
-    std::cout << "38. Gamma_R0: " << host_Gamma_R0_phys << " (GHz)\n";
+    std::cout << "37. Gamma_L0_phys: " << Gamma_L0_phys << " (GHz)\n";
+    std::cout << "38. Gamma_R0_phys: " << Gamma_R0_phys << " (GHz)\n";
     // std::cout << "39. muL: " << host_muL << "\n";
     // std::cout << "40. muR: " << host_muR << "\n";
     // std::cout << "41. T_K: " << T_K << "\n";
 
-    std::cout << "42. Gamma_eg0: " << host_Gamma_eg0_phys << " (GHz)\n";
+    std::cout << "42. Gamma_eg0_phys: " << Gamma_eg0_phys << " (GHz)\n";
     std::cout << "43. omega_c_norm: " << omega_c_norm_phys << "\n";
 
-    std::cout << "44. Gamma_phi0: " << host_Gamma_phi0_phys << " (GHz)\n";
-    std::cout << "45. sigma_eps: " << sigma_eps << " (E_C)\n";
+    std::cout << "44. Gamma_phi0_phys: " << Gamma_phi0_phys << " (GHz)\n";
+    std::cout << "45. sigma_eps_phys: " << sigma_eps_phys << " (E_C)\n";
 
     std::cout << "46. single_mode_log_option: " << single_mode_log_option << "\n";
     std::cout << "47. path_dynamics_single_mode_output_log_csv: " << path_dynamics_single_mode_output_log_csv << "\n";
@@ -280,8 +282,8 @@ int main(int argc, char** argv)
     if (quasi_static_ensemble_dephasing_opt == "sequential" ||
         quasi_static_ensemble_dephasing_opt == "parallel") {
 
-        if (std::isnan(sigma_eps) || N_samples_noise == INT_MIN){
-            std::cerr << "ERROR: sigma_eps or N_samples_noise is NAN with quasi_static_ensemble_dephasing_opt == 'sequential' or 'parallel'."
+        if (std::isnan(sigma_eps_phys) || N_samples_noise == INT_MIN){
+            std::cerr << "ERROR: sigma_eps_phys or N_samples_noise is NAN with quasi_static_ensemble_dephasing_opt == 'sequential' or 'parallel'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
@@ -289,8 +291,8 @@ int main(int argc, char** argv)
     }
     else if (quasi_static_ensemble_dephasing_opt == "false") {
 
-        if (!std::isnan(sigma_eps) || N_samples_noise != INT_MIN) {
-            std::cerr << "ERROR: sigma_eps or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_opt == 'false'."
+        if (!std::isnan(sigma_eps_phys) || N_samples_noise != INT_MIN) {
+            std::cerr << "ERROR: sigma_eps_phys or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_opt == 'false'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
@@ -305,31 +307,28 @@ int main(int argc, char** argv)
     // Scaling and renormalization
     // -------------------------
 
-    const float hbar_div_E_C = 6.582119569e-16f / (0.281467f*0.5f); // hbar (eV*s) / E_C (eV) = s
+    const float hbar_div_E_C = M_HBARf / E_C; // hbar (eV*s) / E_C (eV) = s
 
-    const float host_omega_phys = 2.0f * M_PIf * nu * 1e9f;
-    const float host_omega = hbar_div_E_C * host_omega_phys; // new
-    // const float host_omega = 2.0f * M_PIf * nu; //old
+    const float omega_phys = 2.0f * M_PIf * nu_phys * 1e9f;
+    const float host_omega = hbar_div_E_C * omega_phys; // new
+    // const float host_omega = 2.0f * M_PIf * nu_phys; //old
 
 
-    const float host_Gamma_L0 = hbar_div_E_C * host_Gamma_L0_phys * 1e9f;
-    const float host_Gamma_R0 = hbar_div_E_C * host_Gamma_R0_phys * 1e9f;
-    const float host_Gamma_eg0 = hbar_div_E_C * host_Gamma_eg0_phys * 1e9f;
+    const float host_Gamma_L0 = hbar_div_E_C * Gamma_L0_phys * 1e9f;
+    const float host_Gamma_R0 = hbar_div_E_C * Gamma_R0_phys * 1e9f;
+    const float host_Gamma_eg0 = hbar_div_E_C * Gamma_eg0_phys * 1e9f;
     // const float omega_c_norm = hbar_div_E_C * omega_c_norm_phys * 1e9f;
-    const float host_Gamma_phi0 = std::isnan(host_Gamma_phi0_phys) ? std::nanf("") : hbar_div_E_C * host_Gamma_phi0_phys * 1e9f;
+    const float host_Gamma_phi0 = std::isnan(Gamma_phi0_phys) ? std::nanf("") : hbar_div_E_C * Gamma_phi0_phys * 1e9f;
+    const float host_sigma_eps = std::isnan(sigma_eps_phys) ? std::nanf("") : hbar_div_E_C * sigma_eps_phys * 1e9f;
 
 
-    // const float host_Gamma_L0 = host_Gamma_L0_phys;
-    // const float host_Gamma_R0 = host_Gamma_R0_phys;
-    // const float host_Gamma_eg0 = host_Gamma_eg0_phys;
-    const float omega_c_norm = omega_c_norm_phys;
-    // const float host_Gamma_phi0 = host_Gamma_phi0_phys;
+    const float omega_c_norm = omega_c_norm_phys; // #TBD
 
 
     // compute dt so period length T has integer number of steps
 
-    // physical period
-    const float T_phys = 1.0f / (nu * 1e9f);  // seconds
+    // period in physical units (s)
+    const float T_phys = 1.0f / (nu_phys * 1e9f);  // seconds
 
     // convert to dimensionless time units
     const float T_dimless = T_phys / hbar_div_E_C;
@@ -337,20 +336,22 @@ int main(int argc, char** argv)
     // per-step timestep in dimensionless units
     const float host_dt = T_dimless / float(host_N_steps_per_period); // new
 
-    // const float T = 1 / nu;
+    // const float T = 1 / nu_phys;
     // const float host_dt = T / float(host_N_steps_per_period); // old
 
+    std::cout << "T_phys: " << T_phys << " (s)\n";
 
     std::cout << "--- Scaled parameters ---\n";
 
-
+    std::cout << "T_prime: " << T_dimless << " ([1])\n";
     std::cout << "dt: " << host_dt << " ([1])\n";  
     std::cout << "omega_prime: " << host_omega << " ([1])\n";
     std::cout << "Gamma_L0_prime: " << host_Gamma_L0 << " ([1])\n";
     std::cout << "Gamma_R0_prime: " << host_Gamma_R0 << " ([1])\n";
     std::cout << "Gamma_eg0_prime: " << host_Gamma_eg0 << " ([1])\n";
-    std::cout << "omega_c_norm_prime: " << omega_c_norm << " ([1])\n";
+    std::cout << "omega_c_norm_prime: " << omega_c_norm << " ([1])\n";  // #TBD
     std::cout << "Gamma_phi0_prime: " << host_Gamma_phi0 << " ([1])\n";
+    std::cout << "Gamma_sigma_eps_prime: " << host_sigma_eps << " ([1])\n";
 
     std::cout << "==============================================\n\n";
 
@@ -459,7 +460,7 @@ int main(int argc, char** argv)
 
         // Fill with noise
         std::mt19937 rng(12345);
-        std::normal_distribution<float> dist(0.0f, sigma_eps);
+        std::normal_distribution<float> dist(0.0f, host_sigma_eps);
         for (int i = 0; i < N_samples_noise; ++i) {
             eps_offsets[i] = dist(rng);
         }

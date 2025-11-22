@@ -121,8 +121,7 @@ def run_simulation(simr):
     
     #delta = 0.00011608757555650906
     delta_C = simr.delta_C
-    
-    nu    = simr.nu
+
     
     
     #rho00_init = 0
@@ -276,7 +275,8 @@ def run_simulation(simr):
         N_periods=N_periods,
         N_periods_avg=N_periods_avg,
         delta_C=delta_C,
-        nu=nu,
+        nu=simr.nu,
+        E_C=simr.E_C,
         rho00_init=rho00_init,
         rho11_init=rho11_init,
         rho22_init=rho22_init,

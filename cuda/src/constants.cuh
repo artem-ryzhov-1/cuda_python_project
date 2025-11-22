@@ -12,6 +12,10 @@
 constexpr float M_PIf = 3.1415926535897932384626433832f;
 #endif
 
+#ifndef M_HBARf
+constexpr float M_HBARf = 6.582119569e-16f; // hbar (eV*s)
+#endif
+
 
 ////////////////////////////
 
