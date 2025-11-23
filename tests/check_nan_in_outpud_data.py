@@ -23,9 +23,9 @@ output_dir = project_root / "cuda" / "output"
 
 
 
-time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(output_dir / "rho_dynamics_single_mode_out.bin")
+time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(output_dir / "rho_dynamics_single_mode_out.bin", 1.0)
 
-eps0_grid, A_grid, result = read_bin_file_gridmode_and_calculate_deriv(output_dir / "rho_avg_out.bin")
+eps0_grid, A_grid, result = read_bin_file_gridmode_and_calculate_deriv(output_dir / "rho_avg_out.bin", 1.0)
 
 
 

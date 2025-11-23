@@ -49,7 +49,7 @@ class InteractiveInterferogramDynamics:
                  Gamma_phi0_default, sigma_eps_default,
                  nu_default, E_C_default, 
                  N_steps_period_default, N_periods_default, N_periods_avg_default, N_samples_noise_default,
-                 dC_default_thresholds,
+                 dC_default_thresholds, rho_init,
                  platform_type,
                  repo_path,
                  cmap_name,
@@ -64,6 +64,11 @@ class InteractiveInterferogramDynamics:
         self.N_points_target = N_points_target
         self.nu = nu_default
         self.E_C = E_C_default
+
+        self.rho00_init = rho_init[0]
+        self.rho11_init = rho_init[1]
+        self.rho22_init = rho_init[2]
+        self.rho33_init = rho_init[3]
         
         a = 0.1
         self.m = 10
@@ -91,7 +96,8 @@ class InteractiveInterferogramDynamics:
         )
         
         hbar_div_E_C = 6.582119569e-16 / self.E_C #/ hbar (eV*s) / E_C (eV) = s
-        t_max_default = N_periods_default/(hbar_div_E_C*self.nu*1e9)
+        #tau_max_default = N_periods_default/(hbar_div_E_C*self.nu*1e9) # in dimensionless units
+        t_max_default = N_periods_default*1e12/(self.nu*1e9)   # in picoseconds
         
         self.dynamics = DynamicsPlot(eps0_min, eps0_max, A_min, A_max, t_max_default)
         
@@ -378,7 +384,11 @@ class InteractiveInterferogramDynamics:
                         A_max=self.A_max,
                         N_points_target=self.N_points_target,
                         eps0_target_singlepoint=self.dynamics.current_eps0,
-                        A_target_singlepoint=self.dynamics.current_A
+                        A_target_singlepoint=self.dynamics.current_A,
+                        rho00_init=self.rho00_init,
+                        rho11_init=self.rho11_init,
+                        rho22_init=self.rho22_init,
+                        rho33_init=self.rho33_init
                     )
                 )
                 
@@ -411,7 +421,7 @@ class InteractiveInterferogramDynamics:
             self.timing_text.object = f"**Last computation:** {elapsed:.2f} seconds"
             self.dynamics.status_text.object = (
                 f"**Dynamics:** ✅ Ready ({elapsed:.2f}s) | "
-                f"eps0={self.dynamics.current_eps0:.6f}, A={self.dynamics.current_A:.6f}"
+                f"ε₀={self.dynamics.current_eps0:.6f}, A={self.dynamics.current_A:.6f}"
             )
             
             log_text = f"**✅ Both computed in {elapsed:.2f}s**\n\n"
@@ -439,7 +449,7 @@ class InteractiveInterferogramDynamics:
         else:
             log_text += f", Gamma_phi0 = {self.sim_params.Gamma_phi0}\n"
         log_text += f"- Quasi-static mode: {self.sim_params.quasi_static}\n"
-        log_text += f"- Dynamics at: eps0={self.dynamics.current_eps0:.8f}, A={self.dynamics.current_A:.8f}\n\n"
+        log_text += f"- Dynamics at: ε₀={self.dynamics.current_eps0:.8f}, A={self.dynamics.current_A:.8f}\n\n"
         
         stdout_content = captured_stdout.getvalue()
         stderr_content = captured_stderr.getvalue()
@@ -479,7 +489,11 @@ class InteractiveInterferogramDynamics:
                         eps0_max=self.eps0_max,
                         A_min=self.A_min,
                         A_max=self.A_max,
-                        N_points_target=self.N_points_target
+                        N_points_target=self.N_points_target,
+                        rho00_init=self.rho00_init,
+                        rho11_init=self.rho11_init,
+                        rho22_init=self.rho22_init,
+                        rho33_init=self.rho33_init
                     )
                 )
                 
@@ -753,7 +767,7 @@ class InteractiveInterferogramDynamics:
         """
         
         if self._debug_hover:
-            print(f"    🟢 _generate_dynamics CALLED: eps0={eps0:.6f}, A={A:.6f}, update_params={update_params}", flush=True)
+            print(f"    🟢 _generate_dynamics CALLED: ε₀={eps0:.6f}, A={A:.6f}, update_params={update_params}", flush=True)
         
         # Safety check - this should never trigger if hover logic is correct
         # But if it does, we just return (the caller's try-finally will handle cleanup)
@@ -781,7 +795,8 @@ class InteractiveInterferogramDynamics:
                 self.interferogram.marker_version_widget.value = self.interferogram.marker_version
         
         self.dynamics.compute(eps0, A, self.sim_params, 
-                            self.platform_type, self.repo_path, 
+                            self.platform_type, self.repo_path,
+                            self.rho00_init, self.rho11_init, self.rho22_init, self.rho33_init,
                             log_callback, marker_update_callback, 
                             update_params=update_params)
         

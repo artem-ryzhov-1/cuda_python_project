@@ -3,6 +3,7 @@
 ########################################
 
 import panel as pn
+pn.extension('mathjax')
 import holoviews as hv
 
 import matplotlib.pyplot as plt
@@ -70,11 +71,20 @@ class SimulationParameters:
     
     def _create_widgets(self):
         """Create parameter widgets."""
-        
+        self.delta_C_label     = pn.pane.LaTeX(r"$\Delta_{C},\ \mathrm{[E_C]}$")
+        self.GammaL0_label     = pn.pane.LaTeX(r"$\Gamma_{L0},\ \mathrm{[GHz]}$")
+        self.GammaR0_label     = pn.pane.LaTeX(r"$\Gamma_{R0},\ \mathrm{[GHz]}$")
+        self.Gamma_eg0_label   = pn.pane.LaTeX(r"$\Gamma_{eg0},\ \mathrm{[GHz]}$")
+        self.Gamma_phi0_label  = pn.pane.LaTeX(r"$\Gamma_{\phi0},\ \mathrm{[GHz]}$")
+        self.sigma_eps_label   = pn.pane.LaTeX(r"$\sigma_{\varepsilon},\ \mathrm{[E_C]}$")
+        self.nu_label          = pn.pane.LaTeX(r"$\nu,\ \mathrm{[GHz]}$")
+        self.E_C_label         = pn.pane.LaTeX(r"$E_C,\ \mathrm{[eV]}$")
+
         # Continuous parameters
         self.delta_C_slider = pn.widgets.FloatSlider(
-            name='delta_C', start=self.delta_C_range[0], end=self.delta_C_range[1],
-            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000
+            name='', start=self.delta_C_range[0], end=self.delta_C_range[1],
+            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000,
+            show_value=False
         )
         self.delta_C_input = pn.widgets.FloatInput(
             value=self.delta_C, width=100,
@@ -82,46 +92,53 @@ class SimulationParameters:
         )
         
         self.GammaL0_slider = pn.widgets.FloatSlider(
-            name='GammaL0', start=self.GammaL0_range[0], end=self.GammaL0_range[1],
-            value=self.GammaL0, step=(self.GammaL0_range[1] - self.GammaL0_range[0]) / 1000
+            name='', start=self.GammaL0_range[0], end=self.GammaL0_range[1],
+            value=self.GammaL0, step=(self.GammaL0_range[1] - self.GammaL0_range[0]) / 1000,
+            show_value=False
         )
         self.GammaL0_input = pn.widgets.FloatInput(value=self.GammaL0, width=100)
         
         self.GammaR0_slider = pn.widgets.FloatSlider(
-            name='GammaR0', start=self.GammaR0_range[0], end=self.GammaR0_range[1],
-            value=self.GammaR0, step=(self.GammaR0_range[1] - self.GammaR0_range[0]) / 1000
+            name='', start=self.GammaR0_range[0], end=self.GammaR0_range[1],
+            value=self.GammaR0, step=(self.GammaR0_range[1] - self.GammaR0_range[0]) / 1000,
+            show_value=False
         )
         self.GammaR0_input = pn.widgets.FloatInput(value=self.GammaR0, width=100)
         
         self.Gamma_eg0_slider = pn.widgets.FloatSlider(
-            name='Gamma_eg0', start=self.Gamma_eg0_range[0], end=self.Gamma_eg0_range[1],
-            value=self.Gamma_eg0, step=(self.Gamma_eg0_range[1] - self.Gamma_eg0_range[0]) / 1000
+            name='', start=self.Gamma_eg0_range[0], end=self.Gamma_eg0_range[1],
+            value=self.Gamma_eg0, step=(self.Gamma_eg0_range[1] - self.Gamma_eg0_range[0]) / 1000,
+            show_value=False
         )
         self.Gamma_eg0_input = pn.widgets.FloatInput(value=self.Gamma_eg0, width=100)
         
         self.Gamma_phi0_slider = pn.widgets.FloatSlider(
-            name='Gamma_phi0', start=self.Gamma_phi0_range[0], end=self.Gamma_phi0_range[1],
-            value=self.Gamma_phi0, step=(self.Gamma_phi0_range[1] - self.Gamma_phi0_range[0]) / 1000
+            name='', start=self.Gamma_phi0_range[0], end=self.Gamma_phi0_range[1],
+            value=self.Gamma_phi0, step=(self.Gamma_phi0_range[1] - self.Gamma_phi0_range[0]) / 1000,
+            show_value=False
         )
         self.Gamma_phi0_input = pn.widgets.FloatInput(value=self.Gamma_phi0, width=100)
         
         self.sigma_eps_slider = pn.widgets.FloatSlider(
-            name='sigma_eps', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
-            value=self.sigma_eps, step=(self.sigma_eps_range[1] - self.sigma_eps_range[0]) / 1000, disabled=True
+            name='', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
+            value=self.sigma_eps, step=(self.sigma_eps_range[1] - self.sigma_eps_range[0]) / 1000,
+            disabled=True, show_value=False
         )
         self.sigma_eps_input = pn.widgets.FloatInput(value=self.sigma_eps, width=100, disabled=True)
 
         self.nu_slider = pn.widgets.FloatSlider(
-            name='nu', start=self.nu_range[0], end=self.nu_range[1],
-            value=self.nu, step=(self.nu_range[1] - self.nu_range[0]) / 1000
+            name='', start=self.nu_range[0], end=self.nu_range[1],
+            value=self.nu, step=(self.nu_range[1] - self.nu_range[0]) / 1000,
+            show_value=False
         )
         self.nu_input = pn.widgets.FloatInput(
             value=self.nu, width=100
         )
         
         self.E_C_slider = pn.widgets.FloatSlider(
-            name='E_C', start=self.E_C_range[0], end=self.E_C_range[1],
-            value=self.E_C, step=(self.E_C_range[1] - self.E_C_range[0]) / 1000
+            name='', start=self.E_C_range[0], end=self.E_C_range[1],
+            value=self.E_C, step=(self.E_C_range[1] - self.E_C_range[0]) / 1000,
+            show_value=False
         )
         self.E_C_input = pn.widgets.FloatInput(
             value=self.E_C, width=100
@@ -129,26 +146,30 @@ class SimulationParameters:
         
         # Discrete parameters
         self.N_steps_period_slider = pn.widgets.IntSlider(
-            name='N_steps_period', start=self.N_steps_period_range[0], 
-            end=self.N_steps_period_range[1], value=self.N_steps_period, step=1
+            name='Number of steps per period', start=self.N_steps_period_range[0], 
+            end=self.N_steps_period_range[1], value=self.N_steps_period, step=1,
+            show_value=False
         )
         self.N_steps_period_input = pn.widgets.IntInput(value=self.N_steps_period, width=100)
         
         self.N_periods_slider = pn.widgets.IntSlider(
-            name='N_periods', start=self.N_periods_range[0], end=self.N_periods_range[1],
-            value=self.N_periods, step=1
+            name='Number of periods', start=self.N_periods_range[0], end=self.N_periods_range[1],
+            value=self.N_periods, step=1,
+            show_value=False
         )
         self.N_periods_input = pn.widgets.IntInput(value=self.N_periods, width=100)
         
         self.N_periods_avg_slider = pn.widgets.IntSlider(
-            name='N_periods_avg', start=self.N_periods_avg_range[0], 
-            end=self.N_periods_avg_range[1], value=self.N_periods_avg, step=1
+            name='Number of periods of averaging', start=self.N_periods_avg_range[0], 
+            end=self.N_periods_avg_range[1], value=self.N_periods_avg, step=1,
+            show_value=False
         )
         self.N_periods_avg_input = pn.widgets.IntInput(value=self.N_periods_avg, width=100)
         
         self.N_samples_noise_slider = pn.widgets.IntSlider(
-            name='N_samples_noise', start=self.N_samples_noise_range[0], 
-            end=self.N_samples_noise_range[1], value=self.N_samples_noise, step=1, disabled=True
+            name='Number of samples in the quasi-static approach', start=self.N_samples_noise_range[0], 
+            end=self.N_samples_noise_range[1], value=self.N_samples_noise, step=1, disabled=True,
+            show_value=False
         )
         self.N_samples_noise_input = pn.widgets.IntInput(value=self.N_samples_noise, width=100, disabled=True)
         
@@ -243,16 +264,29 @@ class SimulationParameters:
     
     def get_control_panel(self):
         """Return Panel layout with all parameter controls."""
+        top_margin_label = -10
+        bottom_margin_label = -10
+        top_margin_slider = 0
+        bottom_margin_slider = -10
+
         return pn.Column(
             "### Physical Parameters",
-            pn.Row(self.delta_C_slider, self.delta_C_input),
-            pn.Row(self.GammaL0_slider, self.GammaL0_input),
-            pn.Row(self.GammaR0_slider, self.GammaR0_input),
-            pn.Row(self.Gamma_eg0_slider, self.Gamma_eg0_input),
-            pn.Row(self.Gamma_phi0_slider, self.Gamma_phi0_input),
-            pn.Row(self.sigma_eps_slider, self.sigma_eps_input),
-            pn.Row(self.nu_slider, self.nu_input),
-            pn.Row(self.E_C_slider, self.E_C_input),
+            pn.Row(self.delta_C_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.delta_C_slider, self.delta_C_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.GammaL0_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.GammaL0_slider, self.GammaL0_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.GammaR0_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.GammaR0_slider, self.GammaR0_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.Gamma_eg0_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.Gamma_eg0_slider, self.Gamma_eg0_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.Gamma_phi0_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.Gamma_phi0_slider, self.Gamma_phi0_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.sigma_eps_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.sigma_eps_slider, self.sigma_eps_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.nu_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.nu_slider, self.nu_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
+            pn.Row(self.E_C_label, margin=(top_margin_label, 0, bottom_margin_label, 0)),
+            pn.Row(self.E_C_slider, self.E_C_input, margin=(top_margin_slider, 0, bottom_margin_slider, 0)),
             pn.layout.Divider(),
             "### Time Parameters",
             pn.Row(self.N_steps_period_slider, self.N_steps_period_input),

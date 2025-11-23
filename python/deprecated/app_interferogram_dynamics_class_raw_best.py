@@ -295,7 +295,7 @@ class InterferogramPlot:
         if new_level in ["00", "01", "10", "11"]:
             slider_min, slider_max = 0, 1
         elif new_level == "C":
-            slider_min, slider_max = -18, 18
+            slider_min, slider_max = -18.2, 18.2
         elif new_level == "dC":
             slider_min = -abs(2 * self.dC_default_thresholds[0])
             slider_max = abs(2 * self.dC_default_thresholds[1])

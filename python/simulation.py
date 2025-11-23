@@ -122,18 +122,20 @@ def run_simulation(simr):
     #delta = 0.00011608757555650906
     delta_C = simr.delta_C
 
+
+
+
+    rho00_init = simr.rho00_init
+    rho11_init = simr.rho11_init
+    rho22_init = simr.rho22_init
+    rho33_init = simr.rho33_init
+
+    trace_pho = rho00_init + rho11_init + rho22_init + rho33_init
     
-    
-    #rho00_init = 0
-    #rho11_init = 1
-    #rho22_init = 0
-    #rho33_init = 0
-    
-    rho00_init = 0.25
-    rho11_init = 0.25
-    rho22_init = 0.25
-    rho33_init = 0.25
-    
+    rho00_init /= trace_pho;
+    rho11_init /= trace_pho;
+    rho22_init /= trace_pho;
+    rho33_init /= trace_pho;
     
     # ===== Physics params =====
     
@@ -221,12 +223,7 @@ def run_simulation(simr):
     
     ##########
     
-    tr_pho = rho00_init + rho11_init + rho22_init + rho33_init
-    
-    rho00_init /= tr_pho;
-    rho11_init /= tr_pho;
-    rho22_init /= tr_pho;
-    rho33_init /= tr_pho;
+
     
 
     
@@ -329,21 +326,21 @@ def run_simulation(simr):
         
         if grid_single_mode == "grid":
                  
-            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode)
+            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode, simr.E_C)
         
             return eps0_grid, A_grid, rho_avg_cdc_3d, returncode
         
         
         elif grid_single_mode == "single":
         
-            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode)
+            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode, simr.E_C)
             
             return time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode
         
         elif grid_single_mode == "grid_single":
             
-            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode)
-            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode)
+            eps0_grid, A_grid, rho_avg_cdc_3d = read_bin_file_gridmode_and_calculate_deriv(path_output_bin_file_gridmode, simr.E_C)
+            time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(path_output_bin_file_singlemode, simr.E_C)
             
             return eps0_grid, A_grid, rho_avg_cdc_3d, time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode
 

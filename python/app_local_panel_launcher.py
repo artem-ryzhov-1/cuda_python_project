@@ -2,6 +2,9 @@
 # python/app_local.py
 ########################################
 
+#https://claude.ai/chat/44c56c9e-78eb-4405-bad4-da852d545d9b
+#https://chatgpt.com/c/6922da9d-0c1c-8327-bd1f-aa6ab51e32d1
+
 from pathlib import Path
 import sys
 import os
@@ -38,7 +41,11 @@ print(f"Repo directory: {repo_path}")
 
 
 import panel as pn
+pn.extension('mathjax')
 import holoviews as hv
+hv.extension('bokeh')
+import os, sys
+
 import app_class_interactive_interferogram_dynamics
 from app_class_interactive_interferogram_dynamics import InteractiveInterferogramDynamics
 
@@ -53,8 +60,6 @@ CUPY_CUDF_AVAILABLE = helpers.detect_cupy_cudf()
 render_mode = helpers.modify_render_mode('raster_dynamic', CUPY_CUDF_AVAILABLE)
 
 # Enable Panel extension - CRITICAL: Must be called before creating any Panel objects
-pn.extension()
-hv.extension('bokeh')
 
 
 # Define your app parameters
@@ -76,19 +81,20 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
     N_periods_array=(1, 20),
     N_periods_avg_array=(1, 10),
     N_samples_noise_array=(0, 1000),
-    delta_C_default=0.0004,
-    GammaL0_default=270.0,
-    GammaR0_default=35.0,
-    Gamma_eg0_default=12.0,
-    Gamma_phi0_default=22.0,
+    delta_C_default=0.0003,
+    GammaL0_default=560.0,
+    GammaR0_default=80.0,
+    Gamma_eg0_default=30.0,
+    Gamma_phi0_default=55.0,
     sigma_eps_default=0.00015,
     nu_default=21.0,
-    E_C_default=0.14,
+    E_C_default=0.195,
     N_steps_period_default=1000,
     N_periods_default=10,
     N_periods_avg_default=1,
     N_samples_noise_default=5,
-    dC_default_thresholds=(-6000, 2000),
+    dC_default_thresholds=(-0.01, 0.005),
+    rho_init = [0.25, 0.25, 0.25, 0.25],
     
     platform_type=platform_type,
     repo_path=repo_path,

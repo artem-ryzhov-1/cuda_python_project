@@ -135,7 +135,9 @@ class DynamicsPlot:
         self.click_count = 0
         self.hover_active = False
     
-    def compute(self, eps0, A, sim_params, platform_type, repo_path, log_callback=None, marker_update_callback=None, update_params=True):
+    def compute(self, eps0, A, sim_params, platform_type, repo_path,
+                rho00_init, rho11_init, rho22_init, rho33_init,
+                log_callback=None, marker_update_callback=None, update_params=True):
         """Compute dynamics for given coordinates.
         
         Args:
@@ -179,7 +181,11 @@ class DynamicsPlot:
                 **sim_params.get_simrun_kwargs(
                     platform_type, repo_path,
                     eps0_target_singlepoint=eps0,
-                    A_target_singlepoint=A
+                    A_target_singlepoint=A,
+                    rho00_init=rho00_init,
+                    rho11_init=rho11_init,
+                    rho22_init=rho22_init,
+                    rho33_init=rho33_init
                 )
             )
             
@@ -243,15 +249,15 @@ class DynamicsPlot:
             if self.time_dynamics is None or self.rho_dynamics is None:
                 # Empty population plot
                 pop_data = np.zeros(len(time))
-                curve_p00 = hv.Curve((time, pop_data), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
-                curve_p01 = hv.Curve((time, pop_data), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
-                curve_p10 = hv.Curve((time, pop_data), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
-                curve_p11 = hv.Curve((time, pop_data), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+                curve_p00 = hv.Curve((time, pop_data), 'time', 'population', label='P₀₀').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, pop_data), 'time', 'population', label='P₀₁').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, pop_data), 'time', 'population', label='P₁₀').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, pop_data), 'time', 'population', label='P₁₁').opts(color=colors[3], line_width=1.5)
     
                 pop_plot = (curve_p00 * curve_p01 * curve_p10 * curve_p11).opts(
                     width=800, height=350,
                     title='Population Dynamics (click on interferogram)',
-                    xlabel='Time', ylabel='Population',
+                    xlabel='Time, [ps]', ylabel='Population',
                     show_grid=True,
                     ylim=(0, 1),
                     xlim=(0, self.t_max_plot),
@@ -260,24 +266,25 @@ class DynamicsPlot:
                 )
     
                 # Empty epsilon plot
-                eps_curve = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon').opts(
+                eps_curve = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon', label='ε / Ec').opts(
                     color=colors[4], line_width=1.5
                 )
-                
                 # Add horizontal lines for epsilon bounds
-                hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
-                hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
-                hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
-                hline_eps_L_neg = hv.HLine(-epsilon_L).opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
-                
+                N_points = len(time)
+                hline_eps_R_pos = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon', label='±ε⁽ᴿ⁾ / Ec').opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_R_neg = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon').opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_pos = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon', label='±ε⁽ᴸ⁾ / Ec').opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_neg = hv.Curve((time, np.zeros(len(time))), 'time', 'epsilon').opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
+
                 eps_overlay = eps_curve * hline_eps_R_pos * hline_eps_R_neg * hline_eps_L_pos * hline_eps_L_neg
                 eps_plot = eps_overlay.opts(
                     width=800, height=200,
                     title='Epsilon Dynamics',
-                    xlabel='Time', ylabel='ε(t)',
+                    xlabel='Time, [ps]', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(eps_min, eps_max),
                     xlim=(0, self.t_max_plot),
+                    legend_position='right',
                     framewise=True
                 )
             else:
@@ -291,16 +298,16 @@ class DynamicsPlot:
                 pop_max = np.max([p00.max(), p01.max(), p10.max(), p11.max()])
                 pop_ylim = (0, pop_max * 1.1)
     
-                curve_p00 = hv.Curve((time, p00), 'time', 'population', label='p00').opts(color=colors[0], line_width=1.5)
-                curve_p01 = hv.Curve((time, p01), 'time', 'population', label='p01').opts(color=colors[1], line_width=1.5)
-                curve_p10 = hv.Curve((time, p10), 'time', 'population', label='p10').opts(color=colors[2], line_width=1.5)
-                curve_p11 = hv.Curve((time, p11), 'time', 'population', label='p11').opts(color=colors[3], line_width=1.5)
+                curve_p00 = hv.Curve((time, p00), 'time', 'population', label='P₀₀').opts(color=colors[0], line_width=1.5)
+                curve_p01 = hv.Curve((time, p01), 'time', 'population', label='P₀₁').opts(color=colors[1], line_width=1.5)
+                curve_p10 = hv.Curve((time, p10), 'time', 'population', label='P₁₀').opts(color=colors[2], line_width=1.5)
+                curve_p11 = hv.Curve((time, p11), 'time', 'population', label='P₁₁').opts(color=colors[3], line_width=1.5)
                 
                 pop_overlay = (curve_p00 * curve_p01 * curve_p10 * curve_p11)
                 pop_plot = pop_overlay.opts(
                     width=800, height=350,
                     title=f'Population Dynamics (eps0={self.current_eps0:.6f}, A={self.current_A:.6f})',
-                    xlabel='Time', ylabel='Population',
+                    xlabel='Time, [ps]', ylabel='Population',
                     show_grid=True,
                     legend_position='right',
                     ylim=pop_ylim,
@@ -309,24 +316,26 @@ class DynamicsPlot:
                 )
     
                 # Real epsilon plot
-                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon').opts(
+                eps_curve = hv.Curve((time, self.eps_dynamics), 'time', 'epsilon', label='ε / Ec').opts(
                     color=colors[4], line_width=1.5
                 )
                 
                 # Add horizontal lines for epsilon bounds
-                hline_eps_R_pos = hv.HLine(epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
-                hline_eps_R_neg = hv.HLine(-epsilon_R).opts(color='red', line_width=1.5, line_dash='dashed', alpha=0.8)
-                hline_eps_L_pos = hv.HLine(epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
-                hline_eps_L_neg = hv.HLine(-epsilon_L).opts(color='green', line_width=1.5, line_dash='dashed', alpha=0.8)
+                N_points = len(time)
+                hline_eps_R_pos = hv.Curve((time, np.full(N_points, epsilon_R)), 'time', 'epsilon', label='±ε⁽ᴿ⁾ / Ec').opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_R_neg = hv.Curve((time, np.full(N_points, -epsilon_R)), 'time', 'epsilon').opts(color='red', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_pos = hv.Curve((time, np.full(N_points, epsilon_L)), 'time', 'epsilon', label='±ε⁽ᴸ⁾ / Ec').opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
+                hline_eps_L_neg = hv.Curve((time, np.full(N_points, -epsilon_L)), 'time', 'epsilon').opts(color='green', line_width=1, line_dash='dashed', alpha=0.7)
     
                 eps_overlay = eps_curve * hline_eps_R_pos * hline_eps_R_neg * hline_eps_L_pos * hline_eps_L_neg
                 eps_plot = eps_overlay.opts(
                     width=800, height=200,
                     title=f'Epsilon Dynamics (range: [{eps_min:.6f}, {eps_max:.6f}])',
-                    xlabel='Time', ylabel='ε(t)',
+                    xlabel='Time, [ps]', ylabel='ε(t)',
                     show_grid=True,
                     ylim=(eps_min, eps_max),
                     xlim=(0, self.t_max_plot),
+                    legend_position='right',
                     framewise=True
                 )
             

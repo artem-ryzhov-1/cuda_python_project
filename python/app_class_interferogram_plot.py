@@ -43,7 +43,7 @@ class InterferogramPlot:
         self.gpu_enabled = (render_mode == 'raster_dynamic_gpu')
                             
         # Level labels
-        self.level_labels = ["00", "01", "10", "11", "C", "dC"]
+        self.level_labels = ["00", "01", "10", "11", "C", "Δφ"]
         
         # Data storage
         self.avg_grids = {label: None for label in self.level_labels}
@@ -69,30 +69,32 @@ class InterferogramPlot:
         self.level_selector = pn.widgets.RadioButtonGroup(
             name='Display Level',
             options=self.level_labels,
-            value='dC',
+            value='Δφ',
             button_type='primary'
         )
         
         self.clim_low_slider = pn.widgets.FloatSlider(
-            name='Color Min',
-            start=-abs(2*self.dC_default_thresholds[0]),
-            end=abs(2*self.dC_default_thresholds[0]),
+            name='Color Min ([1])',
+            start=self.dC_default_thresholds[0],
+            end=self.dC_default_thresholds[1],
             value=self.dC_default_thresholds[0],
-            step=0.01
+            step=(abs(self.dC_default_thresholds[1]-self.dC_default_thresholds[0]))/1000
         )
         self.clim_low_input = pn.widgets.FloatInput(
-            value=self.dC_default_thresholds[0], width=100
+            value=self.dC_default_thresholds[0], width=100,
+            step=(abs(self.dC_default_thresholds[1]-self.dC_default_thresholds[0]))/1000
         )
         
         self.clim_high_slider = pn.widgets.FloatSlider(
-            name='Color Max',
-            start=-abs(2*self.dC_default_thresholds[1]),
-            end=abs(2*self.dC_default_thresholds[1]),
+            name='Color Max ([1])',
+            start=self.dC_default_thresholds[0],
+            end=self.dC_default_thresholds[1],
             value=self.dC_default_thresholds[1],
-            step=0.01
+            step=(abs(self.dC_default_thresholds[1]-self.dC_default_thresholds[0]))/1000
         )
         self.clim_high_input = pn.widgets.FloatInput(
-            value=self.dC_default_thresholds[1], width=100
+            value=self.dC_default_thresholds[1], width=100,
+            step=(abs(self.dC_default_thresholds[1]-self.dC_default_thresholds[0]))/1000
         )
         
         # Link color sliders
@@ -146,10 +148,10 @@ class InterferogramPlot:
         if new_level in ["00", "01", "10", "11"]:
             slider_min, slider_max = 0, 1
         elif new_level == "C":
-            slider_min, slider_max = -18, 18
-        elif new_level == "dC":
-            slider_min = -abs(2 * self.dC_default_thresholds[0])
-            slider_max = abs(2 * self.dC_default_thresholds[1])
+            slider_min, slider_max = -18.2, 18.2
+        elif new_level == "Δφ":
+            slider_min = self.dC_default_thresholds[0]
+            slider_max = self.dC_default_thresholds[1]
         else:
             slider_min, slider_max = 0, 1
         
@@ -244,7 +246,7 @@ class InterferogramPlot:
                     colorbar=True,
                     width=800, height=600,
                     title='Interactive Interferogram (loading...)',
-                    xlabel='eps0', ylabel='A',
+                    xlabel='ε₀/Ec', ylabel='A/Ec',
                     xlim=(self.eps0_min, self.eps0_max),
                     ylim=(self.A_min, self.A_max)
                 )
@@ -263,8 +265,8 @@ class InterferogramPlot:
                 height=600,
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} [VECTOR]',
-                xlabel='eps0',
-                ylabel='A'
+                xlabel='ε₀/Ec',
+                ylabel='A/Ec'
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -313,7 +315,7 @@ class InterferogramPlot:
                     colorbar=True,
                     width=800, height=600,
                     title='Interactive Interferogram (loading...)',
-                    xlabel='eps0', ylabel='A',
+                    xlabel='ε₀/Ec', ylabel='A/Ec',
                     xlim=(self.eps0_min, self.eps0_max),
                     ylim=(self.A_min, self.A_max)
                 )
@@ -362,8 +364,8 @@ class InterferogramPlot:
                 height=600,
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
-                xlabel='eps0',
-                ylabel='A'
+                xlabel='ε₀/Ec',
+                ylabel='A/Ec'
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -409,7 +411,7 @@ class InterferogramPlot:
                     colorbar=True,
                     width=800, height=600,
                     title='Interactive Interferogram (loading...)',
-                    xlabel='eps0', ylabel='A',
+                    xlabel='ε₀/Ec', ylabel='A/Ec',
                     xlim=(self.eps0_min, self.eps0_max),
                     ylim=(self.A_min, self.A_max)
                 )
@@ -426,8 +428,8 @@ class InterferogramPlot:
                 height=600,
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
-                xlabel='eps0',
-                ylabel='A'
+                xlabel='ε₀/Ec',
+                ylabel='A/Ec'
             )
             
             return img

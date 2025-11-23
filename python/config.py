@@ -75,6 +75,7 @@ class SimRunGridMode:
                  eps0_min, eps0_max, A_min, A_max,
                  N_points_target, N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
+                 rho00_init, rho11_init, rho22_init, rho33_init,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -86,7 +87,11 @@ class SimRunGridMode:
                           ("eps0_min", eps0_min),
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
-                          ("A_max", A_max)]:
+                          ("A_max", A_max),
+                          ("rho00_init", rho00_init),
+                          ("rho11_init", rho11_init),
+                          ("rho22_init", rho22_init),
+                          ("rho33_init", rho33_init)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
@@ -137,6 +142,11 @@ class SimRunGridMode:
         self.N_periods_avg   = int(N_periods_avg)
         self.N_samples_noise = int(N_samples_noise) if N_samples_noise is not None else None
         
+        self.rho00_init = float(rho00_init)
+        self.rho11_init = float(rho11_init)
+        self.rho22_init = float(rho22_init)
+        self.rho33_init = float(rho33_init)
+
         self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
@@ -153,6 +163,7 @@ class SimRunSingleMode:
                  eps0_target_singlepoint, A_target_singlepoint,
                  N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
+                 rho00_init, rho11_init, rho22_init, rho33_init,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -162,7 +173,11 @@ class SimRunSingleMode:
                           ("nu", nu),
                           ("E_C", E_C),
                           ("eps0_target_singlepoint", eps0_target_singlepoint),
-                          ("A_target_singlepoint", A_target_singlepoint)]:
+                          ("A_target_singlepoint", A_target_singlepoint),
+                          ("rho00_init", rho00_init),
+                          ("rho11_init", rho11_init),
+                          ("rho22_init", rho22_init),
+                          ("rho33_init", rho33_init)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
@@ -209,6 +224,11 @@ class SimRunSingleMode:
         self.N_periods_avg   = int(N_periods_avg)
         self.N_samples_noise = int(N_samples_noise) if N_samples_noise is not None else None
         
+        self.rho00_init = float(rho00_init)
+        self.rho11_init = float(rho11_init)
+        self.rho22_init = float(rho22_init)
+        self.rho33_init = float(rho33_init)
+
         self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
@@ -224,6 +244,7 @@ class SimRunGridSingleMode:
                  eps0_target_singlepoint, A_target_singlepoint,
                  N_points_target, N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
+                 rho00_init, rho11_init, rho22_init, rho33_init,
                  platform_type, repo_path):
         
         for name, val in [("delta_C", delta_C),
@@ -237,7 +258,11 @@ class SimRunGridSingleMode:
                           ("A_min", A_min),
                           ("A_max", A_max),
                           ("eps0_target_singlepoint", eps0_target_singlepoint),
-                          ("A_target_singlepoint", A_target_singlepoint)]:
+                          ("A_target_singlepoint", A_target_singlepoint),
+                          ("rho00_init", rho00_init),
+                          ("rho11_init", rho11_init),
+                          ("rho22_init", rho22_init),
+                          ("rho33_init", rho33_init)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
             if not isinstance(val, (float, int)):
                 raise TypeError(f"{name} must be a float, got {val} ({type(val)})")
@@ -290,6 +315,11 @@ class SimRunGridSingleMode:
         self.N_periods_avg   = int(N_periods_avg)
         self.N_samples_noise = int(N_samples_noise) if N_samples_noise is not None else None
         
+        self.rho00_init = float(rho00_init)
+        self.rho11_init = float(rho11_init)
+        self.rho22_init = float(rho22_init)
+        self.rho33_init = float(rho33_init)
+
         self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
