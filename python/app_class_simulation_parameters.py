@@ -25,10 +25,15 @@ class SimulationParameters:
     """Manages simulation parameters and their widgets."""
     
     def __init__(self, delta_C_range, GammaL0_range, GammaR0_range, Gamma_eg0_range, 
-                 Gamma_phi0_range, sigma_eps_range, N_steps_period_range, N_periods_range, 
+                 Gamma_phi0_range, sigma_eps_range, nu_range, E_C_range,
+                 
+                 N_steps_period_range, N_periods_range, 
                  N_periods_avg_range, N_samples_noise_range,
+
                  delta_C_default, GammaL0_default, GammaR0_default, Gamma_eg0_default,
-                 Gamma_phi0_default, sigma_eps_default, nu, N_steps_period_default, N_periods_default, 
+                 Gamma_phi0_default, sigma_eps_default, nu_default, E_C_default,
+                 
+                 N_steps_period_default, N_periods_default, 
                  N_periods_avg_default, N_samples_noise_default):
         
         # Current values
@@ -38,6 +43,8 @@ class SimulationParameters:
         self.Gamma_eg0 = Gamma_eg0_default
         self.Gamma_phi0 = Gamma_phi0_default
         self.sigma_eps = sigma_eps_default
+        self.nu = nu_default
+        self.E_C = E_C_default
         self.N_steps_period = N_steps_period_default
         self.N_periods = N_periods_default
         self.N_periods_avg = N_periods_avg_default
@@ -51,13 +58,12 @@ class SimulationParameters:
         self.Gamma_eg0_range = Gamma_eg0_range
         self.Gamma_phi0_range = Gamma_phi0_range
         self.sigma_eps_range = sigma_eps_range
+        self.nu_range = nu_range
+        self.E_C_range = E_C_range
         self.N_steps_period_range = N_steps_period_range
         self.N_periods_range = N_periods_range
         self.N_periods_avg_range = N_periods_avg_range
         self.N_samples_noise_range = N_samples_noise_range
-        
-        # Constant values
-        self.nu = nu
         
         # Create widgets
         self._create_widgets()
@@ -68,40 +74,58 @@ class SimulationParameters:
         # Continuous parameters
         self.delta_C_slider = pn.widgets.FloatSlider(
             name='delta_C', start=self.delta_C_range[0], end=self.delta_C_range[1],
-            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000,
-            format='0.5e'
+            value=self.delta_C, step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000
         )
-        self.delta_C_input = pn.widgets.FloatInput(value=self.delta_C, format='0.5e', width=100)
+        self.delta_C_input = pn.widgets.FloatInput(
+            value=self.delta_C, width=100,
+            step=(self.delta_C_range[1] - self.delta_C_range[0]) / 1000
+        )
         
         self.GammaL0_slider = pn.widgets.FloatSlider(
             name='GammaL0', start=self.GammaL0_range[0], end=self.GammaL0_range[1],
-            value=self.GammaL0, step=0.5
+            value=self.GammaL0, step=(self.GammaL0_range[1] - self.GammaL0_range[0]) / 1000
         )
         self.GammaL0_input = pn.widgets.FloatInput(value=self.GammaL0, width=100)
         
         self.GammaR0_slider = pn.widgets.FloatSlider(
             name='GammaR0', start=self.GammaR0_range[0], end=self.GammaR0_range[1],
-            value=self.GammaR0, step=0.1
+            value=self.GammaR0, step=(self.GammaR0_range[1] - self.GammaR0_range[0]) / 1000
         )
         self.GammaR0_input = pn.widgets.FloatInput(value=self.GammaR0, width=100)
         
         self.Gamma_eg0_slider = pn.widgets.FloatSlider(
             name='Gamma_eg0', start=self.Gamma_eg0_range[0], end=self.Gamma_eg0_range[1],
-            value=self.Gamma_eg0, step=0.1
+            value=self.Gamma_eg0, step=(self.Gamma_eg0_range[1] - self.Gamma_eg0_range[0]) / 1000
         )
         self.Gamma_eg0_input = pn.widgets.FloatInput(value=self.Gamma_eg0, width=100)
         
         self.Gamma_phi0_slider = pn.widgets.FloatSlider(
             name='Gamma_phi0', start=self.Gamma_phi0_range[0], end=self.Gamma_phi0_range[1],
-            value=self.Gamma_phi0, step=0.1
+            value=self.Gamma_phi0, step=(self.Gamma_phi0_range[1] - self.Gamma_phi0_range[0]) / 1000
         )
         self.Gamma_phi0_input = pn.widgets.FloatInput(value=self.Gamma_phi0, width=100)
         
         self.sigma_eps_slider = pn.widgets.FloatSlider(
             name='sigma_eps', start=self.sigma_eps_range[0], end=self.sigma_eps_range[1],
-            value=self.sigma_eps, step=0.00001, disabled=True
+            value=self.sigma_eps, step=(self.sigma_eps_range[1] - self.sigma_eps_range[0]) / 1000, disabled=True
         )
         self.sigma_eps_input = pn.widgets.FloatInput(value=self.sigma_eps, width=100, disabled=True)
+
+        self.nu_slider = pn.widgets.FloatSlider(
+            name='nu', start=self.nu_range[0], end=self.nu_range[1],
+            value=self.nu, step=(self.nu_range[1] - self.nu_range[0]) / 1000
+        )
+        self.nu_input = pn.widgets.FloatInput(
+            value=self.nu, width=100
+        )
+        
+        self.E_C_slider = pn.widgets.FloatSlider(
+            name='E_C', start=self.E_C_range[0], end=self.E_C_range[1],
+            value=self.E_C, step=(self.E_C_range[1] - self.E_C_range[0]) / 1000
+        )
+        self.E_C_input = pn.widgets.FloatInput(
+            value=self.E_C, width=100
+        )
         
         # Discrete parameters
         self.N_steps_period_slider = pn.widgets.IntSlider(
@@ -145,7 +169,8 @@ class SimulationParameters:
     def _link_all_widgets(self):
         """Link all slider-input pairs."""
         for param in ['delta_C', 'GammaL0', 'GammaR0', 'Gamma_eg0', 'Gamma_phi0', 'sigma_eps',
-                     'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
+                      'nu', 'E_C',
+                      'N_steps_period', 'N_periods', 'N_periods_avg', 'N_samples_noise']:
             self._link_slider_input(param)
     
     def _link_slider_input(self, param_name):
@@ -186,6 +211,8 @@ class SimulationParameters:
         self.Gamma_eg0 = self.Gamma_eg0_slider.value
         self.Gamma_phi0 = self.Gamma_phi0_slider.value
         self.sigma_eps = self.sigma_eps_slider.value
+        self.nu = self.nu_slider.value
+        self.E_C = self.E_C_slider.value
         self.N_steps_period = self.N_steps_period_slider.value
         self.N_periods = self.N_periods_slider.value
         self.N_periods_avg = self.N_periods_avg_slider.value
@@ -201,6 +228,7 @@ class SimulationParameters:
             'Gamma_eg0': self.Gamma_eg0,
             'Gamma_phi0': None if self.quasi_static else self.Gamma_phi0,
             'nu': self.nu,
+            'E_C': self.E_C,
             'N_steps_period': self.N_steps_period,
             'N_periods': self.N_periods,
             'N_periods_avg': self.N_periods_avg,
@@ -223,6 +251,8 @@ class SimulationParameters:
             pn.Row(self.Gamma_eg0_slider, self.Gamma_eg0_input),
             pn.Row(self.Gamma_phi0_slider, self.Gamma_phi0_input),
             pn.Row(self.sigma_eps_slider, self.sigma_eps_input),
+            pn.Row(self.nu_slider, self.nu_input),
+            pn.Row(self.E_C_slider, self.E_C_input),
             pn.layout.Divider(),
             "### Time Parameters",
             pn.Row(self.N_steps_period_slider, self.N_steps_period_input),

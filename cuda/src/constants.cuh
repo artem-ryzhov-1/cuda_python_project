@@ -12,6 +12,10 @@
 constexpr float M_PIf = 3.1415926535897932384626433832f;
 #endif
 
+#ifndef M_HBARf
+constexpr float M_HBARf = 6.582119569e-16f; // hbar (eV*s)
+#endif
+
 
 ////////////////////////////
 
@@ -23,9 +27,9 @@ constexpr float B = (a + 2.0f) * (m + 1.0f) / (a * (m - 1.0f));
 
 constexpr float one_div_m = 1.f / m;
 
-constexpr float muL = 0.0f;
-constexpr float muR = 0.0f;
-constexpr float kT  = 0.0f;
+// constexpr float muL = 0.0f;
+// constexpr float muR = 0.0f;
+// constexpr float kT  = 0.0f;
 
 
 // max number of noise samples allowed (limited by constant memory size)
@@ -36,7 +40,6 @@ constexpr int MAX_NOISE_SAMPLES = 8192;
 // store Gaussian noise offsets in constant memory
 __device__ __constant__ float c_eps_offsets[MAX_NOISE_SAMPLES];
 
-__device__ __constant__ float pi_alpha;
 //__device__ __constant__ float B;
 //__constant__ float m;
 //__device__ __constant__ float one_div_m;
@@ -44,14 +47,7 @@ __device__ __constant__ float omega;
 __device__ __constant__ float epsilon_L;
 __device__ __constant__ float epsilon_R;
 
-//__constant__ float delta_C;
-//__constant__ float delta_L;
-//__constant__ float delta_R;
-
 __device__ __constant__ float delta_C;
-__device__ __constant__ float pi_alpha_delta_C;
-__device__ __constant__ float pi_alpha_delta_L;
-__device__ __constant__ float pi_alpha_delta_R;
 
 __device__ __constant__ float rho00_init;
 __device__ __constant__ float rho11_init;
@@ -106,15 +102,15 @@ struct LogEntry {
     float Gamma_lprm;
     float Gamma_lmrp;
 
-    float Gamma_10;
-    float Gamma_20;
-    float Gamma_30;
-    float Gamma_21;
-    float Gamma_31;
-    float Gamma_32;
+    // float Gamma_10;
+    // float Gamma_20;
+    // float Gamma_30;
+    // float Gamma_21;
+    // float Gamma_31;
+    // float Gamma_32;
 
-    float Gamma_L0_log;
-    float Gamma_R0_log;
+    // float Gamma_L0_log;
+    // float Gamma_R0_log;
 
     float Gamma_eg;
 
@@ -128,36 +124,36 @@ struct LogEntry {
     
     float Gamma_phi;
 
-    int interval_diagonalizer;
+    // int interval_diagonalizer;
     int interval_dissipator;
 
 
-    float W_L_1_0, W_R_1_0;
-    //float W_L_0_1, W_R_0_1;
+    // float W_L_1_0, W_R_1_0;
+    // //float W_L_0_1, W_R_0_1;
 
-    float W_L_2_0, W_R_2_0;
-    //float W_L_0_2, W_R_0_2;
+    // float W_L_2_0, W_R_2_0;
+    // //float W_L_0_2, W_R_0_2;
 
-    float W_L_3_0, W_R_3_0;
-    //float W_L_0_3, W_R_0_3;
+    // float W_L_3_0, W_R_3_0;
+    // //float W_L_0_3, W_R_0_3;
 
-    float W_L_2_1, W_R_2_1;
-    //float W_L_1_2, W_R_1_2;
+    // float W_L_2_1, W_R_2_1;
+    // //float W_L_1_2, W_R_1_2;
 
-    float W_L_3_1, W_R_3_1;
-    //float W_L_1_3, W_R_1_3;
+    // float W_L_3_1, W_R_3_1;
+    // //float W_L_1_3, W_R_1_3;
 
-    float W_L_3_2, W_R_3_2;
-    //float W_L_2_3, W_R_2_3;
+    // float W_L_3_2, W_R_3_2;
+    // //float W_L_2_3, W_R_2_3;
 
-    float U00, U01, U02, U03;
-    float U10, U11, U12, U13;
-    float U20, U21, U22, U23;
-    float U30, U31, U32, U33;
+    // float U00, U01, U02, U03;
+    // float U10, U11, U12, U13;
+    // float U20, U21, U22, U23;
+    // float U30, U31, U32, U33;
 
-    float E0, E1, E2, E3;
+    // float E0, E1, E2, E3;
 
-    int rule_col_0, rule_col_1, rule_col_2, rule_col_3;
+    // int rule_col_0, rule_col_1, rule_col_2, rule_col_3;
 
     float rho_in_0;
     float rho_in_1;
@@ -245,22 +241,22 @@ struct LogEntry {
     float drho_out_D_phi_r23;
     float drho_out_D_phi_i23;
 
-    //float drho_out_D_egphi_r00;
-    float drho_out_D_egphi_r11;
-    float drho_out_D_egphi_r22;
-    //float drho_out_D_egphi_r33;
-    float drho_out_D_egphi_r01;
-    float drho_out_D_egphi_i01;
-    float drho_out_D_egphi_r02;
-    float drho_out_D_egphi_i02;
-    //float drho_out_D_egphi_r03;
-    //float drho_out_D_egphi_i03;
-    float drho_out_D_egphi_r12;
-    float drho_out_D_egphi_i12;
-    float drho_out_D_egphi_r13;
-    float drho_out_D_egphi_i13;
-    float drho_out_D_egphi_r23;
-    float drho_out_D_egphi_i23;
+    // //float drho_out_D_egphi_r00;
+    // float drho_out_D_egphi_r11;
+    // float drho_out_D_egphi_r22;
+    // //float drho_out_D_egphi_r33;
+    // float drho_out_D_egphi_r01;
+    // float drho_out_D_egphi_i01;
+    // float drho_out_D_egphi_r02;
+    // float drho_out_D_egphi_i02;
+    // //float drho_out_D_egphi_r03;
+    // //float drho_out_D_egphi_i03;
+    // float drho_out_D_egphi_r12;
+    // float drho_out_D_egphi_i12;
+    // float drho_out_D_egphi_r13;
+    // float drho_out_D_egphi_i13;
+    // float drho_out_D_egphi_r23;
+    // float drho_out_D_egphi_i23;
 
     float drho_out_total_0;
     float drho_out_total_1;
@@ -424,21 +420,21 @@ struct LogEntry {
     X(drho_out_D_phi_r23)           \
     X(drho_out_D_phi_i23)           \
     /*X(drho_out_D_egphi_r00)*/           \
-    X(drho_out_D_egphi_r11)           \
-    X(drho_out_D_egphi_r22)           \
-    /*X(drho_out_D_egphi_r33) */          \
-    X(drho_out_D_egphi_r01)           \
-    X(drho_out_D_egphi_i01)           \
-    X(drho_out_D_egphi_r02)           \
-    X(drho_out_D_egphi_i02)           \
+    /*X(drho_out_D_egphi_r11)*/           \
+    /*X(drho_out_D_egphi_r22)*/           \
+    /*X(drho_out_D_egphi_r33)*/           \
+    /*X(drho_out_D_egphi_r01)*/           \
+    /*X(drho_out_D_egphi_i01)*/           \
+    /*X(drho_out_D_egphi_r02)*/           \
+    /*X(drho_out_D_egphi_i02)*/           \
     /*X(drho_out_D_egphi_r03)*/           \
     /*X(drho_out_D_egphi_i03)*/           \
-    X(drho_out_D_egphi_r12)           \
-    X(drho_out_D_egphi_i12)           \
-    X(drho_out_D_egphi_r13)           \
-    X(drho_out_D_egphi_i13)           \
-    X(drho_out_D_egphi_r23)           \
-    X(drho_out_D_egphi_i23)           \
+    /*X(drho_out_D_egphi_r12)*/           \
+    /*X(drho_out_D_egphi_i12)*/           \
+    /*X(drho_out_D_egphi_r13)*/           \
+    /*X(drho_out_D_egphi_i13)*/           \
+    /*X(drho_out_D_egphi_r23)*/           \
+    /*X(drho_out_D_egphi_i23)*/           \
     X(drho_out_total_0)         \
     X(drho_out_total_1)         \
     X(drho_out_total_2)         \

@@ -209,7 +209,13 @@ __marimo__/
 # Ignore CUDA-related files
 cuda/bin/lindblad_gpu
 cuda/bin/lindblad_gpu.exe
+cuda/bin/lindblad_gpu.exp
+cuda/bin/lindblad_gpu.lib
 cuda/output/rho_avg_out.bin
+cuda/output/rho_dynamics_single_mode_out.bin
+cuda/output/rho_dynamics_single_mode_log_out.bin
+cuda/input/run_config.json
 
 # Ingone Python cache files
 *.pyc
+

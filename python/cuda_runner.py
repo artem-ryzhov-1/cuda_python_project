@@ -44,9 +44,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
         "cuda_cwd",
         "cuda_program_path", 
         "platform_type",
-        "path_dynamics_grid_mode_output_hdf5_after_ram",  # Not used in CUDA
-        "a",      # If not used in CUDA
-        "m"       # If not used in CUDA
+        "path_dynamics_grid_mode_output_hdf5_after_ram"  # Not used in CUDA
     ]
     
     for field in fields_to_remove:
@@ -58,7 +56,7 @@ def run_gpu_lindblad_program(c: SimulationConfig):
             config[key] = str(value)
     
     # Write config to JSON file
-    config_path = Path(c.cuda_cwd) / "run_config.json"
+    config_path = Path(c.cuda_cwd).parent/ "input" / "run_config.json" #TBD to improve
     print(f"Writing configuration to: {config_path}")
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)

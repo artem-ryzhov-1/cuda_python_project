@@ -15,6 +15,13 @@ from pathlib import Path
 
 repo_path = Path(__file__).resolve().parent.parent
 
+output_dir = repo_path / "cuda" / "output"
+
+# remove rho_avg_out.bin if it exists
+(output_dir / "rho_avg_out.bin").unlink(missing_ok=True)
+# remove rho_dynamics_single_mode_out.bin if it exists
+(output_dir / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
+
 #from main_v4_1_win_function import run_simulation
 
 

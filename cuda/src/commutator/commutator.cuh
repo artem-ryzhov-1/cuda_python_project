@@ -5,7 +5,7 @@
 #include <math.h>
 #include "constants.cuh"
 
-
+/*
 // probably wrong sing
 static __device__ __forceinline__
 void commutator_v2_unrolled(
@@ -205,8 +205,9 @@ void commutator_v2_unrolled(
 
 
 }
+*/
 
-
+/*
 // probably wrong sign
 static __device__ __forceinline__
 void commutator_v2_unrolled_log(
@@ -427,7 +428,7 @@ void commutator_v2_unrolled_log(
     d_log_buffer[t_idx_substep].drho_out_comm_15 = drho_out_15;
 
 }
-
+*/
 
 
 
@@ -482,7 +483,7 @@ void commutator_v3_unrolled(
     //drho_out_0 = 0.0f;
 
 
-    tmp = 2.f * pi_alpha_delta_C * rho_in_11;
+    tmp = 2.f * delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
@@ -497,18 +498,18 @@ void commutator_v3_unrolled(
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += eps_t_substep;
-    tmp *= pi_alpha * rho_in_5;
+    tmp *= rho_in_5;
 
-    tmp += pi_alpha_delta_C * rho_in_7;
+    tmp += delta_C * rho_in_7;
     drho_out_4 = tmp;
 
     //tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += -eps_t_substep;
-    tmp *= pi_alpha * rho_in_4;
+    tmp *= rho_in_4;
 
-    tmp += -pi_alpha_delta_C * rho_in_6;
+    tmp += -delta_C * rho_in_6;
     drho_out_5 = tmp;
 
     // (0,2)
@@ -516,32 +517,32 @@ void commutator_v3_unrolled(
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += -eps_t_substep;
-    tmp *= pi_alpha * rho_in_7;
+    tmp *= rho_in_7;
 
-    tmp += pi_alpha_delta_C * rho_in_5;
+    tmp += delta_C * rho_in_5;
     drho_out_6 = tmp;
 
     //tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += eps_t_substep;
-    tmp *= pi_alpha * rho_in_6;
+    tmp *= rho_in_6;
 
-    tmp += -pi_alpha_delta_C * rho_in_4;
+    tmp += -delta_C * rho_in_4;
     drho_out_7 = tmp;
 
     // (0,3)
-    drho_out_8 = 2 * B * eps_t_substep * pi_alpha * rho_in_9;
+    drho_out_8 = 2 * B * eps_t_substep * rho_in_9;
 
-    drho_out_9 = -2 * B * eps_t_substep * pi_alpha * rho_in_8;
+    drho_out_9 = -2 * B * eps_t_substep * rho_in_8;
 
     // (1,2)
-    drho_out_10 = -2 * eps_t_substep * pi_alpha * rho_in_11;
+    drho_out_10 = -2 * eps_t_substep * rho_in_11;
 
     //tmp = 0.0f;
-    tmp = -pi_alpha_delta_C * rho_in_1;
-    tmp += pi_alpha_delta_C * rho_in_2;
-    tmp += 2.0f * pi_alpha * eps_t_substep * rho_in_10;
+    tmp = -delta_C * rho_in_1;
+    tmp += delta_C * rho_in_2;
+    tmp += 2.0f * eps_t_substep * rho_in_10;
     drho_out_11 = tmp;
 
     // (1,3)
@@ -549,18 +550,18 @@ void commutator_v3_unrolled(
     tmp = -eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
-    tmp *= pi_alpha * rho_in_13;
+    tmp *= rho_in_13;
 
-    tmp += -pi_alpha_delta_C * rho_in_15;
+    tmp += -delta_C * rho_in_15;
     drho_out_12 = tmp;
 
     //tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += -B * eps_t_substep;
     tmp += one_div_m;
-    tmp *= pi_alpha * rho_in_12;
+    tmp *= rho_in_12;
 
-    tmp += pi_alpha_delta_C * rho_in_14;
+    tmp += delta_C * rho_in_14;
     drho_out_13 = tmp;
 
     // (2,3)
@@ -568,9 +569,9 @@ void commutator_v3_unrolled(
     tmp = eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
-    tmp *= pi_alpha * rho_in_15;
+    tmp *= rho_in_15;
 
-    tmp += -pi_alpha_delta_C * rho_in_13;
+    tmp += -delta_C * rho_in_13;
     drho_out_14 = tmp;
 
 
@@ -578,9 +579,9 @@ void commutator_v3_unrolled(
     tmp = -B * eps_t_substep;
     tmp += -eps_t_substep;
     tmp += one_div_m;
-    tmp *= pi_alpha * rho_in_14;
+    tmp *= rho_in_14;
 
-    tmp += pi_alpha_delta_C * rho_in_12;
+    tmp += delta_C * rho_in_12;
     drho_out_15 = tmp;
 
 
@@ -642,7 +643,7 @@ void commutator_v3_unrolled_log(
     //drho_out_0 = 0.0f;
 
 
-    tmp = 2.f * pi_alpha_delta_C * rho_in_11;
+    tmp = 2.f * delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
@@ -657,18 +658,18 @@ void commutator_v3_unrolled_log(
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += eps_t_substep;
-    tmp *= pi_alpha * rho_in_5;
+    tmp *= rho_in_5;
 
-    tmp += pi_alpha_delta_C * rho_in_7;
+    tmp += delta_C * rho_in_7;
     drho_out_4 = tmp;
 
     //tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += -eps_t_substep;
-    tmp *= pi_alpha * rho_in_4;
+    tmp *= rho_in_4;
 
-    tmp += -pi_alpha_delta_C * rho_in_6;
+    tmp += -delta_C * rho_in_6;
     drho_out_5 = tmp;
 
     // (0,2)
@@ -676,32 +677,32 @@ void commutator_v3_unrolled_log(
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += -eps_t_substep;
-    tmp *= pi_alpha * rho_in_7;
+    tmp *= rho_in_7;
 
-    tmp += pi_alpha_delta_C * rho_in_5;
+    tmp += delta_C * rho_in_5;
     drho_out_6 = tmp;
 
     //tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += eps_t_substep;
-    tmp *= pi_alpha * rho_in_6;
+    tmp *= rho_in_6;
 
-    tmp += -pi_alpha_delta_C * rho_in_4;
+    tmp += -delta_C * rho_in_4;
     drho_out_7 = tmp;
 
     // (0,3)
-    drho_out_8 = 2 * B * eps_t_substep * pi_alpha * rho_in_9;
+    drho_out_8 = 2 * B * eps_t_substep * rho_in_9;
 
-    drho_out_9 = -2 * B * eps_t_substep * pi_alpha * rho_in_8;
+    drho_out_9 = -2 * B * eps_t_substep * rho_in_8;
 
     // (1,2)
-    drho_out_10 = -2 * eps_t_substep * pi_alpha * rho_in_11;
+    drho_out_10 = -2 * eps_t_substep * rho_in_11;
 
     //tmp = 0.0f;
-    tmp = -pi_alpha_delta_C * rho_in_1;
-    tmp += pi_alpha_delta_C * rho_in_2;
-    tmp += 2.0f * pi_alpha * eps_t_substep * rho_in_10;
+    tmp = -delta_C * rho_in_1;
+    tmp += delta_C * rho_in_2;
+    tmp += 2.0f * eps_t_substep * rho_in_10;
     drho_out_11 = tmp;
 
     // (1,3)
@@ -709,18 +710,18 @@ void commutator_v3_unrolled_log(
     tmp = -eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
-    tmp *= pi_alpha * rho_in_13;
+    tmp *= rho_in_13;
 
-    tmp += -pi_alpha_delta_C * rho_in_15;
+    tmp += -delta_C * rho_in_15;
     drho_out_12 = tmp;
 
     //tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += -B * eps_t_substep;
     tmp += one_div_m;
-    tmp *= pi_alpha * rho_in_12;
+    tmp *= rho_in_12;
 
-    tmp += pi_alpha_delta_C * rho_in_14;
+    tmp += delta_C * rho_in_14;
     drho_out_13 = tmp;
 
     // (2,3)
@@ -728,9 +729,9 @@ void commutator_v3_unrolled_log(
     tmp = eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
-    tmp *= pi_alpha * rho_in_15;
+    tmp *= rho_in_15;
 
-    tmp += -pi_alpha_delta_C * rho_in_13;
+    tmp += -delta_C * rho_in_13;
     drho_out_14 = tmp;
 
 
@@ -738,9 +739,9 @@ void commutator_v3_unrolled_log(
     tmp = -B * eps_t_substep;
     tmp += -eps_t_substep;
     tmp += one_div_m;
-    tmp *= pi_alpha * rho_in_14;
+    tmp *= rho_in_14;
 
-    tmp += pi_alpha_delta_C * rho_in_12;
+    tmp += delta_C * rho_in_12;
     drho_out_15 = tmp;
 
 
@@ -1170,7 +1171,7 @@ void commutator_v3(
 
 
 
-
+/*
 static __device__ __forceinline__
 void commutator_v2(
     const float rho_in[16],
@@ -1342,7 +1343,7 @@ void commutator_v2(
 
 
 }
-
+*/
 
 
 /*

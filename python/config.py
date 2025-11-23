@@ -32,19 +32,14 @@ class SimulationConfig:
     N_samples_noise: int
 
     delta_C: float
-    delta_L: float
-    delta_R: float
 
-    alpha: float
     nu: float
+    E_C: float
 
     rho00_init: float
     rho11_init: float
     rho22_init: float
     rho33_init: float
-
-    a: float
-    m: float
     
     cuda_cwd: str
     cuda_program_path: str
@@ -60,9 +55,9 @@ class SimulationConfig:
     
     GammaL0:  float
     GammaR0:  float
-    muL:      float
-    muR:      float
-    T_K:      float
+    #muL:      float
+    #muR:      float
+    #T_K:      float
     Gamma_eg0:  float
     omega_c:    float
     Gamma_phi0: float
@@ -76,7 +71,7 @@ class SimulationConfig:
 class SimRunGridMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
-                 nu,
+                 nu, E_C,
                  eps0_min, eps0_max, A_min, A_max,
                  N_points_target, N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
@@ -87,6 +82,7 @@ class SimRunGridMode:
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
                           ("nu", nu),
+                          ("E_C", E_C),
                           ("eps0_min", eps0_min),
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
@@ -128,6 +124,7 @@ class SimRunGridMode:
         self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         self.nu         = float(nu)
+        self.E_C        = float(E_C)
         
         self.eps0_min = float(eps0_min)
         self.eps0_max = float(eps0_max)
@@ -152,7 +149,7 @@ class SimRunGridMode:
 class SimRunSingleMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
-                 nu,
+                 nu, E_C,
                  eps0_target_singlepoint, A_target_singlepoint,
                  N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
@@ -163,6 +160,7 @@ class SimRunSingleMode:
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
                           ("nu", nu),
+                          ("E_C", E_C),
                           ("eps0_target_singlepoint", eps0_target_singlepoint),
                           ("A_target_singlepoint", A_target_singlepoint)]:
             #if not isinstance(val, (float, np.floating, int, np.integer)):
@@ -201,7 +199,8 @@ class SimRunSingleMode:
         self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         self.nu         = float(nu)
-        
+        self.E_C        = float(E_C)
+
         self.eps0_target_singlepoint = float(eps0_target_singlepoint)
         self.A_target_singlepoint = float(A_target_singlepoint)
         
@@ -220,7 +219,7 @@ class SimRunSingleMode:
 class SimRunGridSingleMode:
 
     def __init__(self, *, delta_C, GammaL0, GammaR0, Gamma_eg0, Gamma_phi0,
-                 nu,
+                 nu, E_C,
                  eps0_min, eps0_max, A_min, A_max,
                  eps0_target_singlepoint, A_target_singlepoint,
                  N_points_target, N_steps_period, N_periods, N_periods_avg,
@@ -232,6 +231,7 @@ class SimRunGridSingleMode:
                           ("GammaR0", GammaR0),
                           ("Gamma_eg0", Gamma_eg0),
                           ("nu", nu),
+                          ("E_C", E_C),
                           ("eps0_min", eps0_min),
                           ("eps0_max", eps0_max),
                           ("A_min", A_min),
@@ -275,7 +275,8 @@ class SimRunGridSingleMode:
         self.Gamma_phi0 = float(Gamma_phi0) if Gamma_phi0 is not None else None
         self.sigma_eps  = float(sigma_eps) if sigma_eps is not None else None
         self.nu         = float(nu)
-        
+        self.E_C        = float(E_C)
+
         self.eps0_min = float(eps0_min)
         self.eps0_max = float(eps0_max)
         self.A_min    = float(A_min)

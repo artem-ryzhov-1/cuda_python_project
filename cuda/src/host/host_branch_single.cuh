@@ -15,7 +15,7 @@
 // #include "hdf5_writer.cuh"
 #include <iomanip>
 #include <fstream>
-
+#include "log_writer.cuh"
 
 #ifdef _WIN32
     #include <io.h>     // for _commit(), _close() on Windows
@@ -304,6 +304,38 @@ __host__ inline void run_single_mode(
         //cudaEventDestroy(stop);
 
     }
+
+    if (single_mode_log_option == true) {
+
+
+    // Copy back log data from d_log_buffer to host
+    std::vector<LogEntry> h_log_buffer(log_size);
+    gpuCheck(cudaMemcpy(h_log_buffer.data(), d_log_buffer, log_size * sizeof(LogEntry), cudaMemcpyDeviceToHost), "cudaMemcpy log_buffer");
+    cudaFree(d_log_buffer);
+
+    // -----------------------
+    // write log in HDF5 file
+    // -----------------------
+
+        write_log_entries_to_binary(
+            h_log_buffer,
+            path_dynamics_single_mode_output_log_hdf5,  // TBD Use bin path
+            
+            1.0f, // host_pi_alpha,
+            2.0f, // host_pi_alpha_delta_C,
+            3.0f, // host_delta_C,
+            4.0f, // host_Gamma_L0,
+            5.0f, // host_Gamma_R0,
+            6.0f, // host_Gamma_eg0,
+            7.0f, // host_Gamma_eg0_norm,
+            8.0f, // host_beta,
+            9.0f, // host_Gamma_phi0,
+            10.0f, // host_epsilon_L,
+            11.0f // host_epsilon_R
+        );
+
+    }
+
 
 /*
     else if (output_option == "ssd_csv") {

@@ -1,12 +1,29 @@
+########################################
+# tests/check_nan_in_outpud_data.py
+########################################
+
 import numpy as np
 from pathlib import Path
+import sys
 
+# --- Path to project root ---
+project_root = Path(__file__).resolve().parent.parent
 
-output_dir = Path(r"C:\Users\E-Store\cuda_python_project\cuda\output")
+# --- Make python/ importable ---
+sys.path.insert(0, str(project_root))
+
+# --- Imports ---
+from python.file_io import (
+    read_bin_file_singlemode,
+    read_bin_file_gridmode_and_calculate_deriv
+)
+
+# --- Output path ---
+output_dir = project_root / "cuda" / "output"
+
 
 
 time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(output_dir / "rho_dynamics_single_mode_out.bin")
-
 
 eps0_grid, A_grid, result = read_bin_file_gridmode_and_calculate_deriv(output_dir / "rho_avg_out.bin")
 
@@ -32,8 +49,10 @@ def has_nan_or_none(arr):
 
 
 any_nan_or_none = False
+
 for array in [time_dynamics, eps_dynamics, rho_dynamics, rho_avg,
               eps0_grid, A_grid, result]:
     
     any_nan_or_none = any_nan_or_none or has_nan_or_none(array)
 
+print("NaN or None found in output data:", any_nan_or_none)
