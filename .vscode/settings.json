@@ -82,5 +82,8 @@
         "xutility": "cpp"
     },
     "remote.autoForwardPorts": false,
-    "remote.autoForwardPortsFallback": 3
+    "remote.autoForwardPortsFallback": 3,
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": []
 }
