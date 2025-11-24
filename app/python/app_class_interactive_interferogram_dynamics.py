@@ -16,6 +16,7 @@ import sys
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
 import copy
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 # Get default color cycle
@@ -25,14 +26,15 @@ colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 pn.extension()
 hv.extension('bokeh')
 
+
 # Import simulation modules
-from simulation import run_simulation
-from config import SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
+from app.python.simulation import run_simulation
+from app.python.config import SimRunGridMode, SimRunGridSingleMode
 
 # Import app modules
-from app_class_simulation_parameters import SimulationParameters
-from app_class_interferogram_plot import InterferogramPlot
-from app_class_dynamics_plot import DynamicsPlot
+from app.python.app_class_simulation_parameters import SimulationParameters
+from app.python.app_class_interferogram_plot import InterferogramPlot
+from app.python.app_class_dynamics_plot import DynamicsPlot
 
 
 

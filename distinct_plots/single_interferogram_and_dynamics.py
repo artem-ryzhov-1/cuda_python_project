@@ -14,7 +14,8 @@ time1 = time.time()
 project_root = Path(__file__).resolve().parent.parent
 
 # --- Make python/ importable ---
-sys.path.insert(0, str(project_root))
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # --- Imports ---
 from app.python.config import SimRunGridSingleMode

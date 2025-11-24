@@ -20,7 +20,7 @@ fi
 echo "Detected GPU: $gpu_name"
 echo "Using ARCH=$ARCH"
 
-cd cuda || exit 1
+cd app/cuda || exit 1
 make clean
 make ARCH=$ARCH
 cd ../scripts || exit 1

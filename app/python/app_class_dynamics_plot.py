@@ -18,9 +18,8 @@ pn.extension()
 hv.extension('bokeh')
 
 # Import simulation modules
-from simulation import run_simulation
-from config import SimRunGridMode, SimRunSingleMode, SimRunGridSingleMode
-
+from app.python.simulation import run_simulation
+from app.python.config import SimRunSingleMode
 
 
 
