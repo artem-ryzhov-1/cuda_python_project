@@ -1,5 +1,5 @@
 ########################################
-# app/python/app_local.py
+# app/local_app_launcher.py
 ########################################
 
 #https://claude.ai/chat/44c56c9e-78eb-4405-bad4-da852d545d9b

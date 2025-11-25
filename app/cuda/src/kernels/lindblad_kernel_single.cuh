@@ -1,4 +1,6 @@
-// src/kernels/lindblad_kernel_single.cuh
+////////////////////////////////////////
+// app/cuda/src/kernels/lindblad_kernel_single.cuh
+////////////////////////////////////////
 
 #pragma once
 

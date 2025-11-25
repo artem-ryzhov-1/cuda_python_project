@@ -1,4 +1,6 @@
-// src/kernels/lindblad_kernel_grid.cuh
+////////////////////////////////////////
+// app/cuda/src/kernels/lindblad_kernel_grid.cuh
+////////////////////////////////////////
 
 #pragma once
 #include <cuda_runtime.h>

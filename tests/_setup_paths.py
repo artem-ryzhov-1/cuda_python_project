@@ -1,3 +1,7 @@
+########################################
+# tests/_setup_paths.py
+########################################
+
 from pathlib import Path
 import sys
 

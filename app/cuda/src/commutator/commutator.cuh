@@ -1,4 +1,6 @@
-// src/commutator/commutator.cuh
+////////////////////////////////////////
+// app/cuda/src/commutator/commutator.cuh
+////////////////////////////////////////
 
 #pragma once
 #include <cuda_runtime.h>

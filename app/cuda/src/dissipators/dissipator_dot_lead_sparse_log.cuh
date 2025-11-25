@@ -1,4 +1,6 @@
-// src/dissipators/dissipator_dot_lead_sparse_log.cuh
+////////////////////////////////////////
+// app/cuda/src/dissipators/dissipator_dot_lead_sparse_log.cuh
+////////////////////////////////////////
 
 #pragma once
 #include <cuda_runtime.h>

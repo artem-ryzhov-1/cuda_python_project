@@ -1,4 +1,6 @@
-// src/dissipators/dissipator_qubit_dephase_quasi_static.cuh
+////////////////////////////////////////
+// app/cuda/src/dissipators/dissipator_qubit_dephase_quasi_static.cuh
+////////////////////////////////////////
 
 #pragma once
 #include <cuda_runtime.h>

@@ -1,4 +1,6 @@
-// src/dissipators/dissipator_qubit_relax.cuh
+////////////////////////////////////////
+// app/cuda/src/dissipators/dissipator_qubit_relax.cuh
+////////////////////////////////////////
 
 #pragma once
 #include <cuda_runtime.h>
