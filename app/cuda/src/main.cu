@@ -150,7 +150,7 @@ int main(int argc, char** argv)
     const float omega_c_norm_phys = config["omega_c"];    // high-frequency cutoff
 
     const float Gamma_phi0_phys = safe_get<float>(config, "Gamma_phi0", std::nanf(""));    // prefactor (GHz)
-    const float sigma_eps_phys = safe_get<float>(config, "sigma_eps", std::nanf(""));
+    const float host_sigma_eps = safe_get<float>(config, "sigma_eps", std::nanf(""));
 
     const bool single_mode_log_option = config["single_mode_log_option"];
     const std::string path_dynamics_single_mode_output_log_csv = config["path_dynamics_single_mode_output_log_csv"];
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
     std::cout << "43. omega_c_norm: " << omega_c_norm_phys << "\n";
 
     std::cout << "44. Gamma_phi0_phys: " << Gamma_phi0_phys << " (GHz)\n";
-    std::cout << "45. sigma_eps_phys: " << sigma_eps_phys << " (E_C)\n";
+    std::cout << "45. sigma_eps: " << host_sigma_eps << " (E_C)\n";
 
     std::cout << "46. single_mode_log_option: " << single_mode_log_option << "\n";
     std::cout << "47. path_dynamics_single_mode_output_log_csv: " << path_dynamics_single_mode_output_log_csv << "\n";
@@ -282,8 +282,8 @@ int main(int argc, char** argv)
     if (quasi_static_ensemble_dephasing_opt == "sequential" ||
         quasi_static_ensemble_dephasing_opt == "parallel") {
 
-        if (std::isnan(sigma_eps_phys) || N_samples_noise == INT_MIN){
-            std::cerr << "ERROR: sigma_eps_phys or N_samples_noise is NAN with quasi_static_ensemble_dephasing_opt == 'sequential' or 'parallel'."
+        if (std::isnan(host_sigma_eps) || N_samples_noise == INT_MIN){
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is NAN with quasi_static_ensemble_dephasing_opt == 'sequential' or 'parallel'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
@@ -291,8 +291,8 @@ int main(int argc, char** argv)
     }
     else if (quasi_static_ensemble_dephasing_opt == "false") {
 
-        if (!std::isnan(sigma_eps_phys) || N_samples_noise != INT_MIN) {
-            std::cerr << "ERROR: sigma_eps_phys or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_opt == 'false'."
+        if (!std::isnan(host_sigma_eps) || N_samples_noise != INT_MIN) {
+            std::cerr << "ERROR: sigma_eps or N_samples_noise is not NAN with quasi_static_ensemble_dephasing_opt == 'false'."
                 << std::endl;
             std::exit(EXIT_FAILURE);
         }
@@ -319,7 +319,6 @@ int main(int argc, char** argv)
     const float host_Gamma_eg0 = hbar_div_E_C * Gamma_eg0_phys * 1e9f;
     // const float omega_c_norm = hbar_div_E_C * omega_c_norm_phys * 1e9f;
     const float host_Gamma_phi0 = std::isnan(Gamma_phi0_phys) ? std::nanf("") : hbar_div_E_C * Gamma_phi0_phys * 1e9f;
-    const float host_sigma_eps = std::isnan(sigma_eps_phys) ? std::nanf("") : hbar_div_E_C * sigma_eps_phys * 1e9f;
 
 
     const float omega_c_norm = omega_c_norm_phys; // #TBD
@@ -351,7 +350,7 @@ int main(int argc, char** argv)
     std::cout << "Gamma_eg0_prime: " << host_Gamma_eg0 << " ([1])\n";
     std::cout << "omega_c_norm_prime: " << omega_c_norm << " ([1])\n";  // #TBD
     std::cout << "Gamma_phi0_prime: " << host_Gamma_phi0 << " ([1])\n";
-    std::cout << "Gamma_sigma_eps_prime: " << host_sigma_eps << " ([1])\n";
+    std::cout << "sigma_eps_prime: " << host_sigma_eps << " ([1])\n";
 
     std::cout << "==============================================\n\n";
 

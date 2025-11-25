@@ -1,5 +1,5 @@
 ########################################
-# python/single_interferogram.py
+# plots/single_interferogram_and_dynamics.py
 ########################################
 
 import os
@@ -10,23 +10,16 @@ from pathlib import Path
 
 time1 = time.time()
 
-# --- Path to project root ---
-project_root = Path(__file__).resolve().parent.parent
-
-# --- Make python/ importable ---
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
 # --- Imports ---
-from app.python.config import SimRunGridMode
+import _setup_paths
+from app.python.config import SimRunGridSingleMode
 from app.python.simulation import run_simulation
 
-output_dir = project_root / "app" / "cuda" / "output"
 
 # remove rho_avg_out.bin if it exists
-(output_dir / "rho_avg_out.bin").unlink(missing_ok=True)
+(_setup_paths.CUDA_OUTPUT / "rho_avg_out.bin").unlink(missing_ok=True)
 # remove rho_dynamics_single_mode_out.bin if it exists
-(output_dir / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
+(_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
 
 #from main_v4_1_win_function import run_simulation
 
@@ -102,12 +95,12 @@ simr = SimRunGridMode(
     N_samples_noise=None,
     
     platform_type = platform_type,
-    repo_path=project_root
+    repo_path=_setup_paths.PROJECT_ROOT
 )
 
 '''
 
-simr = SimRunGridMode(
+simr = SimRunGridSingleMode(
     delta_C=0.00011608757555650906,
     GammaL0=50.0,
     GammaR0=12.0,
@@ -120,6 +113,8 @@ simr = SimRunGridMode(
     eps0_max=0.006,
     A_min=0.0,
     A_max=0.01,
+    eps0_target_singlepoint=0.001,
+    A_target_singlepoint=0.003,
     N_points_target=50000,
     N_steps_period=1000,
     N_periods=10,
@@ -135,12 +130,12 @@ simr = SimRunGridMode(
     rho33_init=0.25,
     
     platform_type = platform_type,
-    repo_path=project_root
+    repo_path=_setup_paths.PROJECT_ROOT
 )
 
 time3 = time.time()
 
-eps0_grid, A_grid, rho_avg_cdc_3d, returncode = run_simulation(simr)
+eps0_grid, A_grid, rho_avg_cdc_3d, time_dynamics, eps_dynamics, rho_dynamics, rho_avg, returncode = run_simulation(simr)
 
 time4 = time.time()
 
