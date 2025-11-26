@@ -46,6 +46,8 @@ def run_simulation(simr):
         eps0_max =  simr.eps0_max
         A_min =     simr.A_min
         A_max =     simr.A_max
+
+        single_mode_log_option = False
         
         N_points_eps0_range, N_points_A_range = compute_grid(N_points_target=simr.N_points_target,
                                                              eps0_min=eps0_min,
@@ -67,6 +69,8 @@ def run_simulation(simr):
         
         N_points_eps0_range = None
         N_points_A_range    = None
+
+        single_mode_log_option = simr.single_mode_log_option # boolean: "True" or "False"
     
     elif isinstance(simr, SimRunGridSingleMode):
         print("grid-single mode")
@@ -79,6 +83,8 @@ def run_simulation(simr):
         eps0_max =  simr.eps0_max
         A_min =     simr.A_min
         A_max =     simr.A_max
+
+        single_mode_log_option = False
         
         N_points_eps0_range, N_points_A_range = compute_grid(N_points_target=simr.N_points_target,
                                                              eps0_min=eps0_min,
@@ -96,7 +102,7 @@ def run_simulation(simr):
     unrolled_option = "unrolled" # "as_arrays" or "unrolled"
     
     ouput_option = "bin_file" # "ssd_csv" or "ram" or "bin_file"
-    single_mode_log_option = False # boolean: "True" or "False"
+    
     
     
     # "one_thread_per_traj" or "thread_group_in_warp_per_traj_shuffle" or "thread_group_in_warp_per_traj_shmem"
@@ -200,7 +206,7 @@ def run_simulation(simr):
     path_output_csv                           = output_dir / "rho_avg_out.csv"
     path_dynamics_single_mode_output_csv      = output_dir / "rho_dynamics_single_mode_out.csv"
     path_dynamics_single_mode_output_log_csv  = output_dir / "rho_dynamics_single_mode_log_out.csv"
-    path_dynamics_single_mode_output_log_hdf5 = output_dir / "rho_dynamics_single_mode_log_out.h5"
+    path_dynamics_single_mode_output_log_bin  = output_dir / "rho_dynamics_single_mode_log_out.bin"
     
     
     #path_dynamics_grid_mode_output_csv_after_ram  = output_dir / "rho_avg_out_after_ram.csv"
@@ -286,7 +292,7 @@ def run_simulation(simr):
         path_dynamics_grid_mode_output_hdf5_after_ram=path_dynamics_grid_mode_output_hdf5_after_ram,
         path_dynamics_single_mode_output_csv=path_dynamics_single_mode_output_csv,
         path_dynamics_single_mode_output_log_csv=path_dynamics_single_mode_output_log_csv,
-        path_dynamics_single_mode_output_log_hdf5=path_dynamics_single_mode_output_log_hdf5,
+        path_dynamics_single_mode_output_log_bin=path_dynamics_single_mode_output_log_bin,
         platform_type=simr.platform_type,
         
         GammaL0=GammaL0,

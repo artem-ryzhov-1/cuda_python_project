@@ -16,23 +16,15 @@ import sys
 # 1. PROJECT ROOT
 # -------------------------------
 
+import _setup_paths
+
 # The repo root is two levels up from the tests folder
-repo_path = Path(__file__).resolve().parents[1]
-print("Repo path:", repo_path)
-
-# Paths for CUDA input/output
-cuda_dir = repo_path / "app" / "cuda"
-input_dir = cuda_dir / "input"
-output_dir = cuda_dir / "output"
-
-# Ensure input/output folders exist
-os.makedirs(input_dir, exist_ok=True)
-os.makedirs(output_dir, exist_ok=True)
+print("Repo path:", _setup_paths.PROJECT_ROOT)
 
 # remove rho_avg_out.bin if it exists
-(output_dir / "rho_avg_out.bin").unlink(missing_ok=True)
+(_setup_paths.CUDA_OUTPUT / "rho_avg_out.bin").unlink(missing_ok=True)
 # remove rho_dynamics_single_mode_out.bin if it exists
-(output_dir / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
+(_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_out.bin").unlink(missing_ok=True)
 
 # -------------------------------
 # 2. CREATE JSON CONFIG
@@ -70,12 +62,12 @@ config = {
     "rho33_init": 0.0,
   
   # Use repo_path instead of absolute paths
-    "path_output_csv": (output_dir / "rho_avg_out.csv").as_posix(),
-    "path_output_bin_file_gridmode": (output_dir / "rho_avg_out.bin").as_posix(),
-    "path_output_bin_file_singlemode": (output_dir / "rho_dynamics_single_mode_out.bin").as_posix(),
-    "path_dynamics_single_mode_output_csv": (output_dir / "rho_dynamics_single_mode_out.csv").as_posix(),
-    "path_dynamics_single_mode_output_log_csv": (output_dir / "rho_dynamics_single_mode_log_out.csv").as_posix(),
-    "path_dynamics_single_mode_output_log_hdf5": (output_dir / "rho_dynamics_single_mode_log_out.bin").as_posix(),
+    "path_output_csv": (_setup_paths.CUDA_OUTPUT / "rho_avg_out.csv").as_posix(),
+    "path_output_bin_file_gridmode": (_setup_paths.CUDA_OUTPUT / "rho_avg_out.bin").as_posix(),
+    "path_output_bin_file_singlemode": (_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_out.bin").as_posix(),
+    "path_dynamics_single_mode_output_csv": (_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_out.csv").as_posix(),
+    "path_dynamics_single_mode_output_log_csv": (_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_log_out.csv").as_posix(),
+    "path_dynamics_single_mode_output_log_bin": (_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_log_out.bin").as_posix(),
 
     "GammaL0": 50.0,
     "GammaR0": 12.0,
@@ -120,7 +112,7 @@ config = {
   "path_output_bin_file_singlemode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.bin",
   "path_dynamics_single_mode_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.csv",
   "path_dynamics_single_mode_output_log_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.csv",
-  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
+  "path_dynamics_single_mode_output_log_bin": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
   "GammaL0": 50.0,
   "GammaR0": 12.0,
   "Gamma_eg0": 0.8,
@@ -165,7 +157,7 @@ config = {
   "path_output_bin_file_singlemode": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.bin",
   "path_dynamics_single_mode_output_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_out.csv",
   "path_dynamics_single_mode_output_log_csv": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.csv",
-  "path_dynamics_single_mode_output_log_hdf5": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
+  "path_dynamics_single_mode_output_log_bin": "C:\\Users\\E-Store\\cuda_python_project\\cuda\\output\\rho_dynamics_single_mode_log_out.bin",
   "GammaL0": 420.0,
   "GammaR0": 68.0,
   "Gamma_eg0": 10.0,
@@ -178,7 +170,7 @@ config = {
 '''
 
 # Save JSON
-config_path = input_dir / "run_config.json"
+config_path = _setup_paths.CUDA_INPUT / "run_config.json"
 with open(config_path, "w") as f:
     json.dump(config, f, indent=4)
 
@@ -190,15 +182,15 @@ print("Config written to:", config_path)
 
 # Determine binary path depending on platform
 if sys.platform.startswith("win"):
-    binary_path = cuda_dir / "bin" / "lindblad_gpu.exe"
+    binary_path = _setup_paths.CUDA_BIN / "lindblad_gpu.exe"
 else:
-    binary_path = cuda_dir / "bin" / "lindblad_gpu"
+    binary_path = _setup_paths.CUDA_BIN / "lindblad_gpu"
 
 if not binary_path.exists():
     raise FileNotFoundError(f"CUDA binary not found at {binary_path}")
 
-# Change working directory to repo root
-os.chdir(repo_path)
+# Change working directory to project root
+os.chdir(_setup_paths.PROJECT_ROOT)
 print("cwd:", os.getcwd())
 
 cmd = f"{binary_path} {config_path}"

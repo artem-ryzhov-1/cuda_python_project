@@ -59,7 +59,7 @@ __host__ inline void run_single_mode(
     const std::string& unrolled_option,
     const bool single_mode_log_option,
     const std::string& path_dynamics_single_mode_output_log_csv,
-    const std::string& path_dynamics_single_mode_output_log_hdf5,
+    const std::string& path_dynamics_single_mode_output_log_bin,
     const std::string& threads_per_traj_opt
 )
 {
@@ -203,7 +203,7 @@ __host__ inline void run_single_mode(
         printf("Launching kernel singlemode unrolled no_ensemble with log: blocks=%d threads_per_block=%d\n", blocks, threads_per_block);
         fflush(stdout);  // forces the buffer to flush immediately
 
-        lindblad_rk4_kernel_singlemode_unrolled_log <<< blocks, threads_per_block >>> (
+        lindblad_rk4_kernel_singlemode_unrolled_fsal_log <<< blocks, threads_per_block >>> (
             eps0_target, A_target,
 
             d_rho_avg_singlemode,
@@ -234,6 +234,11 @@ __host__ inline void run_single_mode(
             d_rho_dynamics, d_time_dynamics, d_eps_dynamics
             );
 
+    }
+    else{
+        fprintf(stderr, "ERROR: No kernel launch implemented for this configuration\n");
+        std::abort();
+        exit(1);
     }
 
     // check for launch errors immediately
@@ -321,7 +326,7 @@ __host__ inline void run_single_mode(
 
         write_log_entries_to_binary(
             h_log_buffer,
-            path_dynamics_single_mode_output_log_hdf5,  // TBD Use bin path
+            path_dynamics_single_mode_output_log_bin,  // TBD Use bin path
             
             1.0f, // host_pi_alpha,
             2.0f, // host_pi_alpha_delta_C,

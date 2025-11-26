@@ -2458,6 +2458,254 @@ void rk4_step_unrolled_v3_safe_log(
 
 }
 
+
+
+
+__device__ __forceinline__
+void rk4_step_unrolled_v3_safe_fsal_log(
+    float& rho_vec_0, float& rho_vec_1, float& rho_vec_2, float& rho_vec_3,
+    float& rho_vec_4, float& rho_vec_5, float& rho_vec_6, float& rho_vec_7,
+    float& rho_vec_8, float& rho_vec_9, float& rho_vec_10, float& rho_vec_11,
+    float& rho_vec_12, float& rho_vec_13, float& rho_vec_14, float& rho_vec_15,
+
+    // k4 from previous step (used as k1) - must be saved between calls
+    float& k_prev_0, float& k_prev_1, float& k_prev_2, float& k_prev_3,
+    float& k_prev_4, float& k_prev_5, float& k_prev_6, float& k_prev_7,
+    float& k_prev_8, float& k_prev_9, float& k_prev_10, float& k_prev_11,
+    float& k_prev_12, float& k_prev_13, float& k_prev_14, float& k_prev_15,
+
+    const float t_step,
+    const float eps0,
+    const float A,
+    const bool is_first_step,  // true only for very first step
+
+    // log
+    LogEntry* __restrict__ d_log_buffer,
+    const int t_idx_step
+) {
+
+    int t_idx_substep;
+    int substep_num;
+    
+    // derivative buffers
+    register float k_cur_0, k_cur_1, k_cur_2, k_cur_3;
+    register float k_cur_4, k_cur_5, k_cur_6, k_cur_7;
+    register float k_cur_8, k_cur_9, k_cur_10, k_cur_11;
+    register float k_cur_12, k_cur_13, k_cur_14, k_cur_15;
+
+    // accumulators
+    register float acc_0 = 0.0f, acc_1 = 0.0f, acc_2 = 0.0f, acc_3 = 0.0f;
+    register float acc_4 = 0.0f, acc_5 = 0.0f, acc_6 = 0.0f, acc_7 = 0.0f;
+    register float acc_8 = 0.0f, acc_9 = 0.0f, acc_10 = 0.0f, acc_11 = 0.0f;
+    register float acc_12 = 0.0f, acc_13 = 0.0f, acc_14 = 0.0f, acc_15 = 0.0f;
+
+    register float t_substep;
+    register float eps_t_substep;
+
+    // ---------- stage 1 (k1) ----------
+    // Reuse k4 from previous step as k1, unless this is the first step
+
+    if (is_first_step) {
+        // Only compute k1 on the very first step
+        t_substep = t_step;
+        eps_t_substep = eps0 + A * cosf(omega * t_substep);
+
+        substep_num = 0;
+        t_idx_substep = t_idx_step * 4 + substep_num;
+
+        compute_drho_unrolled_log(
+            rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+            rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+            rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+            rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15,
+
+            k_prev_0, k_prev_1, k_prev_2, k_prev_3,
+            k_prev_4, k_prev_5, k_prev_6, k_prev_7,
+            k_prev_8, k_prev_9, k_prev_10, k_prev_11,
+            k_prev_12, k_prev_13, k_prev_14, k_prev_15,
+
+            eps_t_substep,
+
+            d_log_buffer, t_idx_substep,
+            t_idx_step, substep_num, t_step, t_substep
+        );
+    }
+    // else: k_prev already contains k4 from last step, use it as k1
+
+    // weight = 1 for k1
+    acc_0 += k_prev_0;  acc_1 += k_prev_1;  acc_2 += k_prev_2;  acc_3 += k_prev_3;
+    acc_4 += k_prev_4;  acc_5 += k_prev_5;  acc_6 += k_prev_6;  acc_7 += k_prev_7;
+    acc_8 += k_prev_8;  acc_9 += k_prev_9;  acc_10 += k_prev_10; acc_11 += k_prev_11;
+    acc_12 += k_prev_12; acc_13 += k_prev_13; acc_14 += k_prev_14; acc_15 += k_prev_15;
+
+    // ---------- stage 2 (k2) ----------
+
+    t_substep = t_step + 0.5f * dt;
+    eps_t_substep = eps0 + A * cosf(omega * t_substep);
+
+    float rho_tmp_0 = rho_vec_0 + 0.5f * dt * k_prev_0;
+    float rho_tmp_1 = rho_vec_1 + 0.5f * dt * k_prev_1;
+    float rho_tmp_2 = rho_vec_2 + 0.5f * dt * k_prev_2;
+    float rho_tmp_3 = rho_vec_3 + 0.5f * dt * k_prev_3;
+    float rho_tmp_4 = rho_vec_4 + 0.5f * dt * k_prev_4;
+    float rho_tmp_5 = rho_vec_5 + 0.5f * dt * k_prev_5;
+    float rho_tmp_6 = rho_vec_6 + 0.5f * dt * k_prev_6;
+    float rho_tmp_7 = rho_vec_7 + 0.5f * dt * k_prev_7;
+    float rho_tmp_8 = rho_vec_8 + 0.5f * dt * k_prev_8;
+    float rho_tmp_9 = rho_vec_9 + 0.5f * dt * k_prev_9;
+    float rho_tmp_10 = rho_vec_10 + 0.5f * dt * k_prev_10;
+    float rho_tmp_11 = rho_vec_11 + 0.5f * dt * k_prev_11;
+    float rho_tmp_12 = rho_vec_12 + 0.5f * dt * k_prev_12;
+    float rho_tmp_13 = rho_vec_13 + 0.5f * dt * k_prev_13;
+    float rho_tmp_14 = rho_vec_14 + 0.5f * dt * k_prev_14;
+    float rho_tmp_15 = rho_vec_15 + 0.5f * dt * k_prev_15;
+
+    substep_num = 1;
+    t_idx_substep = t_idx_step * 4 + substep_num;
+
+    compute_drho_unrolled_log(
+        rho_tmp_0, rho_tmp_1, rho_tmp_2, rho_tmp_3,
+        rho_tmp_4, rho_tmp_5, rho_tmp_6, rho_tmp_7,
+        rho_tmp_8, rho_tmp_9, rho_tmp_10, rho_tmp_11,
+        rho_tmp_12, rho_tmp_13, rho_tmp_14, rho_tmp_15,
+
+        k_cur_0, k_cur_1, k_cur_2, k_cur_3,
+        k_cur_4, k_cur_5, k_cur_6, k_cur_7,
+        k_cur_8, k_cur_9, k_cur_10, k_cur_11,
+        k_cur_12, k_cur_13, k_cur_14, k_cur_15,
+
+        eps_t_substep,
+
+        d_log_buffer, t_idx_substep,
+        t_idx_step, substep_num, t_step, t_substep
+    );
+
+    // weight = 2 for k2
+    acc_0 += 2.0f * k_cur_0;  acc_1 += 2.0f * k_cur_1;
+    acc_2 += 2.0f * k_cur_2;  acc_3 += 2.0f * k_cur_3;
+    acc_4 += 2.0f * k_cur_4;  acc_5 += 2.0f * k_cur_5;
+    acc_6 += 2.0f * k_cur_6;  acc_7 += 2.0f * k_cur_7;
+    acc_8 += 2.0f * k_cur_8;  acc_9 += 2.0f * k_cur_9;
+    acc_10 += 2.0f * k_cur_10; acc_11 += 2.0f * k_cur_11;
+    acc_12 += 2.0f * k_cur_12; acc_13 += 2.0f * k_cur_13;
+    acc_14 += 2.0f * k_cur_14; acc_15 += 2.0f * k_cur_15;
+
+    // ---------- stage 3 (k3) ----------
+    // Note: same time as k2, but different state!
+
+    rho_tmp_0 = rho_vec_0 + 0.5f * dt * k_cur_0;
+    rho_tmp_1 = rho_vec_1 + 0.5f * dt * k_cur_1;
+    rho_tmp_2 = rho_vec_2 + 0.5f * dt * k_cur_2;
+    rho_tmp_3 = rho_vec_3 + 0.5f * dt * k_cur_3;
+    rho_tmp_4 = rho_vec_4 + 0.5f * dt * k_cur_4;
+    rho_tmp_5 = rho_vec_5 + 0.5f * dt * k_cur_5;
+    rho_tmp_6 = rho_vec_6 + 0.5f * dt * k_cur_6;
+    rho_tmp_7 = rho_vec_7 + 0.5f * dt * k_cur_7;
+    rho_tmp_8 = rho_vec_8 + 0.5f * dt * k_cur_8;
+    rho_tmp_9 = rho_vec_9 + 0.5f * dt * k_cur_9;
+    rho_tmp_10 = rho_vec_10 + 0.5f * dt * k_cur_10;
+    rho_tmp_11 = rho_vec_11 + 0.5f * dt * k_cur_11;
+    rho_tmp_12 = rho_vec_12 + 0.5f * dt * k_cur_12;
+    rho_tmp_13 = rho_vec_13 + 0.5f * dt * k_cur_13;
+    rho_tmp_14 = rho_vec_14 + 0.5f * dt * k_cur_14;
+    rho_tmp_15 = rho_vec_15 + 0.5f * dt * k_cur_15;
+
+    substep_num = 2;
+    t_idx_substep = t_idx_step * 4 + substep_num;
+
+    compute_drho_unrolled_log(
+        rho_tmp_0, rho_tmp_1, rho_tmp_2, rho_tmp_3,
+        rho_tmp_4, rho_tmp_5, rho_tmp_6, rho_tmp_7,
+        rho_tmp_8, rho_tmp_9, rho_tmp_10, rho_tmp_11,
+        rho_tmp_12, rho_tmp_13, rho_tmp_14, rho_tmp_15,
+
+        k_cur_0, k_cur_1, k_cur_2, k_cur_3,
+        k_cur_4, k_cur_5, k_cur_6, k_cur_7,
+        k_cur_8, k_cur_9, k_cur_10, k_cur_11,
+        k_cur_12, k_cur_13, k_cur_14, k_cur_15,
+
+        eps_t_substep,
+
+        d_log_buffer, t_idx_substep,
+        t_idx_step, substep_num, t_step, t_substep
+    );
+
+    // weight = 2 for k3
+    acc_0 += 2.0f * k_cur_0;  acc_1 += 2.0f * k_cur_1;
+    acc_2 += 2.0f * k_cur_2;  acc_3 += 2.0f * k_cur_3;
+    acc_4 += 2.0f * k_cur_4;  acc_5 += 2.0f * k_cur_5;
+    acc_6 += 2.0f * k_cur_6;  acc_7 += 2.0f * k_cur_7;
+    acc_8 += 2.0f * k_cur_8;  acc_9 += 2.0f * k_cur_9;
+    acc_10 += 2.0f * k_cur_10; acc_11 += 2.0f * k_cur_11;
+    acc_12 += 2.0f * k_cur_12; acc_13 += 2.0f * k_cur_13;
+    acc_14 += 2.0f * k_cur_14; acc_15 += 2.0f * k_cur_15;
+
+    // ---------- stage 4 (k4) ----------
+    t_substep = t_step + dt;
+    eps_t_substep = eps0 + A * cosf(omega * t_substep);
+
+    rho_tmp_0 = rho_vec_0 + dt * k_cur_0;
+    rho_tmp_1 = rho_vec_1 + dt * k_cur_1;
+    rho_tmp_2 = rho_vec_2 + dt * k_cur_2;
+    rho_tmp_3 = rho_vec_3 + dt * k_cur_3;
+    rho_tmp_4 = rho_vec_4 + dt * k_cur_4;
+    rho_tmp_5 = rho_vec_5 + dt * k_cur_5;
+    rho_tmp_6 = rho_vec_6 + dt * k_cur_6;
+    rho_tmp_7 = rho_vec_7 + dt * k_cur_7;
+    rho_tmp_8 = rho_vec_8 + dt * k_cur_8;
+    rho_tmp_9 = rho_vec_9 + dt * k_cur_9;
+    rho_tmp_10 = rho_vec_10 + dt * k_cur_10;
+    rho_tmp_11 = rho_vec_11 + dt * k_cur_11;
+    rho_tmp_12 = rho_vec_12 + dt * k_cur_12;
+    rho_tmp_13 = rho_vec_13 + dt * k_cur_13;
+    rho_tmp_14 = rho_vec_14 + dt * k_cur_14;
+    rho_tmp_15 = rho_vec_15 + dt * k_cur_15;
+
+    substep_num = 3;
+    t_idx_substep = t_idx_step * 4 + substep_num;
+
+    // Store k4 in k_prev for next step (FSAL optimization)
+    compute_drho_unrolled_log(
+        rho_tmp_0, rho_tmp_1, rho_tmp_2, rho_tmp_3,
+        rho_tmp_4, rho_tmp_5, rho_tmp_6, rho_tmp_7,
+        rho_tmp_8, rho_tmp_9, rho_tmp_10, rho_tmp_11,
+        rho_tmp_12, rho_tmp_13, rho_tmp_14, rho_tmp_15,
+
+        k_prev_0, k_prev_1, k_prev_2, k_prev_3,   // Store k4 -> k_prev
+        k_prev_4, k_prev_5, k_prev_6, k_prev_7,
+        k_prev_8, k_prev_9, k_prev_10, k_prev_11,
+        k_prev_12, k_prev_13, k_prev_14, k_prev_15,
+
+        eps_t_substep,
+
+        d_log_buffer, t_idx_substep,
+        t_idx_step, substep_num, t_step, t_substep
+    );
+
+    // weight = 1 for k4
+    acc_0 += k_prev_0;  acc_1 += k_prev_1;  acc_2 += k_prev_2;  acc_3 += k_prev_3;
+    acc_4 += k_prev_4;  acc_5 += k_prev_5;  acc_6 += k_prev_6;  acc_7 += k_prev_7;
+    acc_8 += k_prev_8;  acc_9 += k_prev_9;  acc_10 += k_prev_10; acc_11 += k_prev_11;
+    acc_12 += k_prev_12; acc_13 += k_prev_13; acc_14 += k_prev_14; acc_15 += k_prev_15;
+
+    // ---------- final RK4 update ----------
+    const float coeff = dt / 6.0f;
+
+    rho_vec_0 += coeff * acc_0;  rho_vec_1 += coeff * acc_1;
+    rho_vec_2 += coeff * acc_2;  rho_vec_3 += coeff * acc_3;
+    rho_vec_4 += coeff * acc_4;  rho_vec_5 += coeff * acc_5;
+    rho_vec_6 += coeff * acc_6;  rho_vec_7 += coeff * acc_7;
+    rho_vec_8 += coeff * acc_8;  rho_vec_9 += coeff * acc_9;
+    rho_vec_10 += coeff * acc_10; rho_vec_11 += coeff * acc_11;
+    rho_vec_12 += coeff * acc_12; rho_vec_13 += coeff * acc_13;
+    rho_vec_14 += coeff * acc_14; rho_vec_15 += coeff * acc_15;
+
+    // k_prev now contains k4, ready to be used as k1 in the next call
+}
+
+
+
+
 /**
 * Encoding of the rho[16] density matrix:
 *

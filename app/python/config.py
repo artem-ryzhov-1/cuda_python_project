@@ -49,7 +49,7 @@ class SimulationConfig:
     path_dynamics_grid_mode_output_hdf5_after_ram: str
     path_dynamics_single_mode_output_csv: str
     path_dynamics_single_mode_output_log_csv: str
-    path_dynamics_single_mode_output_log_hdf5: str
+    path_dynamics_single_mode_output_log_bin: str
     
     platform_type: str
     
@@ -164,7 +164,8 @@ class SimRunSingleMode:
                  N_steps_period, N_periods, N_periods_avg,
                  quasi_static_ensemble_dephasing_flag, sigma_eps, N_samples_noise,
                  rho00_init, rho11_init, rho22_init, rho33_init,
-                 platform_type, repo_path):
+                 platform_type, repo_path,
+                 single_mode_log_option=False):
         
         for name, val in [("delta_C", delta_C),
                           ("GammaL0", GammaL0),
@@ -200,6 +201,9 @@ class SimRunSingleMode:
         if not isinstance(quasi_static_ensemble_dephasing_flag, bool):
             raise TypeError(f"quasi_static_ensemble_dephasing_flag must be a bool, got {quasi_static_ensemble_dephasing_flag} ({type(quasi_static_ensemble_dephasing_flag)})")        
         
+        if not isinstance(single_mode_log_option, bool):
+            raise TypeError(f"single_mode_log_option must be a bool, got {single_mode_log_option} ({type(single_mode_log_option)})")        
+
         if not isinstance(platform_type, str):
             raise TypeError(f"platform_type must be a str, got {platform_type} ({type(platform_type)})")        
         
@@ -232,6 +236,8 @@ class SimRunSingleMode:
         self.quasi_static_ensemble_dephasing_flag = quasi_static_ensemble_dephasing_flag
         self.platform_type = platform_type
         self.repo_path     = repo_path
+
+        self.single_mode_log_option = single_mode_log_option
 
 
 

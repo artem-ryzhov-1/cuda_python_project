@@ -14,3 +14,4 @@ if str(PROJECT_ROOT) not in sys.path:
 # CUDA paths
 CUDA_INPUT = PROJECT_ROOT / "app" / "cuda" / "input"
 CUDA_OUTPUT = PROJECT_ROOT / "app" / "cuda" / "output"
+CUDA_BIN = PROJECT_ROOT / "app" / "cuda" / "bin"

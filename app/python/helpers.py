@@ -141,7 +141,7 @@ def run_test_cuda_program(repo_path):
         "path_output_bin_file_singlemode": (output_dir / "rho_dynamics_single_mode_out.bin").as_posix(),
         "path_dynamics_single_mode_output_csv": (output_dir / "rho_dynamics_single_mode_out.csv").as_posix(),
         "path_dynamics_single_mode_output_log_csv": (output_dir / "rho_dynamics_single_mode_log_out.csv").as_posix(),
-        "path_dynamics_single_mode_output_log_hdf5": (output_dir / "rho_dynamics_single_mode_log_out.h5").as_posix(),
+        "path_dynamics_single_mode_output_log_bin": (output_dir / "rho_dynamics_single_mode_log_out.bin").as_posix(),
 
         "GammaL0": 420.0,
         "GammaR0": 68.0,

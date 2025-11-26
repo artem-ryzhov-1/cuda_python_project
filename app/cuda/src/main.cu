@@ -156,7 +156,7 @@ int main(int argc, char** argv)
 
     const bool single_mode_log_option = config["single_mode_log_option"];
     const std::string path_dynamics_single_mode_output_log_csv = config["path_dynamics_single_mode_output_log_csv"];
-    const std::string path_dynamics_single_mode_output_log_hdf5 = config["path_dynamics_single_mode_output_log_hdf5"];
+    const std::string path_dynamics_single_mode_output_log_bin = config["path_dynamics_single_mode_output_log_bin"];
     
     const std::string threads_per_traj_opt = config["threads_per_traj_opt"];
     const std::string quasi_static_ensemble_dephasing_opt = config["quasi_static_ensemble_dephasing_opt"];
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
 
     std::cout << "46. single_mode_log_option: " << single_mode_log_option << "\n";
     std::cout << "47. path_dynamics_single_mode_output_log_csv: " << path_dynamics_single_mode_output_log_csv << "\n";
-    std::cout << "48. path_dynamics_single_mode_output_log_hdf5: " << path_dynamics_single_mode_output_log_hdf5 << "\n";
+    std::cout << "48. path_dynamics_single_mode_output_log_bin: " << path_dynamics_single_mode_output_log_bin << "\n";
     std::cout << "49. threads_per_traj_opt: " << threads_per_traj_opt << "\n";
     std::cout << "50. quasi_static_ensemble_dephasing_otp: " << quasi_static_ensemble_dephasing_opt << "\n";
 
@@ -487,7 +487,7 @@ int main(int argc, char** argv)
             N_samples_noise, quasi_static_ensemble_dephasing_opt, eps_offsets,
             path_dynamics_single_mode_output_csv, path_output_bin_file_singlemode, ouput_option, unrolled_option,
             single_mode_log_option, path_dynamics_single_mode_output_log_csv,
-            path_dynamics_single_mode_output_log_hdf5,
+            path_dynamics_single_mode_output_log_bin,
             threads_per_traj_opt
         );
     }

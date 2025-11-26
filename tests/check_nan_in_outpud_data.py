@@ -6,11 +6,7 @@ import numpy as np
 from pathlib import Path
 import sys
 
-# --- Path to project root ---
-project_root = Path(__file__).resolve().parent.parent
-
-# --- Make python/ importable ---
-sys.path.insert(0, str(project_root))
+import _setup_paths
 
 # --- Imports ---
 from app.python.file_io import (
@@ -18,14 +14,11 @@ from app.python.file_io import (
     read_bin_file_gridmode_and_calculate_deriv
 )
 
-# --- Output path ---
-output_dir = project_root / "app" / "cuda" / "output"
 
 
+time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(_setup_paths.CUDA_OUTPUT / "rho_dynamics_single_mode_out.bin", 1.0)
 
-time_dynamics, eps_dynamics, rho_dynamics, rho_avg = read_bin_file_singlemode(output_dir / "rho_dynamics_single_mode_out.bin", 1.0)
-
-eps0_grid, A_grid, result = read_bin_file_gridmode_and_calculate_deriv(output_dir / "rho_avg_out.bin", 1.0)
+eps0_grid, A_grid, result = read_bin_file_gridmode_and_calculate_deriv(_setup_paths.CUDA_OUTPUT / "rho_avg_out.bin", 1.0)
 
 
 

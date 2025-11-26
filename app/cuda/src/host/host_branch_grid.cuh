@@ -228,7 +228,11 @@ __host__ inline void run_grid_mode(
             );
 
     }
-
+    else{
+        fprintf(stderr, "ERROR: No kernel launch implemented for this configuration\n");
+        std::abort();
+        exit(1);
+    }
 
 }
 
