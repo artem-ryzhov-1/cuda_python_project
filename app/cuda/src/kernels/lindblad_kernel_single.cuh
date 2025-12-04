@@ -673,6 +673,34 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_fsal(
         true
     );
 
+    // post-step stabilization
+    clamp_and_renormalize_vec16_unrolled(
+        rho_vec_0, rho_vec_1, rho_vec_2, rho_vec_3,
+        rho_vec_4, rho_vec_5, rho_vec_6, rho_vec_7,
+        rho_vec_8, rho_vec_9, rho_vec_10, rho_vec_11,
+        rho_vec_12, rho_vec_13, rho_vec_14, rho_vec_15
+    );
+
+    if (0 == N_periods - 1) {
+
+        sum_last_0 += rho_vec_0;
+        sum_last_1 += rho_vec_1;
+        sum_last_2 += rho_vec_2;
+        sum_last_3 += rho_vec_3;
+
+    }
+
+    // store populations (diagonals are rho_vec[0..3])
+    d_rho_dynamics[0] = rho_vec_0;
+    d_rho_dynamics[1] = rho_vec_1;
+    d_rho_dynamics[2] = rho_vec_2;
+    d_rho_dynamics[3] = rho_vec_3;
+
+    d_time_dynamics[0] = 0.0f;
+    d_eps_dynamics[0] = eps0_single_target + A_single_target * cosf(omega * 0.0f);
+
+
+
     for (int t_idx_rk4_step = 1; t_idx_rk4_step < total_steps; ++t_idx_rk4_step) {
         const float t_step = t_idx_rk4_step * dt;
         const float eps_t_step = eps0_single_target + A_single_target * cosf(omega * t_step);
@@ -747,6 +775,18 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_fsal(
 }
 
 
+/*
+// missing 
+    // store populations (diagonals are rho_vec[0..3])
+    d_rho_dynamics[0] = rho_vec_0;
+    d_rho_dynamics[1] = rho_vec_1;
+    d_rho_dynamics[2] = rho_vec_2;
+    d_rho_dynamics[3] = rho_vec_3;
+
+    d_time_dynamics[0] = 0.0f;
+    d_eps_dynamics[0] = eps0_single_target + A_single_target * cosf(omega * 0.0f);
+
+for the first step
 
 extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_fsal_log(
 
@@ -930,7 +970,7 @@ extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_fsal_log(
     printf("base = %u\n", (unsigned int)base);
 
 }
-
+*/
 
 
 extern "C" __global__ void lindblad_rk4_kernel_singlemode_unrolled_ensemble_fsal(

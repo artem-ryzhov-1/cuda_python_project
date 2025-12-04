@@ -98,7 +98,7 @@ class SimRunGridMode:
         
         for name, val in [("Gamma_phi0", Gamma_phi0),
                           ("sigma_eps", sigma_eps)]:
-            if not (isinstance(val, float) or val is None):
+            if not (isinstance(val, (float, int)) or val is None):
                 raise TypeError(f"{name} must be an float, or None, got {val} ({type(val)})")        
         
         for name, val in [("N_steps_period", N_steps_period),
@@ -185,7 +185,7 @@ class SimRunSingleMode:
         
         for name, val in [("Gamma_phi0", Gamma_phi0),
                           ("sigma_eps", sigma_eps)]:
-            if not (isinstance(val, float) or val is None):
+            if not (isinstance(val, (float, int)) or val is None):
                 raise TypeError(f"{name} must be an float, or None, got {val} ({type(val)})")        
         
         for name, val in [("N_steps_period", N_steps_period),
@@ -275,7 +275,7 @@ class SimRunGridSingleMode:
         
         for name, val in [("Gamma_phi0", Gamma_phi0),
                           ("sigma_eps", sigma_eps)]:
-            if not (isinstance(val, float) or val is None):
+            if not (isinstance(val, (float, int)) or val is None):
                 raise TypeError(f"{name} must be an float, or None, got {val} ({type(val)})")        
         
         for name, val in [("N_steps_period", N_steps_period),

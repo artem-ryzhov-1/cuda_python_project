@@ -239,7 +239,7 @@ class InterferogramPlot:
                     (np.array([self.eps0_min, self.eps0_max]), 
                      np.array([self.A_min, self.A_max]), 
                      np.zeros((2, 2))),
-                    kdims=['eps0', 'A'],
+                    kdims=['ε₀', 'A'],
                     vdims=['value']
                 ).opts(
                     cmap=self.cmap_name,
@@ -256,7 +256,7 @@ class InterferogramPlot:
             
             img = hv.Image(
                 (self.eps0_grid, self.A_grid, data),
-                kdims=['eps0', 'A'],
+                kdims=['ε₀', 'A'],
                 vdims=['value']
             ).opts(
                 cmap=self.cmap_name,
@@ -266,7 +266,9 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} [VECTOR]',
                 xlabel='ε₀/Ec',
-                ylabel='A/Ec'
+                ylabel='A/Ec',
+                tools=['hover', 'tap'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -280,7 +282,7 @@ class InterferogramPlot:
             invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
                 alpha=0,
                 line_alpha=0,
-                tools=['tap', 'hover'],
+                tools=['tap'],
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
@@ -308,7 +310,7 @@ class InterferogramPlot:
                     (np.array([self.eps0_min, self.eps0_max]), 
                      np.array([self.A_min, self.A_max]), 
                      np.zeros((2, 2))),
-                    kdims=['eps0', 'A'],
+                    kdims=['ε₀', 'A'],
                     vdims=['value']
                 ).opts(
                     cmap=self.cmap_name,
@@ -338,7 +340,8 @@ class InterferogramPlot:
             
             img = hv.Image(
                 (eps0_array, A_array, data_array),
-                kdims=['eps0', 'A']
+                kdims=['ε₀', 'A'],
+                vdims=['value']
             )
             
             # Apply rasterization with explicit GPU control
@@ -365,7 +368,9 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='ε₀/Ec',
-                ylabel='A/Ec'
+                ylabel='A/Ec',
+                tools=['hover', 'tap'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
             if marker_eps0_local is not None and marker_A_local is not None:
@@ -378,7 +383,7 @@ class InterferogramPlot:
             invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
                 alpha=0,
                 line_alpha=0,
-                tools=['tap', 'hover'],
+                tools=['tap'],
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
@@ -405,7 +410,8 @@ class InterferogramPlot:
                     (np.array([self.eps0_min, self.eps0_max]), 
                      np.array([self.A_min, self.A_max]), 
                      np.zeros((2, 2))),
-                    kdims=['eps0', 'A']
+                    kdims=['ε₀', 'A'],
+                    vdims=['value']
                 ).opts(
                     cmap=self.cmap_name,
                     colorbar=True,
@@ -420,7 +426,8 @@ class InterferogramPlot:
             
             img = hv.Image(
                 (self.eps0_grid, self.A_grid, data),
-                kdims=['eps0', 'A']
+                kdims=['ε₀', 'A'],
+                vdims=['value']
             ).opts(
                 cmap=self.cmap_name,
                 colorbar=True,
@@ -429,7 +436,9 @@ class InterferogramPlot:
                 clim=(clim_low, clim_high),
                 title=f'Interactive Interferogram - Level: {level} {title_suffix}',
                 xlabel='ε₀/Ec',
-                ylabel='A/Ec'
+                ylabel='A/Ec',
+                tools=['hover', 'tap'],
+                default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             
             return img
@@ -439,7 +448,7 @@ class InterferogramPlot:
             invisible_rect = hv.Rectangles([(self.eps0_min, self.A_min, self.eps0_max, self.A_max)]).opts(
                 alpha=0,
                 line_alpha=0,
-                tools=['tap', 'hover'],
+                tools=['tap'],
                 default_tools=['pan', 'wheel_zoom', 'box_zoom', 'reset']
             )
             

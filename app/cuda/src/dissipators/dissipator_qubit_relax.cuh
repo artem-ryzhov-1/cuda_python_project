@@ -231,7 +231,7 @@ void dissipator_qubit_relax_unrolled_log(
     //tmp = 0;
     //tmp *= 0.5f;
     //drho_out_D_eg_r00 += tmp;
-    //d_log_buffer[t_idx_substep].drho_out_D_eg_r00 = tmp;
+    d_log_buffer[t_idx_substep].drho_out_D_eg_r00 = 0.0f;
 
     
     tmp = 0.0f;
@@ -258,7 +258,7 @@ void dissipator_qubit_relax_unrolled_log(
     //tmp = 0;
     //tmp *= 0.5f;
     //drho_out_D_eg_r33 += tmp;
-    //d_log_buffer[t_idx_substep].drho_out_D_eg_r33 = tmp;
+    d_log_buffer[t_idx_substep].drho_out_D_eg_r33 = 0.0f;
 
 
     tmp = 0.0f;
@@ -297,14 +297,14 @@ void dissipator_qubit_relax_unrolled_log(
     //tmp = 0;
     //tmp *= 0.5f;
     //drho_out_D_eg_r03 += tmp;
-    //d_log_buffer[t_idx_substep].drho_out_D_eg_r03 = tmp;
+    d_log_buffer[t_idx_substep].drho_out_D_eg_r03 = 0.0f;
 
 
     //tmp = 0.0f;
     //tmp = 0;
     //tmp *= 0.5f;
     //drho_out_D_eg_i03 += tmp;
-    //d_log_buffer[t_idx_substep].drho_out_D_eg_i03 = tmp;
+    d_log_buffer[t_idx_substep].drho_out_D_eg_i03 = 0.0f;
 
 
     tmp = 0.0f;

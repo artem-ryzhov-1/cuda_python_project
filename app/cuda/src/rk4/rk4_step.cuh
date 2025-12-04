@@ -2460,7 +2460,7 @@ void rk4_step_unrolled_v3_safe_log(
 
 
 
-
+/*
 __device__ __forceinline__
 void rk4_step_unrolled_v3_safe_fsal_log(
     float& rho_vec_0, float& rho_vec_1, float& rho_vec_2, float& rho_vec_3,
@@ -2529,6 +2529,24 @@ void rk4_step_unrolled_v3_safe_fsal_log(
             d_log_buffer, t_idx_substep,
             t_idx_step, substep_num, t_step, t_substep
         );
+    } else {
+        // k_prev already contains k4 from last step, but we still need to log it as k1
+        // We need to create a temporary log entry with the reused k values
+        // Option: manually create log entry here or call a logging function
+        
+        // Manual logging (assuming you have a function or direct struct access):
+        LogEntry& entry = d_log_buffer[t_idx_substep];
+        entry.t_idx_step = t_idx_step;
+        entry.substep_num = substep_num;
+        entry.t_step = t_step;
+        entry.t_substep = t_substep;
+        entry.eps_t_substep = eps_t_substep;
+        
+        // Log the input rho values
+        entry.rho_in_0 = rho_vec_0;  entry.rho_in_1 = rho_vec_1;  entry.rho_in_2 = rho_vec_2;  entry.rho_in_3 = rho_vec_3;
+        entry.rho_in_4 = rho_vec_4;  entry.rho_in_5 = rho_vec_5;  entry.rho_in_6 = rho_vec_6;  entry.rho_in_7 = rho_vec_7;
+        entry.rho_in_8 = rho_vec_8;  entry.rho_in_9 = rho_vec_9;  entry.rho_in_10 = rho_vec_10; entry.rho_in_11 = rho_vec_11;
+        entry.rho_in_12 = rho_vec_12; entry.rho_in_13 = rho_vec_13; entry.rho_in_14 = rho_vec_14; entry.rho_in_15 = rho_vec_15;
     }
     // else: k_prev already contains k4 from last step, use it as k1
 
@@ -2702,7 +2720,7 @@ void rk4_step_unrolled_v3_safe_fsal_log(
 
     // k_prev now contains k4, ready to be used as k1 in the next call
 }
-
+*/
 
 
 

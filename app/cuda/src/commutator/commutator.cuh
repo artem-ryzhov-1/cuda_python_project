@@ -481,11 +481,10 @@ void commutator_v3_unrolled(
 
     // --- Commutator contribution (register-accumulated, one-term-per-line) ---
 
-    // Diagonals
-    //drho_out_0 = 0.0f;
+    drho_out_0 = 0;
 
 
-    tmp = 2.f * delta_C * rho_in_11;
+    tmp = delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
@@ -493,98 +492,108 @@ void commutator_v3_unrolled(
     drho_out_2 = -tmp;
 
 
-    //drho_out_3 = 0.0f;
+    drho_out_3 = 0;
 
     // (0,1)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += eps_t_substep;
     tmp *= rho_in_5;
 
     tmp += delta_C * rho_in_7;
+    tmp *= 0.5f;
     drho_out_4 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += -eps_t_substep;
     tmp *= rho_in_4;
 
     tmp += -delta_C * rho_in_6;
+    tmp *= 0.5f;
     drho_out_5 = tmp;
 
     // (0,2)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += -eps_t_substep;
     tmp *= rho_in_7;
 
     tmp += delta_C * rho_in_5;
+    tmp *= 0.5f;
     drho_out_6 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += eps_t_substep;
     tmp *= rho_in_6;
 
     tmp += -delta_C * rho_in_4;
+    tmp *= 0.5f;
     drho_out_7 = tmp;
 
     // (0,3)
-    drho_out_8 = 2 * B * eps_t_substep * rho_in_9;
+    drho_out_8 = B * eps_t_substep * rho_in_9;
 
-    drho_out_9 = -2 * B * eps_t_substep * rho_in_8;
+    drho_out_9 = -B * eps_t_substep * rho_in_8;
 
     // (1,2)
-    drho_out_10 = -2 * eps_t_substep * rho_in_11;
+    drho_out_10 = -eps_t_substep * rho_in_11;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -delta_C * rho_in_1;
     tmp += delta_C * rho_in_2;
-    tmp += 2.0f * eps_t_substep * rho_in_10;
+    tmp += 2 * eps_t_substep * rho_in_10;
+    tmp *= 0.5f;
     drho_out_11 = tmp;
 
     // (1,3)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
     tmp *= rho_in_13;
 
     tmp += -delta_C * rho_in_15;
+    tmp *= 0.5f;
     drho_out_12 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += -B * eps_t_substep;
     tmp += one_div_m;
     tmp *= rho_in_12;
 
     tmp += delta_C * rho_in_14;
+    tmp *= 0.5f;
     drho_out_13 = tmp;
 
     // (2,3)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
     tmp *= rho_in_15;
 
     tmp += -delta_C * rho_in_13;
+    tmp *= 0.5f;
     drho_out_14 = tmp;
 
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -eps_t_substep;
     tmp += one_div_m;
     tmp *= rho_in_14;
 
     tmp += delta_C * rho_in_12;
+    tmp *= 0.5f;
     drho_out_15 = tmp;
+
 
 
 }
@@ -641,11 +650,14 @@ void commutator_v3_unrolled_log(
 
     // --- Commutator contribution (register-accumulated, one-term-per-line) ---
 
-    // Diagonals
-    //drho_out_0 = 0.0f;
+    
 
 
-    tmp = 2.f * delta_C * rho_in_11;
+
+    drho_out_0 = 0;
+
+
+    tmp = delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
@@ -653,98 +665,111 @@ void commutator_v3_unrolled_log(
     drho_out_2 = -tmp;
 
 
-    //drho_out_3 = 0.0f;
+    drho_out_3 = 0;
 
     // (0,1)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += eps_t_substep;
     tmp *= rho_in_5;
 
     tmp += delta_C * rho_in_7;
+    tmp *= 0.5f;
     drho_out_4 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += -eps_t_substep;
     tmp *= rho_in_4;
 
     tmp += -delta_C * rho_in_6;
+    tmp *= 0.5f;
     drho_out_5 = tmp;
 
     // (0,2)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = B * eps_t_substep;
     tmp += one_div_m;
     tmp += -eps_t_substep;
     tmp *= rho_in_7;
 
     tmp += delta_C * rho_in_5;
+    tmp *= 0.5f;
     drho_out_6 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -one_div_m;
     tmp += eps_t_substep;
     tmp *= rho_in_6;
 
     tmp += -delta_C * rho_in_4;
+    tmp *= 0.5f;
     drho_out_7 = tmp;
 
     // (0,3)
-    drho_out_8 = 2 * B * eps_t_substep * rho_in_9;
+    drho_out_8 = B * eps_t_substep * rho_in_9;
 
-    drho_out_9 = -2 * B * eps_t_substep * rho_in_8;
+    drho_out_9 = -B * eps_t_substep * rho_in_8;
 
     // (1,2)
-    drho_out_10 = -2 * eps_t_substep * rho_in_11;
+    drho_out_10 = -eps_t_substep * rho_in_11;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -delta_C * rho_in_1;
     tmp += delta_C * rho_in_2;
-    tmp += 2.0f * eps_t_substep * rho_in_10;
+    tmp += 2 * eps_t_substep * rho_in_10;
+    tmp *= 0.5f;
     drho_out_11 = tmp;
 
     // (1,3)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
     tmp *= rho_in_13;
 
     tmp += -delta_C * rho_in_15;
+    tmp *= 0.5f;
     drho_out_12 = tmp;
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += -B * eps_t_substep;
     tmp += one_div_m;
     tmp *= rho_in_12;
 
     tmp += delta_C * rho_in_14;
+    tmp *= 0.5f;
     drho_out_13 = tmp;
 
     // (2,3)
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = eps_t_substep;
     tmp += B * eps_t_substep;
     tmp += -one_div_m;
     tmp *= rho_in_15;
 
     tmp += -delta_C * rho_in_13;
+    tmp *= 0.5f;
     drho_out_14 = tmp;
 
 
-    //tmp = 0.0f;
+    tmp = 0.0f;
     tmp = -B * eps_t_substep;
     tmp += -eps_t_substep;
     tmp += one_div_m;
     tmp *= rho_in_14;
 
     tmp += delta_C * rho_in_12;
+    tmp *= 0.5f;
     drho_out_15 = tmp;
+
+
+
+
 
 
     d_log_buffer[t_idx_substep].drho_out_comm_0 = drho_out_0;

@@ -209,16 +209,16 @@ struct LogEntry {
     float drho_out_D_dl_r23;
     float drho_out_D_dl_i23;
 
-    //float drho_out_D_eg_r00;
+    float drho_out_D_eg_r00;
     float drho_out_D_eg_r11;
     float drho_out_D_eg_r22;
-    //float drho_out_D_eg_r33;
+    float drho_out_D_eg_r33;
     float drho_out_D_eg_r01;
     float drho_out_D_eg_i01;
     float drho_out_D_eg_r02;
     float drho_out_D_eg_i02;
-    //float drho_out_D_eg_r03;
-    //float drho_out_D_eg_i03;
+    float drho_out_D_eg_r03;
+    float drho_out_D_eg_i03;
     float drho_out_D_eg_r12;
     float drho_out_D_eg_i12;
     float drho_out_D_eg_r13;
@@ -226,16 +226,16 @@ struct LogEntry {
     float drho_out_D_eg_r23;
     float drho_out_D_eg_i23;
 
-    //float drho_out_D_phi_r00;
+    float drho_out_D_phi_r00;
     float drho_out_D_phi_r11;
     float drho_out_D_phi_r22;
-    //float drho_out_D_phi_r33;
+    float drho_out_D_phi_r33;
     float drho_out_D_phi_r01;
     float drho_out_D_phi_i01;
     float drho_out_D_phi_r02;
     float drho_out_D_phi_i02;
-    //float drho_out_D_phi_r03;
-    //float drho_out_D_phi_i03;
+    float drho_out_D_phi_r03;
+    float drho_out_D_phi_i03;
     float drho_out_D_phi_r12;
     float drho_out_D_phi_i12;
     float drho_out_D_phi_r13;

@@ -5,6 +5,10 @@
 #https://claude.ai/chat/44c56c9e-78eb-4405-bad4-da852d545d9b
 #https://chatgpt.com/c/6922da9d-0c1c-8327-bd1f-aa6ab51e32d1
 
+
+# in windows laucnh it with command
+# panel serve app/launcher/local_app_launcher.py --show
+
 from pathlib import Path
 import sys
 import os
@@ -133,13 +137,17 @@ app_interferogram_dynamics = InteractiveInterferogramDynamics(
 # Create the dashboard
 dashboard = app_interferogram_dynamics.create_dashboard()
 
-# For panel serve: wrap in a template for better layout
-template = pn.template.FastListTemplate(
-    title="Interactive Interferogram Dynamics",
-    sidebar=[],
-    main=[dashboard],
-    header_background="#2E86AB",
-)
+dashboard.servable()
 
-# Make it servable
-template.servable()
+
+
+# # For panel serve: wrap in a template for better layout
+# template = pn.template.ReactTemplate(
+#     title="Interactive Interferogram Dynamics",
+#     sidebar=[],
+#     main=[dashboard],
+#     header_background="#2E86AB",
+# )
+
+# # Make it servable
+# template.servable()

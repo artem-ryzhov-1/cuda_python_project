@@ -119,7 +119,7 @@ class InteractiveInterferogramDynamics:
         self._pending_hover_A = None
         self._last_computed_eps0 = None
         self._last_computed_A = None
-        self._debug_hover = True
+        self._debug_hover = False
 
         # Hover processing callback reference
         self._hover_timer_cb = None
@@ -960,20 +960,21 @@ class InteractiveInterferogramDynamics:
             pn.layout.Divider(),
             self.sim_params.get_control_panel(),
             pn.layout.Divider(),
-            "### Regeneration Controls",
-            pn.Column(
-                self.update_button,
-                self.dynamics_regenerate_button,
-                self.regenerate_both_button,
-                width=220
-            ),
-            pn.layout.Divider(),
-            "### Auto-Update Controls",
-            pn.Column(
-                self.auto_update_toggle,
-                self.auto_update_dynamics_toggle,
-                self.auto_update_both_toggle,
-                width=220
+            pn.Row(
+                pn.Column(
+                    "### Regeneration Controls",
+                    self.update_button,
+                    self.dynamics_regenerate_button,
+                    self.regenerate_both_button,
+                    width=220
+                ),
+                pn.Column(
+                    "### Auto-Update Controls",
+                    self.auto_update_toggle,
+                    self.auto_update_dynamics_toggle,
+                    self.auto_update_both_toggle,
+                    width=220
+                )
             ),
             pn.layout.Divider(),
             self.status_text,
@@ -1013,7 +1014,6 @@ class InteractiveInterferogramDynamics:
         )
         
         dynamics_section = pn.Column(
-            pn.layout.Divider(),
             "### Dynamics Plot",
             self.dynamics.get_control_panel(),
             self.dynamics.status_text,
@@ -1026,9 +1026,9 @@ class InteractiveInterferogramDynamics:
         
         self.dynamics.show_toggle.param.watch(update_dynamics_visibility, 'value')
         
-        plot_area = pn.Column(
+        interferogram_area = pn.Column(
+            "### Interferogram Plot",
             interferogram_section,
-            dynamics_section,
             pn.layout.Divider(),
             "### Computation Log",
             self.log_display,
@@ -1038,7 +1038,8 @@ class InteractiveInterferogramDynamics:
         
         dashboard = pn.Row(
             sidebar,
-            plot_area#,
+            interferogram_area,
+            dynamics_section
             #sizing_mode='fixed'
         )
         
