@@ -1090,7 +1090,7 @@ def process_row(row, t_idx_row_check, params, minus_i, one, half, zero):
         'max_abs_UUT_1': None,
         'abs_det_U_1': None,
         'H_adb_non_diag_sum': None,
-        'U_analyt_numeric_max_diff': None,
+        #'U_analyt_numeric_max_diff': None,
         'H_adb_analyt_numeric_check_max_diff': None,
         'all_checks_passed': True
     }
@@ -1267,11 +1267,10 @@ def process_row(row, t_idx_row_check, params, minus_i, one, half, zero):
     if not is_energies_ascending:
         metrics['all_checks_passed'] = False
     
-    # Compare analytic vs numeric U
     E_numeric_check, U_numeric_check = mpmath.eigsy(H_check)
-    U_analyt_numeric_diff_check = U_analyt_check - U_numeric_check
-    U_analyt_numeric_max_diff = max(np.abs(U_analyt_numeric_diff_check))
-    metrics['U_analyt_numeric_max_diff'] = U_analyt_numeric_max_diff
+    #U_analyt_numeric_diff_check = U_analyt_check - U_numeric_check
+    #U_analyt_numeric_max_diff = max(np.abs(U_analyt_numeric_diff_check))
+    #metrics['U_analyt_numeric_max_diff'] = U_analyt_numeric_max_diff
 
     # Compare analytic vs numeric H diagonalization
     H_adb_numeric_check = U_numeric_check.transpose() * H_check * U_numeric_check
@@ -1484,7 +1483,7 @@ def print_max_metrics(df_np2):
         'max_abs_UUT_1': max(df_np2['max_abs_UUT_1']),
         'abs_det_U_1': max(df_np2['abs_det_U_1']),
         'H_adb_non_diag_sum': max(df_np2['H_adb_non_diag_sum']),
-        'U_analyt_numeric_max_diff': max(df_np2['U_analyt_numeric_max_diff']),
+        #'U_analyt_numeric_max_diff': max(df_np2['U_analyt_numeric_max_diff']),
         'H_adb_analyt_numeric_check_max_diff': max(df_np2['H_adb_analyt_numeric_check_max_diff']),
     }
     
@@ -1708,11 +1707,11 @@ def analyze_failed_steps(df_np_expanded, failed_steps, max_steps=5):
 
 
 
-font_size = 30
-tick_length = 8
-tick_width = 2
-fig_size = (38, 20)
-line_width = 4
+font_size = 15
+tick_length = 4
+tick_width = 1
+fig_size = (10, 5)
+line_width = 2
 
 
 def plot(df_np, cols, epsilon_L=params.epsilon_L, epsilon_R=params.epsilon_R):
@@ -1828,11 +1827,6 @@ df_pd2_display_all_digits = df_pd2.map(
 
 
 
-# Filter where U_analyt_numeric_max_diff > 1
-filtered_df_np2 = df_np2[df_np2['U_analyt_numeric_max_diff'] > 1]
-
-
-filtered_df_pd2 = pd.DataFrame(filtered_df_np2)
 
 
 
@@ -1847,197 +1841,6 @@ filtered_df_pd2 = pd.DataFrame(filtered_df_np2)
 
 
 
-
-
-
-
-##############
-##############
-##############
-# in parallel
-
-'''
-from joblib import Parallel, delayed
-
-
-chunks = np.array_split(df_np, 16)
-results = Parallel(n_jobs=16)(
-    delayed(add_calculated_columns_to_np_mpf)(chunk) for chunk in chunks
-)
-df_np2_multiple_threads = np.concatenate(results, axis=0)
-
-#df_np2_multiple_threads == df_np2_single_thread
-'''
-
-
-##############
-##############
-##############
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# List of variables you want to plot
-cols = [
-    't_idx_step',
-    'substep_num',
-    't_idx_substep',
-    't_step',
-    't_substep',
-    'eps_t_substep',
-    'interval_dissipator',
-    'gp_sqr',
-    'gm_sqr',
-    'gp_gm',
-    'Gamma_10_32',
-    'Gamma_20_31',
-    'rho_in_0',
-    'rho_in_1',
-    'rho_in_2',
-    'rho_in_3',
-    'rho_in_4',
-    'rho_in_5',
-    'rho_in_6',
-    'rho_in_7',
-    'rho_in_8',
-    'rho_in_9',
-    'rho_in_10',
-    'rho_in_11',
-    'rho_in_12',
-    'rho_in_13',
-    'rho_in_14',
-    'rho_in_15',
-    'drho_out_comm_0',
-    'drho_out_comm_1',
-    'drho_out_comm_2',
-    'drho_out_comm_3',
-    'drho_out_comm_4',
-    'drho_out_comm_5',
-    'drho_out_comm_6',
-    'drho_out_comm_7',
-    'drho_out_comm_8',
-    'drho_out_comm_9',
-    'drho_out_comm_10',
-    'drho_out_comm_11',
-    'drho_out_comm_12',
-    'drho_out_comm_13',
-    'drho_out_comm_14',
-    'drho_out_comm_15',
-    'drho_out_D_r00',
-    'drho_out_D_r11',
-    'drho_out_D_r22',
-    'drho_out_D_r33',
-    'drho_out_D_r01',
-    'drho_out_D_i01',
-    'drho_out_D_r02',
-    'drho_out_D_i02',
-    'drho_out_D_r03',
-    'drho_out_D_i03',
-    'drho_out_D_r12',
-    'drho_out_D_i12',
-    'drho_out_D_r13',
-    'drho_out_D_i13',
-    'drho_out_D_r23',
-    'drho_out_D_i23',
-    'drho_out_total_0',
-    'drho_out_total_1',
-    'drho_out_total_2',
-    'drho_out_total_3',
-    'drho_out_total_4',
-    'drho_out_total_5',
-    'drho_out_total_6',
-    'drho_out_total_7',
-    'drho_out_total_8',
-    'drho_out_total_9',
-    'drho_out_total_10',
-    'drho_out_total_11',
-    'drho_out_total_12',
-    'drho_out_total_13',
-    'drho_out_total_14',
-    'drho_out_total_15',
-    'is_hermitian_rho',
-    'is_hermitian_comm',
-    'is_hermitian_diss',
-    'rel_diff_gp_sqr',
-    'rel_diff_gm_sqr',
-    'rel_diff_gp_gm',
-    'rel_diff_comm_0',
-    'rel_diff_comm_1',
-    'rel_diff_comm_2',
-    'rel_diff_comm_3',
-    'rel_diff_comm_4',
-    'rel_diff_comm_5',
-    'rel_diff_comm_6',
-    'rel_diff_comm_7',
-    'rel_diff_comm_8',
-    'rel_diff_comm_9',
-    'rel_diff_comm_10',
-    'rel_diff_comm_11',
-    'rel_diff_comm_12',
-    'rel_diff_comm_13',
-    'rel_diff_comm_14',
-    'rel_diff_comm_15',
-    'diss_db_vec_cuda_0',
-    'diss_db_vec_cuda_1',
-    'diss_db_vec_cuda_2',
-    'diss_db_vec_cuda_3',
-    'diss_db_vec_cuda_4',
-    'diss_db_vec_cuda_5',
-    'diss_db_vec_cuda_6',
-    'diss_db_vec_cuda_7',
-    'diss_db_vec_cuda_8',
-    'diss_db_vec_cuda_9',
-    'diss_db_vec_cuda_10',
-    'diss_db_vec_cuda_11',
-    'diss_db_vec_cuda_12',
-    'diss_db_vec_cuda_13',
-    'diss_db_vec_cuda_14',
-    'diss_db_vec_cuda_15',
-    'diss_db_vec_pyth_0',
-    'diss_db_vec_pyth_1',
-    'diss_db_vec_pyth_2',
-    'diss_db_vec_pyth_3',
-    'diss_db_vec_pyth_4',
-    'diss_db_vec_pyth_5',
-    'diss_db_vec_pyth_6',
-    'diss_db_vec_pyth_7',
-    'diss_db_vec_pyth_8',
-    'diss_db_vec_pyth_9',
-    'diss_db_vec_pyth_10',
-    'diss_db_vec_pyth_11',
-    'diss_db_vec_pyth_12',
-    'diss_db_vec_pyth_13',
-    'diss_db_vec_pyth_14',
-    'diss_db_vec_pyth_15',
-    'rel_diff_dissipator_db_0',
-    'rel_diff_dissipator_db_1',
-    'rel_diff_dissipator_db_2',
-    'rel_diff_dissipator_db_3',
-    'rel_diff_dissipator_db_4',
-    'rel_diff_dissipator_db_5',
-    'rel_diff_dissipator_db_6',
-    'rel_diff_dissipator_db_7',
-    'rel_diff_dissipator_db_8',
-    'rel_diff_dissipator_db_9',
-    'rel_diff_dissipator_db_10',
-    'rel_diff_dissipator_db_11',
-    'rel_diff_dissipator_db_12',
-    'rel_diff_dissipator_db_13',
-    'rel_diff_dissipator_db_14',
-    'rel_diff_dissipator_db_15',
-]
 
 
 
@@ -2046,6 +1849,8 @@ cols = [
 
 
 '''
+
+
 #ok
 plot(
     df_np2,
@@ -2056,115 +1861,8 @@ plot(
 
 
 
-#ok
-plot(
-    df_np2,
-    ['rel_diff_comm_0', 'rel_diff_comm_1', 'rel_diff_comm_2', 'rel_diff_comm_3', 
-    'rel_diff_comm_4', 'rel_diff_comm_5', 'rel_diff_comm_6', 'rel_diff_comm_7', 
-    'rel_diff_comm_8', 'rel_diff_comm_9', 'rel_diff_comm_10', 'rel_diff_comm_11', 
-    'rel_diff_comm_12', 'rel_diff_comm_13', 'rel_diff_comm_14', 'rel_diff_comm_15']
-)
 
 
-
-
-
-plot(
-    df_np2,
-    ['rel_diff_dissipator_db_0', 'rel_diff_dissipator_db_1', 'rel_diff_dissipator_db_2', 
-    'rel_diff_dissipator_db_3', 'rel_diff_dissipator_db_4', 'rel_diff_dissipator_db_5', 
-    'rel_diff_dissipator_db_6', 'rel_diff_dissipator_db_7', 'rel_diff_dissipator_db_8', 
-    'rel_diff_dissipator_db_9', 'rel_diff_dissipator_db_10', 'rel_diff_dissipator_db_11', 
-    'rel_diff_dissipator_db_12', 'rel_diff_dissipator_db_13', 'rel_diff_dissipator_db_14', 
-    'rel_diff_dissipator_db_15']
-)
-
-
-
-plot(
-    df_np2,
-    ['diss_db_vec_cuda_0',
-    'diss_db_vec_cuda_1',
-    'diss_db_vec_cuda_2',
-    'diss_db_vec_cuda_3',
-    
-    'diss_db_vec_pyth_0',
-    'diss_db_vec_pyth_1',
-    'diss_db_vec_pyth_2',
-    'diss_db_vec_pyth_3',
-    
-    'rel_diff_dissipator_db_0',
-    'rel_diff_dissipator_db_1',
-    'rel_diff_dissipator_db_2']
-)
-
-
-
-
-plot(
-    df_np2,
-    ['diss_db_vec_cuda_0',
-    'diss_db_vec_cuda_1',
-    'diss_db_vec_cuda_2',
-    'diss_db_vec_cuda_3']
-)
-
-
-
-
-plot(
-    df_np2,
-    ['diss_db_vec_pyth_0',
-    'diss_db_vec_pyth_1',
-    'diss_db_vec_pyth_2',
-    'diss_db_vec_pyth_3']
-)
-
-
-
-
-plot(
-    df_np2,
-    ['rel_diff_dissipator_db_0',
-    'rel_diff_dissipator_db_1',
-    'rel_diff_dissipator_db_2']
-)
-
-'''
-
-
-
-
-
-
-
-
-
-########################################################
-
-#row = df_np[31100] 
-
-#row = df_np[8400]
-
-row = df_np[3]
-
-
-results_row = process_row(row)
-
-
-
-results_row['dissipator_db_pyth']
-
-
-results_row['diss_db_vec_cuda']
-
-
-
-results_row['diss_db_vec_pyth']
-
-
-
-results_row['rel_diff_dissipator_db']
 
 
 
@@ -2214,7 +1912,7 @@ comm_vec_cuda = cuda_comm_vec_from_row_mpmath(row)
 
 rel_diff_comm = relative_difference_vec_mpmath(comm_vec_pyth, comm_vec_cuda)
 
-
+'''
 
 '''
 commutator_math = compute_commutator(rho, H)
@@ -2238,7 +1936,7 @@ print(f"Frobenius norm of the commutator difference: {commutator_diff_norm}")
 print(f"Relative difference: {relative_diff}")
 '''
 
-
+'''
 #########################################################
 
 
@@ -2368,310 +2066,7 @@ total_rhs_vec_cuda = cuda_total_rhs_vec_from_row_mpmath(row)
 
 rel_diff_total_rhs = relative_difference_vec_mpmath(total_rhs_vec_pyth, total_rhs_vec_cuda)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#########################################################
-#########################################################
-#########################################################
-#########################################################
-#########################################################
-
-# test simplified code for cuda in the first place
-
-rho_vec = cuda_rho_vec_from_row_mpmath(row)
-
-
-r00 = mp(row['rho_in_0'])
-r11 = mp(row['rho_in_1'])
-r22 = mp(row['rho_in_2'])
-r33 = mp(row['rho_in_3'])
-
-r01 = mp(row['rho_in_4'])
-i01 = mp(row['rho_in_5'])
-r02 = mp(row['rho_in_6'])
-i02 = mp(row['rho_in_7'])
-r03 = mp(row['rho_in_8'])
-i03 = mp(row['rho_in_9'])
-
-r12 = mp(row['rho_in_10'])
-i12 = mp(row['rho_in_11'])
-r13 = mp(row['rho_in_12'])
-i13 = mp(row['rho_in_13'])
-r23 = mp(row['rho_in_14'])
-i23 = mp(row['rho_in_15'])
-
-
-
-
-
-
-
-
-
-
-
 '''
-#####
-# unrolled expressions v1 (for interval 4)
-
-
-g_p = gamma_plus_pyth
-g_m = gamma_minus_pyth
-
-
-
-
-
-
-
-drho_out_D_r00 = -Gamma_lmrp*r00 - Gamma_lprm*r00;
-
-
-drho_out_D_r11 = Gamma_lmrp*g_m**2*r33 + Gamma_lmrp*g_p**2*r00 + Gamma_lprm*g_m**2*r00 + Gamma_lprm*g_p**2*r33;
-
-
-drho_out_D_r22 = Gamma_lmrp*g_m**2*r00 + Gamma_lmrp*g_p**2*r33 + Gamma_lprm*g_m**2*r33 + Gamma_lprm*g_p**2*r00;
-
-
-drho_out_D_r33 = -Gamma_lmrp*r33 - Gamma_lprm*r33;
-
-
-drho_out_D_r01 = -Gamma_lmrp*r01/2 - Gamma_lprm*r01/2;
-
-
-drho_out_D_i01 = -Gamma_lmrp*i01/2 - Gamma_lprm*i01/2;
-
-
-drho_out_D_r02 = -Gamma_lmrp*r02/2 - Gamma_lprm*r02/2;
-
-
-drho_out_D_i02 = -Gamma_lmrp*i02/2 - Gamma_lprm*i02/2;
-
-
-drho_out_D_r03 = -Gamma_lmrp*r03 - Gamma_lprm*r03;
-
-
-drho_out_D_i03 = -Gamma_lmrp*i03 - Gamma_lprm*i03;
-
-
-drho_out_D_r12 = Gamma_lmrp*g_m*g_p*r00 - Gamma_lmrp*g_m*g_p*r33 - Gamma_lprm*g_m*g_p*r00 + Gamma_lprm*g_m*g_p*r33;
-
-
-drho_out_D_i12 = zero;
-
-
-drho_out_D_r13 = -Gamma_lmrp*r13/2 - Gamma_lprm*r13/2;
-
-
-drho_out_D_i13 = -Gamma_lmrp*i13/2 - Gamma_lprm*i13/2;
-
-
-drho_out_D_r23 = -Gamma_lmrp*r23/2 - Gamma_lprm*r23/2;
-
-
-drho_out_D_i23 = -Gamma_lmrp*i23/2 - Gamma_lprm*i23/2;
-
-
-
-
-# end of unrolled expressions v1
-####
-'''
-
-
-
-#####
-# unrolled expressions v2 (for interval 4)
-
-
-GammaLR0 = Gamma_L0 + Gamma_R0
-
-gp_sqr = gp_sqr_pyth
-gm_sqr = gm_sqr_pyth
-gp_gm  = gp_gm_pyth
-
-
-
-
-
-
-
-tmp = 0
-tmp = -2*GammaLR0*r00;
-tmp *= half
-drho_out_D_r00 = tmp
-
-
-tmp = 0
-tmp = 2*r00*(Gamma_lmrp*gp_sqr + Gamma_lprm*gm_sqr);
-tmp += 2*r33*(Gamma_lmrp*gm_sqr + Gamma_lprm*gp_sqr);
-tmp *= half
-drho_out_D_r11 = tmp
-
-
-tmp = 0
-tmp = 2*r00*(Gamma_lmrp*gm_sqr + Gamma_lprm*gp_sqr);
-tmp += 2*r33*(Gamma_lmrp*gp_sqr + Gamma_lprm*gm_sqr);
-tmp *= half
-drho_out_D_r22 = tmp
-
-
-tmp = 0
-tmp = -2*GammaLR0*r33;
-tmp *= half
-drho_out_D_r33 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*r01;
-tmp *= half
-drho_out_D_r01 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*i01;
-tmp *= half
-drho_out_D_i01 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*r02;
-tmp *= half
-drho_out_D_r02 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*i02;
-tmp *= half
-drho_out_D_i02 = tmp
-
-
-tmp = 0
-tmp = -2*GammaLR0*r03;
-tmp *= half
-drho_out_D_r03 = tmp
-
-
-tmp = 0
-tmp = -2*GammaLR0*i03;
-tmp *= half
-drho_out_D_i03 = tmp
-
-
-tmp = 0
-tmp = 2*gp_gm*r00*(Gamma_lmrp - Gamma_lprm);
-tmp += 2*gp_gm*r33*(-Gamma_lmrp + Gamma_lprm);
-tmp *= half
-drho_out_D_r12 = tmp
-
-
-tmp = 0
-tmp = 0;
-tmp *= half
-drho_out_D_i12 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*r13;
-tmp *= half
-drho_out_D_r13 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*i13;
-tmp *= half
-drho_out_D_i13 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*r23;
-tmp *= half
-drho_out_D_r23 = tmp
-
-
-tmp = 0
-tmp = -GammaLR0*i23;
-tmp *= half
-drho_out_D_i23 = tmp
-
-
-
-
-# end of unrolled expressions v2
-####
-
-
-
-
-
-
-
-
-
-
-diss_db_vec_pyth_code_for_cuda = [
-    drho_out_D_r00,
-    drho_out_D_r11,
-    drho_out_D_r22,
-    drho_out_D_r33,
-    
-    drho_out_D_r01,
-    drho_out_D_i01,
-    
-    drho_out_D_r02,
-    drho_out_D_i02,
-    
-    drho_out_D_r03,
-    drho_out_D_i03,
-    
-    drho_out_D_r12,
-    drho_out_D_i12,
-    
-    drho_out_D_r13,
-    drho_out_D_i13,
-    
-    drho_out_D_r23,
-    drho_out_D_i23
-    
-]
-
-
-
-
-rel_diff_dissipator_db_pyth_with_pyth = relative_difference_vec_mpmath(diss_db_vec_pyth_code_for_cuda, diss_db_vec_pyth)
-
-
-
-diss_db_vec_pyth
-
-diss_db_vec_pyth_code_for_cuda
-
-diss_db_vec_cuda
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

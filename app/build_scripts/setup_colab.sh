@@ -6,7 +6,7 @@
 cd "$(dirname "$0")/.."   # go to repo root
 echo "Now working in: $(pwd)"
 
-%%bash
+#%%bash
 
 # Install necessary packages for Colab
 sudo apt-get update

@@ -68,7 +68,6 @@ print(f"M(ε) = {M_simplified}")
 
 
 ###############
-#
 
 Gamma_eg = sp.symbols('Gamma_eg', real=True, positive=True)
 Gamma_phi = sp.symbols('Gamma_phi', real=True, positive=True)
@@ -493,21 +492,21 @@ Gamma_eg_half_loc = Rational(1,2) * Gamma_eg_loc
 # //drho_out_D_eg_r00 += tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -gm_sqr * gm_sqr * r11;
 tmp += gp_sqr * gp_sqr * r22;
 tmp += gp_gm * r12 * gm_sqr;
 tmp += -gp_gm * r12 * gp_sqr;
-tmp *= 2 * Gamma_eg_half_loc;
+tmp *= Integer(2) * Gamma_eg_half_loc;
 drho_out_D_eg_r11 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -gp_sqr * gp_sqr * r22;
 tmp += gm_sqr * gm_sqr * r11;
 tmp += -gp_gm * r12 * gm_sqr;
 tmp += gp_gm * r12 * gp_sqr;
-tmp *= 2 * Gamma_eg_half_loc;
+tmp *= Integer(2) * Gamma_eg_half_loc;
 drho_out_D_eg_r22 = tmp;
 
 
@@ -517,28 +516,28 @@ drho_out_D_eg_r22 = tmp;
 # //drho_out_D_eg_r33 += tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * r02;
 tmp += -gm_sqr * r01;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_r01 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * i02;
 tmp += -gm_sqr * i01;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_i01 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * r01;
 tmp += -gp_sqr * r02;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_r02 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * i01;
 tmp += -gp_sqr * i02;
 tmp *= Gamma_eg_half_loc;
@@ -557,50 +556,49 @@ drho_out_D_eg_i02 = tmp;
 # //drho_out_D_eg_i03 += tmp;
 
 
-tmp = 0
-tmp = -4 * r12 * gp_gm * gp_gm;
+tmp = 0;
+tmp = -Integer(4) * r12 * gp_gm * gp_gm;
 tmp += -r12;
-tmp += 2 * gp_gm * r11 * gm_sqr;
+tmp += Integer(2) * gp_gm * r11 * gm_sqr;
 tmp += gp_gm * r11;
-tmp += 2 * gp_gm * r22 * gp_sqr;
+tmp += Integer(2) * gp_gm * r22 * gp_sqr;
 tmp += gp_gm * r22;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_r12 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -i12;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_i12 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * r23;
 tmp += -gm_sqr * r13;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_r13 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * i23;
 tmp += -gm_sqr * i13;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_i13 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * r13;
 tmp += -gp_sqr * r23;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_r23 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = gp_gm * i13;
 tmp += -gp_sqr * i23;
 tmp *= Gamma_eg_half_loc;
 drho_out_D_eg_i23 = tmp;
-
 
 
 
@@ -622,21 +620,21 @@ Gamma_phi_loc = Gamma_phi
 # //drho_out_D_phi_r00 += tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -gp_gm * gp_gm * r11;
 tmp += -r12 * gm_sqr * gp_gm;
 tmp += r12 * gp_gm * gp_sqr;
 tmp += gp_gm * gp_gm * r22;
-tmp *= 2 * Gamma_phi_loc;
+tmp *= sp.Integer(2) * Gamma_phi_loc;
 drho_out_D_phi_r11 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -gp_gm * gp_gm * r22;
 tmp += r12 * gm_sqr * gp_gm;
 tmp += -r12 * gp_gm * gp_sqr;
 tmp += gp_gm * gp_gm * r11;
-tmp *= 2 * Gamma_phi_loc;
+tmp *= sp.Integer(2) * Gamma_phi_loc;
 drho_out_D_phi_r22 = tmp;
 
 
@@ -646,27 +644,26 @@ drho_out_D_phi_r22 = tmp;
 # //drho_out_D_phi_r33 += tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * r01;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_r01 = tmp;
 
-
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * i01;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_i01 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * r02;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_r02 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * i02;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_i02 = tmp;
 
 
@@ -682,9 +679,10 @@ drho_out_D_phi_i02 = tmp;
 # //drho_out_D_phi_i03 += tmp;
 
 
-tmp = 0
+tmp = 0;
+#//tmp = r12 * (-gm_sqr * gm_sqr + 2 * gp_gm * gp_gm - gp_sqr * gp_sqr); can be simplified
 tmp = -r12 * gm_sqr * gm_sqr;
-tmp += 2 * r12 * gp_gm * gp_gm;
+tmp += sp.Integer(2) * r12 * gp_gm * gp_gm;
 tmp += -r12 * gp_sqr * gp_sqr;
 tmp += -gp_gm * r11 * gm_sqr;
 tmp += gp_gm * r11 * gp_sqr;
@@ -694,34 +692,33 @@ tmp *= Gamma_phi_loc;
 drho_out_D_phi_r12 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * i12;
 drho_out_D_phi_i12 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * r13;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_r13 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * i13;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_i13 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * r23;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_r23 = tmp;
 
 
-tmp = 0
+tmp = 0;
 tmp = -Gamma_phi_loc * i23;
-tmp *= 0.25
+tmp *= 0.25;
 drho_out_D_phi_i23 = tmp;
-
 
 
 

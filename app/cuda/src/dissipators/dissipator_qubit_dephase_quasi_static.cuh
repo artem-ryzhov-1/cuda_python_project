@@ -48,11 +48,7 @@ void dissipator_qubit_dephase_quasi_static_unrolled(
 
     const float Gamma_phi_loc = Gamma_phi0 * fabsf(eps_t_substep) * 2.0f * half_inv_radical;
 
-
-
-
     register float tmp;
-
 
     //tmp = 0.0f;
     //tmp = 0;
@@ -135,7 +131,6 @@ void dissipator_qubit_dephase_quasi_static_unrolled(
 
     tmp = 0.0f;
     tmp = -Gamma_phi_loc * i12;
-    tmp *= 1.0f;
     drho_out_D_phi_i12 += tmp;
 
 
@@ -214,19 +209,11 @@ void dissipator_qubit_dephase_quasi_static_unrolled_log(
 
     d_log_buffer[t_idx_substep].Gamma_phi = Gamma_phi_loc;
 
-
     //d_log_buffer[t_idx_substep].debug_eps_t_substep = eps_t_substep;
     //d_log_buffer[t_idx_substep].debug_delta_C = delta_C;
     //d_log_buffer[t_idx_substep].debug_radical = radical;
 
-
     register float tmp;
-
-
-
-
-
-
 
     //tmp = 0.0f;
     //tmp = 0;
@@ -320,7 +307,6 @@ void dissipator_qubit_dephase_quasi_static_unrolled_log(
 
     tmp = 0.0f;
     tmp = -Gamma_phi_loc * i12;
-    tmp *= 1.0f;
     drho_out_D_phi_i12 += tmp;
     d_log_buffer[t_idx_substep].drho_out_D_phi_i12 = tmp;
 

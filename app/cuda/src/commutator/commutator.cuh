@@ -481,18 +481,15 @@ void commutator_v3_unrolled(
 
     // --- Commutator contribution (register-accumulated, one-term-per-line) ---
 
-    drho_out_0 = 0;
-
+    drho_out_0 = 0.0f;
 
     tmp = delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
-
     drho_out_2 = -tmp;
 
-
-    drho_out_3 = 0;
+    drho_out_3 = 0.0f;
 
     // (0,1)
     tmp = 0.0f;
@@ -650,22 +647,15 @@ void commutator_v3_unrolled_log(
 
     // --- Commutator contribution (register-accumulated, one-term-per-line) ---
 
-    
-
-
-
-    drho_out_0 = 0;
-
+    drho_out_0 = 0.0f;
 
     tmp = delta_C * rho_in_11;
 
     drho_out_1 = tmp;
 
-
     drho_out_2 = -tmp;
 
-
-    drho_out_3 = 0;
+    drho_out_3 = 0.0f;
 
     // (0,1)
     tmp = 0.0f;
