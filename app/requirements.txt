@@ -1,3 +1,7 @@
+########################################
+# app/requirements.txt
+########################################
+
 # add other python dependencies your project requires
 
 datashader

@@ -1,3 +1,7 @@
+########################################
+# app/cuda/Makefile
+########################################
+
 # Detect if the environment is local (using shell to check the platform)
 LOCAL_RUNTIME := $(shell if [ -n "$$USER" ]; then echo "true"; else echo "false"; fi)
 
