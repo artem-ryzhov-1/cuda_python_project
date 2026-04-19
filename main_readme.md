@@ -65,8 +65,7 @@ This simulator solves the **Lindblad master equation** for a driven double quant
 This project accompanies the paper:
 
 > **"Quantum control of multi-level systems: four driving regimes of a double-quantum dot"**  
-> A. I. Ryzhov, M. P. Liul, S. N. Shevchenko, M. F. Gonzalez-Zalba, Franco Nori  
-> *Submitted to Physical Review B* (2025)
+> A. I. Ryzhov, M. P. Liul, S. N. Shevchenko, M. F. Gonzalez-Zalba, Franco Nori
 
 The simulator implements the theoretical framework described in the paper, allowing researchers to:
 
@@ -74,6 +73,10 @@ The simulator implements the theoretical framework described in the paper, allow
 - Explore parameter regimes beyond those studied in the paper
 - Extract device parameters from experimental interferograms
 - Understand the physics of strongly driven quantum systems
+
+![Interface](docs/images/interface.png)
+
+![LZSM interferogram](docs/images/Chatterjee2018interferogram.png)
 
 ### Five Operational Regimes
 
