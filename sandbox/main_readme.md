@@ -94,86 +94,8 @@ See [PHYSICS.md](docs/PHYSICS.md) for detailed explanations of each regime.
 
 ---
 
-## 📁 Project Structure
-
-```
-.
-├── app/
-│   ├── requirements.txt              # Python dependencies
-│   ├── build_scripts/                # Platform-specific build scripts
-│   │   ├── build_local_linux.sh
-│   │   ├── build_local_windows.bat
-│   │   └── setup_colab.sh
-│   ├── cuda/                         # CUDA source code
-│   │   ├── Makefile                  # Build configuration
-│   │   ├── bin/                      # Compiled executables (generated)
-│   │   ├── external/                 # nlohmann JSON library
-│   │   ├── input/                    # Configuration files
-│   │   │   └── run_config.json
-│   │   ├── output/                   # Simulation results (generated)
-│   │   └── src/                      # CUDA kernel source
-│   │       ├── main.cu               # Entry point
-│   │       ├── constants.cuh         # Physical constants
-│   │       ├── commutator/           # Hamiltonian commutator kernels
-│   │       ├── dissipators/          # Lindblad dissipator kernels
-│   │       ├── host/                 # Host-side orchestration
-│   │       ├── kernels/              # Main Lindblad evolution kernels
-│   │       └── rk4/                  # Runge-Kutta 4th order integrator
-│   ├── python/                       # Python interface & visualization
-│   │   ├── app_class_interactive_interferogram_dynamics.py  # Main app
-│   │   ├── app_class_simulation_parameters.py  # Parameter management
-│   │   ├── config.py                 # Configuration utilities
-│   │   ├── cuda_runner.py            # CUDA execution wrapper
-│   │   ├── file_io.py                # Binary file I/O
-│   │   ├── helpers.py                # Platform detection & utilities
-│   │   └── simulation.py             # Simulation orchestration
-│   └── launcher/                     # Application entry points
-│       └── local_app_launcher.py     # Local dashboard launcher
-├── codegen/                          # Code generation scripts
-│   ├── generate_commutator_code.py
-│   ├── generate_dot_lead_dissipators_codes.py
-│   └── generate_eg_phi_dissipators_codes.py
-├── docs/                             # Detailed documentation
-│   ├── INSTALLATION.md               # Installation guide
-│   ├── USER_GUIDE.md                 # User manual
-│   ├── PHYSICS.md                    # Physics background
-│   ├── API.md                        # Parameter reference
-│   ├── ARCHITECTURE.md               # System design
-│   ├── CODE_OVERVIEW.md              # Code structure
-│   ├── DEVELOPMENT.md                # Developer guide
-│   ├── EXAMPLES.md                   # Usage examples
-│   └── APPENDICES.md                 # Technical appendices
-├── plots/                            # Standalone plotting scripts
-│   ├── single_dynamics.py
-│   ├── single_interferogram.py
-│   └── single_interferogram_and_dynamics.py
-├── tests/                            # Validation and testing
-│   ├── check_log_data.py
-│   ├── check_nan_in_outpud_data.py
-│   └── cuda_program_runner_json.py
-├── run_in_colab.ipynb                # Google Colab notebook
-├── README.md                         # This file
-└── LICENSE                           # MIT License
-```
 
 ---
-
-## 📚 Documentation
-
-### For Users
-
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup for all platforms
-- **[User Guide](docs/USER_GUIDE.md)** - How to use the interactive dashboard
-- **[Physics Background](docs/PHYSICS.md)** - Theory of LZSM regimes and quantum dynamics
-- **[Examples](docs/EXAMPLES.md)** - Reproducing paper figures and common workflows
-- **[API Reference](docs/API.md)** - Complete parameter documentation
-
-### For Developers
-
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and data flow
-- **[Code Overview](docs/CODE_OVERVIEW.md)** - Detailed code structure
-- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing, building, and testing
-- **[Technical Appendices](docs/APPENDICES.md)** - Numerical methods and derivations
 
 ---
 
@@ -184,23 +106,20 @@ The web-based dashboard provides:
 ### Real-Time Parameter Control
 
 Adjust physical parameters with sliders:
-- **Hamiltonian:** Δ_C (tunnel coupling), B (asymmetry), m (capacitance ratio)
+- **Hamiltonian:** Δ_C (tunnel coupling)
 - **Dissipation:** Γ_L, Γ_R (lead coupling), Γ_1 (phonon relaxation), Γ_φ (dephasing)
-- **Drive:** ω_d (frequency), A (amplitude), ε₀ (detuning offset)
+- **Drive:** nu_d (frequency), A (amplitude), ε₀ (detuning offset)
 - **Numerical:** Time steps, periods, noise samples
 
-### Four Synchronized Views
+### Synchronized Views
 
-1. **Interferogram** - Color map of C_Q(ε₀, A) showing regime boundaries
+1. **Interferogram** - Color map of C_Q(ε₀, A) or individual populations of |00⟩, |01⟩, |10⟩, |11⟩ showing regime boundaries
 2. **Time Dynamics** - Evolution of state populations P_{N₁,N₂}(t)
-3. **Diabatic States** - Individual populations of |00⟩, |01⟩, |10⟩, |11⟩
-4. **Parameter Info** - Current values and regime identification
 
 ### Interactive Features
 
 - **Click-to-select:** Click any point in interferogram → see time dynamics
 - **Real-time updates:** All plots update within 2-5 seconds
-- **Regime overlay:** Visual markers showing regime boundaries
 - **Export options:** Save plots and data files
 
 ---

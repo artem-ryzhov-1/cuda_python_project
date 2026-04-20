@@ -1,27 +1,152 @@
-# Quantum Interferogram Dynamics Simulator
+# Quantum interferogram and dynamics simulator
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/artem-ryzhov-1/cuda_python_project/actions) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-This project provides a high-performance tool for simulating and visualizing quantum dynamics, specifically focusing on interferometry in open quantum systems. It leverages CUDA for GPU-accelerated solutions of the Lindblad master equation and a Python-based interactive dashboard for real-time parameter tuning and visualization.
+This project provides a high-performance interactive tool for simulating and visualizing quantum dynamics, and Landau-Zener-Stukelberg-Majorana (LZSM) interferograms of the open quantum system of double quantum dot. It leverages CUDA for GPU-accelerated solutions of the Lindblad master equation and a Python-based interactive dashboard for real-time parameter tuning and visualization.
 
-The simulator integrates CUDA for GPU-accelerated computations with Python for high-level scripting and data handling, featuring custom CUDA kernels with a 4th-order Runge-Kutta (RK4) method. It is designed for researchers and students in quantum physics, enabling detailed exploration of system dynamics under various physical conditions.
+The simulator solves the Lindblad master equation for the specific double quantum dot system in parallel for a set of parameters of the driving signal on GPU using C/CUDA programming language. The high-level scripting, data handling, and plotting is implemented using Python programming language. The Lindblad equation is solved using custom CUDA kernels with a 4th-order Runge-Kutta (RK4) method. The project is designed for researchers and students in quantum physics, enabling detailed exploration of system dynamics under various physical conditions.
 
-## 🚀 Run in Google Colab
+## 🚀 Quick Start. Run in Google Colab
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/cuda_python_project/blob/main/run_in_colab.ipynb)
 
-> No installation required. Click the badge to launch the interactive simulation environment directly in your browser.
+> Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard. No installation required. Click the badge to launch the interactive simulation environment directly in your browser (using Google Colab). You are only required to have Google account. The Google Colab notebook inlcudes the detailed description of all steps for launching the interactive simulation.
+
+## Overview
+
+The Quantum interferogram and dynamics simulator is a research-grade computational tool designed to solve the **Lindblad master equation** for double quantum dot (DQD) system. It simulates dynamics and **Landau-Zener-Stückelberg-Majorana (LZSM) interference patterns** in semiconductor qubits, enabling researchers to:
+
+- Explore quantum dynamics under various physical conditions
+- Visualize interferogram patterns (quantum capacitance vs. detuning and amplitude)
+- Analyze time-evolution dynamics of quantum states
+- Identify operational regimes of quantum devices
+- Extract device parameters from experimental data
+
+
+
+---
+
+## 🎮 Interface. Interactive Dashboard
+
+![Interface](docs/images/interface.png)
+
+The web-based dashboard provides:
+
+### Real-Time Parameter Control
+
+Adjust physical parameters with sliders:
+- **Hamiltonian:** Δ_C (tunnel coupling)
+- **Dissipation:** Γ_L, Γ_R (lead coupling), Γ_1 (phonon relaxation), Γ_φ (dephasing)
+- **Drive:** nu_d (frequency), A (amplitude), ε₀ (detuning offset)
+- **Numerical:** Time steps, periods, noise samples
+
+### Synchronized Views
+
+1. **Interferogram** - Color map of C_Q(ε₀, A) or individual populations of |00⟩, |01⟩, |10⟩, |11⟩ showing regime boundaries
+2. **Time Dynamics** - Evolution of state populations P_{N₁,N₂}(t)
+
+### Interactive Features
+
+- **Click-to-select:** Click any point in interferogram → see time dynamics
+- **Real-time updates:** All plots update within 2-5 seconds
+- **Export options:** Save plots and data files
+
+
+---
+
+## 🔬 Physical Background
+
+This project accompanies the paper:
+
+> **"Quantum control of multi-level systems: four driving regimes of a double-quantum dot"**  
+> A. I. Ryzhov, M. P. Liul, S. N. Shevchenko, M. F. Gonzalez-Zalba, Franco Nori, in preparation.
+
+The simulator implements the theoretical framework described in the paper, allowing researchers to:
+
+- Reproduce all figures from the manuscript
+- Explore parameter regimes beyond those studied in the paper
+- Extract device parameters from experimental interferograms
+- Understand the physics of strongly driven quantum systems
+
+One of the goals of the paper is to reproduce the experimental interferogram of the quantum capacitance
+
+![LZSM interferogram](docs/images/Chatterjee2018interferogram.png)
+
+from the paper
+
+> **"A silicon-based single-electron interferometer coupled to a fermionic sea"**  
+> A. Chatterjee, et. al., Phys. Rev. B **97**, 045405 (2018).
+
+### The Quantum System
+
+The simulator models a **double quantum dot (DQD)** system with four charge states:
+
+```
+|N₁, N₂⟩ = |00⟩, |01⟩, |10⟩, |11⟩
+```
+
+Where N₁ and N₂ represent the number of electrons on the left and right dots, respectively.
+
+### Lindblad Master Equation
+
+The density matrix ρ evolves according to the Lindblad master equation:
+
+```
+dρ/dt = -i[H, ρ]/ℏ + Σₖ D[Lₖ]ρ
+```
+
+Where:
+- **H** is the 4×4 diabatic Hamiltonian (capacitive coupling, tunnel coupling, driven detuning)
+- **D[Lₖ]** are dissipator terms modeling:
+  - Dot-lead coupling (charge transitions with reservoirs)
+  - Phonon-induced relaxation (energy relaxation)
+  - Quasi-static dephasing (charge noise)
+
+### Observable: Quantum Capacitance
+
+The primary observable is the **quantum capacitance** C_Q(ε₀, A), which displays characteristic interference fringes when plotted against detuning offset (ε₀) and drive amplitude (A).
+
+
+### Operational Regimes
+
+The simulator helps identify five distinct regimes:
+1. **Multi-passage** - Multiple Landau-Zener transitions per period
+2. **Double-passage** - Two transitions per period
+3. **Single-passage** - One transition per period
+4. **Incoherent** - Decoherence-dominated dynamics
+5. **No-passage** - Drive amplitude below threshold
+
+---
 
 ## Features
 
-- **High-Performance Simulation**: GPU-accelerated CUDA backend for solving the Lindblad master equation using a 4th-order Runge-Kutta (RK4) method with custom kernels.
-- **Interactive Dashboard**: A web-based interface built with Panel and HoloViews allows for real-time adjustment of physical parameters and immediate visualization of results.
-- **Cross-Platform Compatibility**: Fully compatible with Linux, WSL2, Windows (with CUDA), and Google Colab.
-- **Dynamic GPU Detection**: Build scripts automatically detect and target your GPU architecture for optimal performance.
+- **High-Performance Simulation**: GPU-accelerated CUDA backend for solving the Lindblad master equation using a 4th-order Runge-Kutta (RK4) method with custom kernels. It solves multiple Lindblad master equations (for different parameters of the driving signal) in parallel on GPU, which is around 1000x faster than solving them on CPU.
+- **Interactive Dashboard**: Real-time visualization with 500k+ parameter points. A web-based interface built with Python libraries Panel and HoloViews allows for real-time adjustment of physical parameters and immediate visualization of results.
+- **Cross-Platform Compatibility**: Fully compatible with Linux, Windows (with CUDA), and Google Colab.
 - **Modular CUDA Kernels**: The CUDA code is structured with modular components for commutators and dissipators, separating kernels, host code, and Python orchestration for maintainability and extensibility.
 - **Advanced Visualization**: Generate and inspect detailed interferograms and time-evolution dynamics plots.
 
-## Project Structure
+
+
+### Technology Stack
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   User Interface                        │
+│          Panel + HoloViews + Matplotlib                 │
+├─────────────────────────────────────────────────────────┤
+│                   Python Layer                          │
+│    Configuration │ Simulation │ Visualization │ I/O     │
+├─────────────────────────────────────────────────────────┤
+│                   C/CUDA Backend                        │
+│   Lindblad Solver │ RK4 Integration │ GPU Kernels       │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+
+## 📁 Project Structure
 
 ```
 .
@@ -34,7 +159,6 @@ The simulator integrates CUDA for GPU-accelerated computations with Python for h
 │   ├── cuda/                  # Core CUDA source code for the simulation kernel
 │   │   ├── Makefile           # CUDA build configuration
 │   │   ├── bin/               # Compiled executables (generated)
-│   │   │   └── lindblad_gpu.exe
 │   │   ├── external/          # External dependencies (nlohmann JSON)
 │   │   ├── input/             # Configuration files
 │   │   │   └── run_config.json
@@ -56,11 +180,11 @@ The simulator integrates CUDA for GPU-accelerated computations with Python for h
 │   │   ├── app_class_interactive_interferogram_dynamics.py
 │   │   ├── app_class_interferogram_plot.py
 │   │   ├── app_class_simulation_parameters.py
-│   │   ├── config.py
-│   │   ├── cuda_runner.py
-│   │   ├── file_io.py
-│   │   ├── helpers.py
-│   │   ├── simulation.py
+│   │   ├── config.py          # Configuration utilities
+│   │   ├── cuda_runner.py     # CUDA execution wrapper
+│   │   ├── file_io.py         # Binary file I/O
+│   │   ├── helpers.py         # Platform detection & utilities
+│   │   ├── simulation.py      # Simulation orchestration
 │   │   └── deprecated/        # Legacy code versions
 │   └── launcher/              # Entry points for launching the application
 │       └── local_app_launcher.py
@@ -69,6 +193,7 @@ The simulator integrates CUDA for GPU-accelerated computations with Python for h
 │   ├── generate_dot_lead_dissipators_codes.py
 │   └── generate_eg_phi_dissipators_codes.py
 ├── docs/                      # Detailed documentation
+│   ├── images/                # image files used in documentation
 │   ├── ARCHITECTURE.md        # System design and technical decisions
 │   ├── CODE_OVERVIEW.md       # Source code structure breakdown
 │   └── API.md                 # Simulation parameters and configuration guide
@@ -81,11 +206,13 @@ The simulator integrates CUDA for GPU-accelerated computations with Python for h
 │   ├── check_nan_in_outpud_data.py
 │   ├── cuda_program_runner_json.py
 │   └── log_reader.py
+├── sandbox/                   # Programs in development; experiments.
 ├── run_in_colab.ipynb         # Google Colab notebook for easy cloud execution
 ├── README.md                  # This file
 ├── LICENSE                    # Project license (MIT)
 └── .gitignore                 # Git ignore rules
 ```
+
 
 ## Prerequisites
 
@@ -94,15 +221,14 @@ The simulator integrates CUDA for GPU-accelerated computations with Python for h
 - **NVIDIA GPU**: A CUDA-enabled GPU is required.
 - **CUDA Toolkit**: Version 11.0 or later. Ensure `nvcc` is in your system's PATH and verify with `nvcc --version`.
 - **Python**: Version 3.8 or higher.
-- **Build Tools**: `make` and `g++` (or an equivalent C++ compiler).
 
 ### Google Colab
 
 - A Google account with access to a GPU runtime (T4 or better recommended for performance).
 
-## How to Run
+## 🚀 How to Run
 
-### 1. Google Colab (Recommended)
+### 1. Google Colab (no installation required, recommended for first-time users)
 
 The easiest way to get started is by using the provided Google Colab notebook. Simply click the "Open in Colab" badge at the top of this README. The notebook contains all the necessary steps to set up the environment, compile the code, and launch the interactive dashboard.
 
@@ -116,7 +242,7 @@ The easiest way to get started is by using the provided Google Colab notebook. S
    - Compile the CUDA program using the Colab setup script
    - Launch the interactive dashboard
 
-3. Expected output: An interactive simulation environment with real-time visualization, timing benchmarks, and Lindblad evolution metrics.
+3. Expected output: An interactive simulation environment with real-time visualization.
 
 ### 2. Local Environment (Linux/WSL2/Windows)
 
@@ -160,29 +286,9 @@ panel serve app/launcher/local_app_launcher.py --show
 
 This will open the interactive dashboard in your default web browser.
 
-## Usage
 
-The simulation can be customized through the interactive dashboard or via command-line arguments:
 
-- **Grid size**: Set simulation grid dimensions
-- **Iterations**: Number of time steps for evolution
-- **Physical parameters**: Adjust detuning, coupling strength, decay rates
-- **Output format**: Save results to CSV or other formats
-
-Example command-line usage:
-```bash
-python scripts/run.py --grid-size 512 --iterations 5000 --output sim_results.csv
-```
-
-For debugging, set the `DEBUG=1` environment variable before running.
-
-## Performance Notes
-
-- **GPU Architecture**: Scripts use `deviceQuery` to auto-detect compute capability and set appropriate `-arch` flags for optimal compilation.
-- **Expected Speedup**: 10-100x speedup over CPU baselines for large grids, depending on GPU and problem size.
-- **Dependencies**: Includes NumPy, SciPy, Panel, HoloViews, and other scientific computing packages. See `app/requirements.txt` for the complete list.
-
-## Documentation
+## 📚 Documentation
 
 For a deeper understanding of the project, please refer to the detailed documentation:
 
@@ -190,11 +296,18 @@ For a deeper understanding of the project, please refer to the detailed document
 - **[Code Overview](./docs/CODE_OVERVIEW.md)**: A detailed breakdown of the source code structure.
 - **[API Reference](./docs/API.md)**: A guide to the simulation parameters and configurable options available in the dashboard.
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Citation
+
+## 📧 Contact & Support
+
+- **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/cuda_python_project/issues)
+- **Email:** [your-email@example.com]
+- **Paper:** [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)
+
+## 📄 Citation
 
 If you use this project in your research, please cite the following GitHub repository:
 
