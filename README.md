@@ -1,6 +1,6 @@
-# Quantum interferogram and dynamics simulator
+# Double quantum dot Landau-Zener-Stückelberg-Majorana (LZSM) interferogram and dynamics simulator
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Custom%20License-red.svg)](LICENSE)
 
 This project provides a high-performance interactive tool for simulating and visualizing quantum dynamics, and Landau-Zener-Stukelberg-Majorana (LZSM) interferograms of the open quantum system of double quantum dot. It leverages CUDA for GPU-accelerated solutions of the Lindblad master equation and a Python-based interactive dashboard for real-time parameter tuning and visualization.
 
@@ -10,9 +10,9 @@ The simulator solves the Lindblad master equation for the specific double quantu
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/cuda_python_project/blob/main/run_in_colab.ipynb)
 
-> Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard. No installation required. Click the badge to launch the interactive simulation environment directly in your browser (using Google Colab). You are only required to have Google account. The Google Colab notebook inlcudes the detailed description of all steps for launching the interactive simulation.
+> Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard. No installation required, you are only required to have Google account. Click the badge to launch the interactive simulation environment directly in your browser (using Google Colab). The Google Colab notebook inlcudes the detailed description of all steps for launching the interactive simulation.
 
-## Overview
+## ⚛️ Overview
 
 The Quantum interferogram and dynamics simulator is a research-grade computational tool designed to solve the **Lindblad master equation** for double quantum dot (DQD) system. It simulates dynamics and **Landau-Zener-Stückelberg-Majorana (LZSM) interference patterns** in semiconductor qubits, enabling researchers to:
 
@@ -26,7 +26,7 @@ The Quantum interferogram and dynamics simulator is a research-grade computation
 
 ---
 
-## 🎮 Interface. Interactive Dashboard
+## 🎛️ Interface. Interactive Dashboard
 
 ![Interface](docs/images/interface.png)
 
@@ -118,7 +118,7 @@ The simulator helps identify five distinct regimes:
 
 ---
 
-## Features
+## ⚙️ Features
 
 - **High-Performance Simulation**: GPU-accelerated CUDA backend for solving the Lindblad master equation using a 4th-order Runge-Kutta (RK4) method with custom kernels. It solves multiple Lindblad master equations (for different parameters of the driving signal) in parallel on GPU, which is around 1000x faster than solving them on CPU.
 - **Interactive Dashboard**: Real-time visualization with 500k+ parameter points. A web-based interface built with Python libraries Panel and HoloViews allows for real-time adjustment of physical parameters and immediate visualization of results.
@@ -214,7 +214,7 @@ The simulator helps identify five distinct regimes:
 ```
 
 
-## Prerequisites
+## 🧰 Prerequisites
 
 ### Local Setup (Linux/WSL2/Windows)
 
@@ -298,27 +298,10 @@ For a deeper understanding of the project, please refer to the detailed document
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
+See the [LICENSE](LICENSE) file for details.
 
 ## 📧 Contact & Support
 
 - **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/cuda_python_project/issues)
-- **Email:** [your-email@example.com]
+- **Email:** [artem.ryzhov.14@gmail.com]
 - **Paper:** [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)
-
-## 📄 Citation
-
-If you use this project in your research, please cite the following GitHub repository:
-
-```bibtex
-@misc{quantum-interferogram-simulator,
-  author = {Artem Ryzhov},
-  title = {Quantum Interferogram Dynamics Simulator},
-  year = {2025},
-  publisher = {GitHub},
-  url = {https://github.com/artem-ryzhov-1/cuda_python_project}
-}
-```
-
-Thank you for giving credit to this work. This helps support the project and acknowledge the effort that has gone into developing it.
