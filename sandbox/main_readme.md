@@ -1,6 +1,6 @@
 # Quantum Interferogram Dynamics Simulator
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/artem-ryzhov-1/cuda_python_project/actions) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Paper](https://img.shields.io/badge/paper-arXiv-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXXX)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/artem-ryzhov-1/dqd-lzsm-simulator/actions) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Paper](https://img.shields.io/badge/paper-arXiv-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXXX)
 
 A high-performance GPU-accelerated simulator for quantum dynamics in strongly driven multi-level systems, specifically designed for double quantum dot interferometry. This project enables real-time exploration of Landau-Zener-Stückelberg-Majorana (LZSM) interference patterns and provides an interactive platform for understanding and characterizing quantum control in semiconductor qubits.
 
@@ -8,7 +8,7 @@ A high-performance GPU-accelerated simulator for quantum dynamics in strongly dr
 
 ### Run in Google Colab (No Installation Required)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/cuda_python_project/blob/main/run_in_colab.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/dqd-lzsm-simulator/blob/main/run_in_colab.ipynb)
 
 Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard
 
@@ -19,8 +19,8 @@ Click the badge above → Enable GPU runtime → Run all cells → Interact with
 
 ```bash
 # Clone repository
-git clone https://github.com/artem-ryzhov-1/cuda_python_project.git
-cd cuda_python_project
+git clone https://github.com/artem-ryzhov-1/dqd-lzsm-simulator.git
+cd dqd-lzsm-simulator
 
 # Install dependencies
 pip install -r app/requirements.txt
@@ -265,7 +265,7 @@ If you use this software in your research, please cite:
   author = {Ryzhov, Artem I.},
   title = {Quantum Interferogram Dynamics Simulator},
   year = {2025},
-  url = {https://github.com/artem-ryzhov-1/cuda_python_project},
+  url = {https://github.com/artem-ryzhov-1/dqd-lzsm-simulator},
   doi = {10.5281/zenodo.XXXXX}
 }
 ```
@@ -274,7 +274,7 @@ If you use this software in your research, please cite:
 
 ## 📧 Contact & Support
 
-- **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/cuda_python_project/issues)
+- **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/dqd-lzsm-simulator/issues)
 - **Email:** [your-email@example.com]
 - **Paper:** [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)
 
@@ -330,4 +330,4 @@ We thank the experimental team from Ref. [1] for providing comparison data.
 
 ---
 
-**Ready to explore quantum dynamics?** → [Open in Colab](https://colab.research.google.com/github/artem-ryzhov-1/cuda_python_project/blob/main/run_in_colab.ipynb) or follow the [Installation Guide](docs/INSTALLATION.md)
+**Ready to explore quantum dynamics?** → [Open in Colab](https://colab.research.google.com/github/artem-ryzhov-1/dqd-lzsm-simulator/blob/main/run_in_colab.ipynb) or follow the [Installation Guide](docs/INSTALLATION.md)

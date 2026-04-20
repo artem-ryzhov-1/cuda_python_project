@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 #from tests.log_reader import read_log_binary
 
 
-PROJECT_ROOT = Path(r"C:\Users\E-Store\cuda_python_project")
+PROJECT_ROOT = Path(r"C:\Users\E-Store\dqd-lzsm-simulator")
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

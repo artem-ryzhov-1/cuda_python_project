@@ -8,7 +8,7 @@ The simulator solves the Lindblad master equation for the specific double quantu
 
 ## 🚀 Quick Start. Run in Google Colab
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/cuda_python_project/blob/main/run_in_colab.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/artem-ryzhov-1/dqd-lzsm-simulator/blob/main/run_in_colab.ipynb)
 
 > Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard. No installation required, you are only required to have Google account. Click the badge to launch the interactive simulation environment directly in your browser (using Google Colab). The Google Colab notebook inlcudes the detailed description of all steps for launching the interactive simulation.
 
@@ -249,8 +249,8 @@ The easiest way to get started is by using the provided Google Colab notebook. S
 **Step 1: Clone the Repository**
 
 ```bash
-git clone https://github.com/artem-ryzhov-1/cuda_python_project.git
-cd cuda_python_project
+git clone https://github.com/artem-ryzhov-1/dqd-lzsm-simulator.git
+cd dqd-lzsm-simulator
 ```
 
 **Step 2: Install Python Dependencies**
@@ -302,6 +302,6 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 📧 Contact & Support
 
-- **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/cuda_python_project/issues)
+- **Issues:** [GitHub Issues](https://github.com/artem-ryzhov-1/dqd-lzsm-simulator/issues)
 - **Email:** [artem.ryzhov.14@gmail.com]
 - **Paper:** [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)

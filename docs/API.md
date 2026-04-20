@@ -570,7 +570,7 @@ from app.python.app_class_interactive_interferogram_dynamics import (
 )
 
 dashboard = InteractiveInterferogramDynamics(
-    repo_path="/path/to/cuda_python_project",
+    repo_path="/path/to/dqd-lzsm-simulator",
     default_config=config
 )
 

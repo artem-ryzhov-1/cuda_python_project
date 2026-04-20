@@ -33,11 +33,11 @@ else:
 
 # Set the repo path based on platform
 if platform_type == 'colab_linux':
-    repo_path = Path('/content/cuda_python_project')  # Colab default path
+    repo_path = Path('/content/dqd-lzsm-simulator')  # Colab default path
 elif platform_type in ['local_linux', 'local_wsl2']:
-    repo_path = Path('~/cuda_python_project').expanduser()  # Shared path for WSL2 and Linux
+    repo_path = Path('~/dqd-lzsm-simulator').expanduser()  # Shared path for WSL2 and Linux
 elif platform_type == 'local_windows':
-    repo_path = Path(os.path.expandvars(r'%USERPROFILE%\cuda_python_project'))  # Windows local path
+    repo_path = Path(os.path.expandvars(r'%USERPROFILE%\dqd-lzsm-simulator'))  # Windows local path
 
 
 

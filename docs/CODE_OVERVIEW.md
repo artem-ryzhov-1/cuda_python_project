@@ -18,7 +18,7 @@ This document provides a detailed breakdown of the source code structure, explai
 ## Directory Structure
 
 ```
-cuda_python_project/
+dqd-lzsm-simulator/
 ├── app/                          # Core application
 │   ├── cuda/                     # CUDA simulation engine
 │   │   ├── src/                  # Source code
@@ -580,11 +580,11 @@ panel serve app/launcher/local_app_launcher.py --show
 **Platform-Specific Behavior**:
 ```python
 if platform == "windows":
-    repo_path = r"C:\path\to\cuda_python_project"
+    repo_path = r"C:\path\to\dqd-lzsm-simulator"
 elif platform == "wsl2":
-    repo_path = "/mnt/c/path/to/cuda_python_project"
+    repo_path = "/mnt/c/path/to/dqd-lzsm-simulator"
 elif platform == "colab":
-    repo_path = "/content/cuda_python_project"
+    repo_path = "/content/dqd-lzsm-simulator"
 ```
 
 ---

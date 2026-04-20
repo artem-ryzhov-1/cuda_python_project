@@ -38,7 +38,7 @@ If you use this project in your research, please cite the following GitHub repos
   title = {Quantum Interferogram Dynamics Simulator},
   year = {2025},
   publisher = {GitHub},
-  url = {https://github.com/artem-ryzhov-1/cuda_python_project}
+  url = {https://github.com/artem-ryzhov-1/dqd-lzsm-simulator}
 }
 ```
 
