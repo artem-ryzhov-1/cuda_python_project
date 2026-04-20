@@ -12,6 +12,12 @@ The simulator solves the Lindblad master equation for the specific double quantu
 
 > Click the badge above → Enable GPU runtime → Run all cells → Interact with the dashboard. No installation required, you are only required to have Google account. Click the badge to launch the interactive simulation environment directly in your browser (using Google Colab). The Google Colab notebook inlcudes the detailed description of all steps for launching the interactive simulation.
 
+## 🎬Run in Google Colab video
+
+The following video demonstrates the full launch procedure in Google Colab, including environment setup, GPU code compilation, and startup of the interactive dashboard.
+
+[▶ Dashboard Launch](docs/media/dashboard_launch.mp4)
+
 ## ⚛️ Overview
 
 The Quantum interferogram and dynamics simulator is a research-grade computational tool designed to solve the **Lindblad master equation** for double quantum dot (DQD) system. It simulates dynamics and **Landau-Zener-Stückelberg-Majorana (LZSM) interference patterns** in semiconductor qubits, enabling researchers to:
@@ -26,9 +32,17 @@ The Quantum interferogram and dynamics simulator is a research-grade computation
 
 ---
 
-## 🎛️ Interface. Interactive Dashboard
+## 🎛️ Interface. Interactive dashboard
 
-![Interface](docs/images/interface.png)
+![Interface](docs/media/interface.png)
+
+## 🎬 Interactive dashboard demonstration video
+
+This video provides a walkthrough of the interactive dashboard, highlighting real-time control of simulation parameters, interferogram visualization, and quantum state dynamics.
+
+[▶ Dashboard Demo](docs/media/dashboard_demo.mp4)
+
+---
 
 The web-based dashboard provides:
 
@@ -70,7 +84,7 @@ The simulator implements the theoretical framework described in the paper, allow
 
 One of the goals of the paper is to reproduce the experimental interferogram of the quantum capacitance
 
-![LZSM interferogram](docs/images/Chatterjee2018interferogram.png)
+![LZSM interferogram](docs/media/Chatterjee2018interferogram.png)
 
 from the paper
 
@@ -193,7 +207,7 @@ The simulator helps identify five distinct regimes:
 │   ├── generate_dot_lead_dissipators_codes.py
 │   └── generate_eg_phi_dissipators_codes.py
 ├── docs/                      # Detailed documentation
-│   ├── images/                # image files used in documentation
+│   ├── media/                 # image and video files used in documentation
 │   ├── ARCHITECTURE.md        # System design and technical decisions
 │   ├── CODE_OVERVIEW.md       # Source code structure breakdown
 │   └── API.md                 # Simulation parameters and configuration guide
